@@ -54,7 +54,7 @@ const FleetDeviceList = ({
   const entries = [...grouped.entries()].sort(([a], [b]) => a.localeCompare(b, "es"));
 
   return (
-    <div className="flex h-full min-h-0 w-full min-w-0 flex-col border-r border-border/80 bg-card">
+    <div className="flex h-full min-h-0 w-full min-w-0 flex-col bg-card">
       <div className="shrink-0 space-y-3 border-b border-border/60 p-3 sm:p-4">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />

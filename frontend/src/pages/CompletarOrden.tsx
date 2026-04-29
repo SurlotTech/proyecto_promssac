@@ -2,16 +2,19 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
+  ArrowRight,
+  Check,
   Info,
   MapPin,
   Package,
   Plus,
   TriangleAlert,
+  User,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -27,6 +30,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Stepper, Step } from "@/components/ui/stepper";
 import RouteDateRangePicker from "@/components/routes/RouteDateRangePicker";
 import { places, routePriorityMeta } from "@/data/routes";
 import { toast } from "sonner";
@@ -45,36 +49,6 @@ const selectTriggerClass =
 
 const fieldInputClass =
   "h-9 border-border/80 text-sm font-medium shadow-sm focus-visible:ring-2 focus-visible:ring-ring";
-
-function SectionTitle({ children }: { children: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-        {children}
-      </h2>
-      <Separator className="flex-1" />
-    </div>
-  );
-}
-
-function InfoHint({ text, label }: { text: string; label: string }) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <button
-          type="button"
-          className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-info hover:bg-info-soft"
-          aria-label={label}
-        >
-          <Info className="size-4" strokeWidth={2} />
-        </button>
-      </TooltipTrigger>
-      <TooltipContent side="top" className="max-w-[260px] text-xs leading-snug">
-        {text}
-      </TooltipContent>
-    </Tooltip>
-  );
-}
 
 const customFieldKeys = [
   "director",
@@ -98,10 +72,19 @@ const customFieldLabels: Record<(typeof customFieldKeys)[number], string> = {
 
 type RoutePriority = keyof typeof routePriorityMeta;
 
+const STEPS: Step[] = [
+  { id: "order", title: "Datos de orden", description: "ID, fecha, ruta" },
+  { id: "contact", title: "Contacto", description: "Nombre, teléfono" },
+  { id: "address", title: "Dirección", description: "Envío y mapa" },
+  { id: "custom", title: "Personalizados", description: "Campos extra" },
+];
+
 const CompletarOrden = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const [currentStep, setCurrentStep] = useState(0);
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [draft, setDraft] = useState<OrderCreationDraft | null>(null);
 
   const [deliveryFrom, setDeliveryFrom] = useState("");
@@ -128,7 +111,7 @@ const CompletarOrden = () => {
       Object.fromEntries(customFieldKeys.map((k) => [k, ""])) as Record<
         (typeof customFieldKeys)[number],
         string
-      >,
+      >
   );
 
   useEffect(() => {
@@ -154,24 +137,6 @@ const CompletarOrden = () => {
     navigate("/ordenes");
   };
 
-  const requiredOk =
-    Boolean(draft?.displayOrderId) &&
-    deliveryFrom &&
-    deliveryTo &&
-    mode &&
-    contactName.trim() &&
-    addressLine.trim();
-
-  const handleSave = () => {
-    if (!requiredOk) {
-      toast.error("Completa los campos obligatorios marcados con *.");
-      return;
-    }
-    clearOrderDraft();
-    toast.success(`Orden ${draft!.displayOrderId} guardada con los datos de contacto.`);
-    navigate("/ordenes", { replace: true });
-  };
-
   const handleGeocodeDemo = () => {
     const t = addressLine.trim();
     if (!t) {
@@ -181,10 +146,57 @@ const CompletarOrden = () => {
     setNormalizedAddress(
       t.length >= 8
         ? `${t} — dirección normalizada (demo)`
-        : "Dirección incompleta para geocodificar (demo).",
+        : "Dirección incompleta para geocodificar (demo)."
     );
     setLat("-12.0464");
     setLng("-77.0428");
+  };
+
+  const validateStep = (step: number): boolean => {
+    switch (step) {
+      case 0:
+        return Boolean(draft?.displayOrderId) && deliveryFrom && deliveryTo && mode;
+      case 1:
+        return Boolean(contactName.trim());
+      case 2:
+        return Boolean(addressLine.trim());
+      case 3:
+        return true;
+      default:
+        return false;
+    }
+  };
+
+  const canProceed = validateStep(currentStep);
+
+  const handleNext = () => {
+    if (!canProceed) {
+      const fieldNames = ["Datos de orden", "Datos de contacto", "Dirección"];
+      toast.error(`Completa los campos obligatorios de ${fieldNames[currentStep]}.`);
+      return;
+    }
+    if (!completedSteps.includes(currentStep)) {
+      setCompletedSteps((prev) => [...prev, currentStep]);
+    }
+    if (currentStep < STEPS.length - 1) {
+      setCurrentStep((prev) => prev + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentStep > 0) {
+      setCurrentStep((prev) => prev - 1);
+    }
+  };
+
+  const handleSave = () => {
+    if (!validateStep(0) || !validateStep(1) || !validateStep(2)) {
+      toast.error("Completa todos los pasos antes de guardar.");
+      return;
+    }
+    clearOrderDraft();
+    toast.success(`Orden ${draft!.displayOrderId} guardada con los datos de contacto.`);
+    navigate("/ordenes", { replace: true });
   };
 
   if (!draft) {
@@ -195,46 +207,11 @@ const CompletarOrden = () => {
     );
   }
 
-  return (
-    <div className="flex min-h-0 flex-1 flex-col bg-background">
-      <header className="sticky top-0 z-10 border-b border-border bg-card/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-card/80 sm:px-6">
-        <div className="mx-auto flex max-w-5xl items-start gap-3 sm:items-center">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9 shrink-0 rounded-lg text-foreground hover:bg-muted"
-            onClick={handleBack}
-            aria-label="Volver a órdenes"
-          >
-            <ArrowLeft className="h-4 w-4" strokeWidth={2} />
-          </Button>
-          <div className="min-w-0 flex-1">
-            <h1 className="text-lg font-semibold tracking-tight text-foreground sm:text-xl">
-              Completar datos de la orden
-            </h1>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              Rellena los detalles de la orden.{" "}
-              <span className="whitespace-nowrap">
-                <span className="font-semibold text-primary">*</span> Indica que el campo es obligatorio.
-              </span>
-            </p>
-          </div>
-        </div>
-      </header>
-
-      <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-5xl space-y-8 px-4 py-6 sm:px-6 sm:py-8">
-          {draft.routeLabel ? (
-            <p className="text-sm text-muted-foreground">
-              <span className="font-medium text-foreground">Ruta asignada:</span> {draft.routeLabel}
-            </p>
-          ) : null}
-
-          {/* Datos de la orden */}
-          <section className="space-y-4">
-            <SectionTitle>Datos de la orden</SectionTitle>
-
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 0:
+        return (
+          <div className="space-y-6">
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-end">
               <div className="space-y-1.5">
                 <Label htmlFor="co-order-id" className="text-xs text-muted-foreground">
@@ -310,11 +287,13 @@ const CompletarOrden = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent align="start">
-                    {(Object.keys(routePriorityMeta) as (keyof typeof routePriorityMeta)[]).map((k) => (
-                      <SelectItem key={k} value={k} className="text-sm">
-                        {routePriorityMeta[k].label}
-                      </SelectItem>
-                    ))}
+                    {(Object.keys(routePriorityMeta) as (keyof typeof routePriorityMeta)[]).map(
+                      (k) => (
+                        <SelectItem key={k} value={k} className="text-sm">
+                          {routePriorityMeta[k].label}
+                        </SelectItem>
+                      )
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -329,76 +308,85 @@ const CompletarOrden = () => {
               <Label htmlFor="co-cod" className="cursor-pointer text-sm font-medium text-foreground">
                 Pago contra entrega
               </Label>
-              <InfoHint
-                label="Información sobre pago contra entrega"
-                text="Indica si el receptor debe pagar el monto de la mercadería al momento de la entrega."
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-info hover:bg-info-soft"
+                    aria-label="Información sobre pago contra entrega"
+                  >
+                    <Info className="size-4" strokeWidth={2} />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-[240px] text-xs leading-snug">
+                  Indica si el receptor debe pagar el monto de la mercadería al momento de la entrega.
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </div>
+        );
+
+      case 1:
+        return (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="co-contact-name" className="text-xs text-muted-foreground">
+                Nombre del contacto <span className="text-primary">*</span>
+              </Label>
+              <Input
+                id="co-contact-name"
+                value={contactName}
+                onChange={(e) => setContactName(e.target.value)}
+                placeholder="Nombre completo"
+                className={fieldInputClass}
+                autoComplete="name"
               />
             </div>
-          </section>
-
-          {/* Datos de contacto */}
-          <section className="space-y-4">
-            <SectionTitle>Datos de contacto</SectionTitle>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="co-contact-name" className="text-xs text-muted-foreground">
-                  Nombre del contacto <span className="text-primary">*</span>
-                </Label>
-                <Input
-                  id="co-contact-name"
-                  value={contactName}
-                  onChange={(e) => setContactName(e.target.value)}
-                  placeholder="Nombre completo"
-                  className={fieldInputClass}
-                  autoComplete="name"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="co-phone" className="text-xs text-muted-foreground">
-                  Teléfono
-                </Label>
-                <Input
-                  id="co-phone"
-                  value={contactPhone}
-                  onChange={(e) => setContactPhone(e.target.value)}
-                  placeholder="+51 999 999 999"
-                  className={cn(fieldInputClass, "tabular-nums")}
-                  autoComplete="tel"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="co-identifier" className="text-xs text-muted-foreground">
-                  Identificador de contacto
-                </Label>
-                <Input
-                  id="co-identifier"
-                  value={contactIdentifier}
-                  onChange={(e) => setContactIdentifier(e.target.value)}
-                  placeholder="DNI, RUC u otro"
-                  className={fieldInputClass}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="co-email" className="text-xs text-muted-foreground">
-                  Correo electrónico
-                </Label>
-                <Input
-                  id="co-email"
-                  type="email"
-                  value={contactEmail}
-                  onChange={(e) => setContactEmail(e.target.value)}
-                  placeholder="correo@ejemplo.com"
-                  className={fieldInputClass}
-                  autoComplete="email"
-                />
-              </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="co-phone" className="text-xs text-muted-foreground">
+                Teléfono
+              </Label>
+              <Input
+                id="co-phone"
+                value={contactPhone}
+                onChange={(e) => setContactPhone(e.target.value)}
+                placeholder="+51 999 999 999"
+                className={cn(fieldInputClass, "tabular-nums")}
+                autoComplete="tel"
+              />
             </div>
-          </section>
+            <div className="space-y-1.5">
+              <Label htmlFor="co-identifier" className="text-xs text-muted-foreground">
+                Identificador de contacto
+              </Label>
+              <Input
+                id="co-identifier"
+                value={contactIdentifier}
+                onChange={(e) => setContactIdentifier(e.target.value)}
+                placeholder="DNI, RUC u otro"
+                className={fieldInputClass}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="co-email" className="text-xs text-muted-foreground">
+                Correo electrónico
+              </Label>
+              <Input
+                id="co-email"
+                type="email"
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
+                placeholder="correo@ejemplo.com"
+                className={fieldInputClass}
+                autoComplete="email"
+              />
+            </div>
+          </div>
+        );
 
-          {/* Dirección y mapa */}
-          <section className="space-y-4">
-            <SectionTitle>Dirección de envío</SectionTitle>
-
+      case 2:
+        return (
+          <div className="space-y-6">
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8">
               <div className="min-w-0 space-y-4">
                 <div className="space-y-1.5">
@@ -502,90 +490,209 @@ const CompletarOrden = () => {
                   </div>
                   <p className="text-sm font-medium text-foreground">Vista de mapa</p>
                   <p className="max-w-xs text-xs leading-relaxed text-muted-foreground">
-                    Aquí integrarías tu mapa (Leaflet, Mapbox, Google). En esta demo solo se simula la
-                    geocodificación con el botón o al salir del campo de dirección.
+                    Aquí integrarías tu mapa (Leaflet, Mapbox, Google). En esta demo solo se
+                    simula la geocodificación con el botón o al salir del campo de dirección.
                   </p>
                 </div>
               </div>
             </div>
 
-            {lowAddressConfidence ? (
-              <Alert
-                className="border-warning/50 bg-warning-soft/80 text-warning-foreground [&>svg]:text-warning"
-                variant="default"
-              >
+            {lowAddressConfidence && (
+              <Alert className="border-warning/50 bg-warning-soft/80 text-warning-foreground [&>svg]:text-warning">
                 <TriangleAlert className="size-4" aria-hidden />
                 <AlertTitle className="text-warning">Baja confiabilidad de la dirección</AlertTitle>
                 <AlertDescription className="text-sm text-foreground/90">
-                  Revisa los datos para mejorar la precisión. Puedes contactar al cliente para que corrija su
-                  dirección.
+                  Revisa los datos para mejorar la precisión. Puedes contactar al cliente para que
+                  corrija su dirección.
                 </AlertDescription>
               </Alert>
-            ) : null}
-          </section>
+            )}
+          </div>
+        );
 
-          {/* Campos personalizados */}
-          <section className="space-y-4">
-            <div className="flex items-center gap-2">
-              <h2 className="shrink-0 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Campos personalizados
-              </h2>
-              <InfoHint
-                label="Campos personalizados"
-                text="Campos adicionales definidos por tu operación (documentos, cajas, guías, etc.)."
-              />
-              <Separator className="min-w-[2rem] flex-1" />
-            </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {customFieldKeys.map((key) => (
-                <div key={key} className="space-y-1.5">
-                  <Label htmlFor={`cf-${key}`} className="text-xs text-muted-foreground">
-                    {customFieldLabels[key]}
-                  </Label>
-                  <Input
-                    id={`cf-${key}`}
-                    value={customFields[key]}
-                    onChange={(e) =>
-                      setCustomFields((prev) => ({ ...prev, [key]: e.target.value }))
-                    }
-                    className={fieldInputClass}
-                  />
-                </div>
-              ))}
-            </div>
-          </section>
+      case 3:
+        return (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {customFieldKeys.map((key) => (
+              <div key={key} className="space-y-1.5">
+                <Label htmlFor={`cf-${key}`} className="text-xs text-muted-foreground">
+                  {customFieldLabels[key]}
+                </Label>
+                <Input
+                  id={`cf-${key}`}
+                  value={customFields[key]}
+                  onChange={(e) =>
+                    setCustomFields((prev) => ({ ...prev, [key]: e.target.value }))
+                  }
+                  className={fieldInputClass}
+                />
+              </div>
+            ))}
+          </div>
+        );
 
-          {/* Acciones */}
+      default:
+        return null;
+    }
+  };
+
+  const getStepIcon = (step: number) => {
+    switch (step) {
+      case 0:
+        return <FileText className="size-4" />;
+      case 1:
+        return <User className="size-4" />;
+      case 2:
+        return <MapPin className="size-4" />;
+      case 3:
+        return <Package className="size-4" />;
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col bg-background">
+      <header className="sticky top-0 z-10 border-b border-border bg-card/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-card/80 sm:px-6">
+        <div className="mx-auto flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-start gap-3 sm:items-center">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 shrink-0 rounded-lg text-foreground hover:bg-muted"
+              onClick={handleBack}
+              aria-label="Volver a órdenes"
+            >
+              <ArrowLeft className="h-4 w-4" strokeWidth={2} />
+            </Button>
+            <div className="min-w-0">
+              <h1 className="text-lg font-semibold tracking-tight text-foreground sm:text-xl">
+                Completar datos de la orden
+              </h1>
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                {draft.routeLabel && (
+                  <span className="font-medium text-foreground mr-2">
+                    Ruta: {draft.routeLabel}
+                  </span>
+                )}
+                <span className="whitespace-nowrap">
+                  <span className="font-semibold text-primary">*</span> Obligatorio
+                </span>
+              </p>
+            </div>
+          </div>
+          <div className="w-full overflow-x-auto sm:w-auto sm:shrink-0">
+            <Stepper
+              steps={STEPS}
+              currentStep={currentStep}
+              onStepChange={setCurrentStep}
+              completedSteps={completedSteps}
+            />
+          </div>
+        </div>
+      </header>
+
+      <div className="flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-4xl space-y-8 px-4 py-6 sm:px-6 sm:py-8">
+          <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
+            <div className="mb-4 flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-soft text-primary">
+                {getStepIcon(currentStep)}
+              </div>
+              <h2 className="text-lg font-semibold text-foreground">{STEPS[currentStep].title}</h2>
+            </div>
+            {renderStepContent()}
+          </div>
+
           <div className="flex flex-col-reverse gap-3 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
-            <Button type="button" variant="outline" size="sm" className="h-10 w-full sm:w-auto" onClick={handleBack}>
-              Cancelar
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-10 w-full sm:w-auto"
+              onClick={currentStep === 0 ? handleBack : handlePrevious}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {currentStep === 0 ? "Cancelar" : "Anterior"}
             </Button>
             <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-10 w-full gap-2 border-primary/40 text-primary hover:bg-primary-soft sm:w-auto"
-                onClick={() => {
-                  const state: OrderProductsLocationState = {
-                    displayOrderId: draft.displayOrderId,
-                  };
-                  navigate("/ordenes/productos", { state });
-                }}
-              >
-                <Plus className="size-4 shrink-0" />
-                Agregar productos
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                className="h-10 w-full gap-2 bg-primary text-primary-foreground hover:bg-primary-hover sm:w-auto sm:min-w-[140px]"
-                onClick={handleSave}
-                disabled={!requiredOk}
-              >
-                <Package className="size-4 shrink-0" />
-                Guardar
-              </Button>
+              {currentStep < STEPS.length - 1 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-10 w-full gap-2 border-primary/40 text-primary hover:bg-primary-soft sm:w-auto"
+                  onClick={() => {
+                    if (!validateStep(currentStep)) {
+                      const fieldNames = ["Datos de orden", "Datos de contacto", "Dirección"];
+                      toast.error(
+                        `Completa los campos obligatorios de ${fieldNames[currentStep]}.`
+                      );
+                      return;
+                    }
+                    if (!completedSteps.includes(currentStep)) {
+                      setCompletedSteps((prev) => [...prev, currentStep]);
+                    }
+                    setCurrentStep((prev) => prev + 1);
+                  }}
+                >
+                  Siguiente
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              )}
+              {currentStep === STEPS.length - 1 && (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-10 w-full gap-2 border-primary/40 text-primary hover:bg-primary-soft sm:w-auto"
+                    onClick={() => {
+                      const state: OrderProductsLocationState = {
+                        displayOrderId: draft.displayOrderId,
+                      };
+                      navigate("/ordenes/productos", { state });
+                    }}
+                  >
+                    <Plus className="size-4 shrink-0" />
+                    Agregar productos
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-10 w-full gap-2 bg-primary text-primary-foreground hover:bg-primary-hover sm:w-auto sm:min-w-[140px]"
+                    onClick={handleSave}
+                    disabled={!validateStep(0) || !validateStep(1) || !validateStep(2)}
+                  >
+                    <Check className="mr-2 h-4 w-4" />
+                    Guardar
+                  </Button>
+                </>
+              )}
+              {currentStep < STEPS.length - 1 && (
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-10 w-full gap-2 bg-primary text-primary-foreground hover:bg-primary-hover sm:w-auto sm:min-w-[140px]"
+                  onClick={() => {
+                    if (!validateStep(currentStep)) {
+                      const fieldNames = ["Datos de orden", "Datos de contacto", "Dirección"];
+                      toast.error(
+                        `Completa los campos obligatorios de ${fieldNames[currentStep]}.`
+                      );
+                      return;
+                    }
+                    if (!completedSteps.includes(currentStep)) {
+                      setCompletedSteps((prev) => [...prev, currentStep]);
+                    }
+                    setCurrentStep((prev) => prev + 1);
+                  }}
+                >
+                  Siguiente
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              )}
             </div>
           </div>
         </div>

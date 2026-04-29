@@ -104,7 +104,7 @@ interface Props {
 
 const FleetMap = ({ devices, selectedId, onMarkerClick }: Props) => {
   return (
-    <div className="relative flex min-h-[280px] min-w-0 flex-1 flex-col bg-muted">
+    <div className="relative flex h-full min-h-[280px] min-w-0 flex-1 flex-col bg-muted">
       <MapContainer
         center={LIMA_CENTER}
         zoom={11}

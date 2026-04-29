@@ -55,11 +55,15 @@ const Flota = () => {
         subtitle="Ubicación referencial en mapa y listado de unidades. Datos demo hasta conectar APIs."
       />
 
-      <div className="flex min-h-[calc(100dvh-4rem)] min-h-0 flex-1 flex-col">
-        <FleetFilters filters={filters} onChange={setFilters} onApply={handleApplyFilters} />
-
-        <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-          <aside className="h-[min(42vh,360px)] w-full shrink-0 border-b border-border/80 lg:h-auto lg:w-[min(100%,400px)] lg:max-w-[40vw] lg:border-b-0 lg:border-r">
+      <div className="flex min-h-0 flex-1 flex-col lg:flex-row lg:items-stretch">
+        <aside className="flex min-h-0 w-full flex-col border-b border-border/80 lg:w-[min(100%,400px)] lg:max-w-[40vw] lg:shrink-0 lg:border-b-0 lg:border-r">
+          <FleetFilters
+            variant="sidebar"
+            filters={filters}
+            onChange={setFilters}
+            onApply={handleApplyFilters}
+          />
+          <div className="min-h-0 flex-1">
             <FleetDeviceList
               devices={filtered}
               search={search}
@@ -67,8 +71,10 @@ const Flota = () => {
               selectedId={selectedId}
               onSelectDevice={setSelectedId}
             />
-          </aside>
+          </div>
+        </aside>
 
+        <div className="relative flex min-h-[min(45vh,420px)] min-w-0 flex-1 flex-col lg:min-h-0">
           <FleetMap devices={filtered} selectedId={selectedId} onMarkerClick={setSelectedId} />
         </div>
       </div>

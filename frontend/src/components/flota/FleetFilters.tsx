@@ -20,24 +20,47 @@ export interface FleetViewFilters {
 }
 
 const pillTrigger =
-  "h-10 w-full min-w-0 rounded-xl border-border/70 bg-white px-3 text-sm shadow-none transition-colors hover:bg-zinc-50 focus:ring-2 focus:ring-ring focus:ring-offset-2 data-[state=open]:bg-zinc-50 md:h-9 md:w-auto md:min-w-[11rem] md:max-w-[min(100%,17rem)]";
+  "h-10 w-full min-w-0 rounded-xl border-border/70 bg-white px-3 text-sm shadow-none transition-colors hover:bg-zinc-50 focus:ring-2 focus:ring-ring focus:ring-offset-2 data-[state=open]:bg-zinc-50 md:h-9";
+
+const pillTriggerBar =
+  `${pillTrigger} md:min-w-[11rem] md:max-w-[min(100%,17rem)]`;
+
+const pillTriggerSidebar = `${pillTrigger} w-full`;
 
 interface Props {
   filters: FleetViewFilters;
   onChange: (next: FleetViewFilters) => void;
   onApply?: () => void;
+  /** "bar" = franja completa arriba; "sidebar" = columna estrecha junto al listado */
+  variant?: "bar" | "sidebar";
 }
 
-const FleetFilters = ({ filters, onChange, onApply }: Props) => {
+const FleetFilters = ({ filters, onChange, onApply, variant = "bar" }: Props) => {
+  const isSidebar = variant === "sidebar";
+  const pill = isSidebar ? pillTriggerSidebar : pillTriggerBar;
   const hasGroup = filters.groupId !== "all";
 
   const hasActive =
     filters.status !== "all" || filters.groupId !== "all";
 
   return (
-    <div className="flex flex-col gap-3 border-b border-border/80 bg-surface-muted/50 px-4 py-3 sm:px-6 lg:flex-row lg:flex-wrap lg:items-end lg:gap-x-4 lg:gap-y-3 lg:py-3.5">
-      <div className="grid min-w-0 flex-1 gap-3 sm:grid-cols-2 lg:grid-cols-[auto_auto_1fr] lg:items-end xl:grid-cols-none xl:flex xl:flex-wrap xl:gap-x-4">
-        <div className="min-w-0 space-y-1.5 lg:max-w-[min(100%,17rem)]">
+    <div
+      className={cn(
+        "flex flex-col gap-3 bg-surface-muted/50",
+        isSidebar
+          ? "border-b border-border/70 px-3 py-3 sm:px-4"
+          : "border-b border-border/80 px-4 py-3 sm:px-6 lg:flex-row lg:flex-wrap lg:items-end lg:gap-x-4 lg:gap-y-3 lg:py-3.5",
+      )}
+    >
+      <div
+        className={cn(
+          "grid min-w-0 gap-3",
+          isSidebar
+            ? "grid-cols-1"
+            : "flex-1 sm:grid-cols-2 lg:grid-cols-[auto_auto_1fr] lg:items-end xl:grid-cols-none xl:flex xl:flex-wrap xl:gap-x-4",
+        )}
+      >
+        <div className={cn("min-w-0 space-y-1.5", !isSidebar && "lg:max-w-[min(100%,17rem)]")}>
           <Label htmlFor="fleet-date" className="text-xs font-medium text-muted-foreground">
             Fecha
           </Label>
@@ -49,18 +72,19 @@ const FleetFilters = ({ filters, onChange, onApply }: Props) => {
             className={cn(
               "flex h-10 w-full min-w-0 rounded-xl border border-border/70 bg-white px-3 text-sm shadow-none outline-none transition-colors",
               "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-              "md:h-9 md:max-w-[min(100%,17rem)]",
+              !isSidebar && "md:h-9 md:max-w-[min(100%,17rem)]",
+              isSidebar && "md:h-9",
             )}
           />
         </div>
 
-        <div className="min-w-0 space-y-1.5 lg:max-w-[min(100%,17rem)]">
+        <div className={cn("min-w-0 space-y-1.5", !isSidebar && "lg:max-w-[min(100%,17rem)]")}>
           <Label className="text-xs font-medium text-muted-foreground">Estado</Label>
           <Select
             value={filters.status}
             onValueChange={(v) => onChange({ ...filters, status: v as FleetViewFilters["status"] })}
           >
-            <SelectTrigger className={pillTrigger}>
+            <SelectTrigger className={pill}>
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent>
@@ -74,14 +98,19 @@ const FleetFilters = ({ filters, onChange, onApply }: Props) => {
           </Select>
         </div>
 
-        <div className="relative min-w-0 space-y-1.5 sm:col-span-2 lg:col-span-1 lg:max-w-[min(100%,17rem)] xl:col-auto">
+        <div
+          className={cn(
+            "relative min-w-0 space-y-1.5 sm:col-span-2 lg:col-span-1 xl:col-auto",
+            !isSidebar && "lg:max-w-[min(100%,17rem)]",
+          )}
+        >
           <Label className="text-xs font-medium text-muted-foreground">Grupo</Label>
           <div className="relative">
             <Select
               value={filters.groupId}
               onValueChange={(v) => onChange({ ...filters, groupId: v })}
             >
-              <SelectTrigger className={cn(pillTrigger, hasGroup && "pr-9")}>
+              <SelectTrigger className={cn(pill, hasGroup && "pr-9")}>
                 <SelectValue placeholder="Todos los grupos" />
               </SelectTrigger>
               <SelectContent>
@@ -111,7 +140,13 @@ const FleetFilters = ({ filters, onChange, onApply }: Props) => {
         </div>
       </div>
 
-      <div className="flex shrink-0 flex-wrap items-center gap-2 lg:ml-auto">
+      <div
+        className={cn(
+          "flex shrink-0 flex-wrap items-center gap-2",
+          !isSidebar && "lg:ml-auto",
+          isSidebar && "pt-1",
+        )}
+      >
         <Button
           type="button"
           size="sm"
