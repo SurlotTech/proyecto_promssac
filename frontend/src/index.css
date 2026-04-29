@@ -146,4 +146,9 @@
     background: hsl(var(--border));
     border-radius: 999px;
   }
+
+  .leaflet-container .fleet-leaflet-marker {
+    background: transparent !important;
+    border: none !important;
+  }
 }

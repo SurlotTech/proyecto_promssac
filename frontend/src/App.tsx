@@ -3,10 +3,13 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Route as RouteIcon, Package, MapPin, Users } from "lucide-react";
+import { Users } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import Index from "./pages/Index.tsx";
 import Vehiculos from "./pages/Vehiculos.tsx";
+import Rutas from "./pages/Rutas.tsx";
+import Ordenes from "./pages/Ordenes.tsx";
+import Flota from "./pages/Flota.tsx";
 import Placeholder from "./pages/Placeholder.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
@@ -22,36 +25,9 @@ const App = () => (
           <Route element={<AppLayout />}>
             <Route path="/" element={<Index />} />
             <Route path="/vehiculos" element={<Vehiculos />} />
-            <Route
-              path="/rutas"
-              element={
-                <Placeholder
-                  title="Rutas"
-                  subtitle="Planifica y monitorea las rutas de entrega."
-                  icon={RouteIcon}
-                />
-              }
-            />
-            <Route
-              path="/ordenes"
-              element={
-                <Placeholder
-                  title="Órdenes"
-                  subtitle="Gestiona órdenes de entrega y su estado."
-                  icon={Package}
-                />
-              }
-            />
-            <Route
-              path="/flota"
-              element={
-                <Placeholder
-                  title="Flota en vivo"
-                  subtitle="Visualiza la ubicación de tus vehículos en tiempo real."
-                  icon={MapPin}
-                />
-              }
-            />
+            <Route path="/rutas" element={<Rutas />} />
+            <Route path="/ordenes" element={<Ordenes />} />
+            <Route path="/flota" element={<Flota />} />
             <Route
               path="/usuarios"
               element={

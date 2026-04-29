@@ -17,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
 interface Props {
@@ -28,14 +27,12 @@ interface Props {
 const NewVehicleDialog = ({ open, onOpenChange }: Props) => {
   const [plate, setPlate] = useState("");
   const [type, setType] = useState("");
-  const [autoManaged, setAutoManaged] = useState(false);
 
   const handleSave = () => {
     if (!plate || !type) return;
     toast.success(`Vehículo ${plate} creado correctamente`);
     setPlate("");
     setType("");
-    setAutoManaged(false);
     onOpenChange(false);
   };
 
@@ -62,36 +59,21 @@ const NewVehicleDialog = ({ open, onOpenChange }: Props) => {
             />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="grid gap-2">
-              <Label>Tipo de vehículo <span className="text-primary">*</span></Label>
-              <Select value={type} onValueChange={setType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Furgón">Furgón</SelectItem>
-                  <SelectItem value="Camión">Camión</SelectItem>
-                  <SelectItem value="Moto">Moto</SelectItem>
-                  <SelectItem value="Camioneta">Camioneta</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid gap-2">
-              <Label>Grupo</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Asignar grupo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Lima Norte">Lima Norte</SelectItem>
-                  <SelectItem value="Lima Sur">Lima Sur</SelectItem>
-                  <SelectItem value="Lima Centro">Lima Centro</SelectItem>
-                  <SelectItem value="Callao">Callao</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="grid gap-2">
+            <Label>
+              Tipo de vehículo <span className="text-primary">*</span>
+            </Label>
+            <Select value={type} onValueChange={setType}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Furgón">Furgón</SelectItem>
+                <SelectItem value="Camión">Camión</SelectItem>
+                <SelectItem value="Moto">Moto</SelectItem>
+                <SelectItem value="Camioneta">Camioneta</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid gap-2">
@@ -107,16 +89,6 @@ const NewVehicleDialog = ({ open, onOpenChange }: Props) => {
                 <SelectItem value="ms">María Sánchez</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-
-          <div className="flex items-center justify-between rounded-lg border border-border bg-surface-muted p-3">
-            <div>
-              <p className="text-sm font-medium text-foreground">Auto gestión</p>
-              <p className="text-xs text-muted-foreground">
-                Asignación automática de órdenes
-              </p>
-            </div>
-            <Switch checked={autoManaged} onCheckedChange={setAutoManaged} />
           </div>
         </div>
 

@@ -7,7 +7,7 @@ import {
 import { Vehicle } from "@/data/vehicles";
 import StatusBadge from "./StatusBadge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Gauge, MapPin, Pencil, Truck, User } from "lucide-react";
+import { Calendar, Gauge, Pencil, Truck, User } from "lucide-react";
 
 interface Props {
   vehicle: Vehicle | null;
@@ -20,7 +20,6 @@ const VehicleDetailDrawer = ({ vehicle, open, onOpenChange }: Props) => {
 
   const stats = [
     { label: "Capacidad", value: `${vehicle.capacityKg.toLocaleString()} kg`, icon: Gauge },
-    { label: "Grupo", value: vehicle.group, icon: MapPin },
     { label: "Último servicio", value: vehicle.lastService, icon: Calendar },
     { label: "Conductor", value: vehicle.driver ?? "Sin asignar", icon: User },
   ];
@@ -64,39 +63,12 @@ const VehicleDetailDrawer = ({ vehicle, open, onOpenChange }: Props) => {
             ))}
           </div>
 
-          {/* Carga */}
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Carga actual
-            </p>
-            <div className="rounded-lg border border-border bg-surface-muted p-4">
-              <div className="mb-2 flex items-end justify-between">
-                <span className="text-3xl font-bold text-foreground">{vehicle.loadPct}%</span>
-                <span className="text-xs text-muted-foreground">
-                  {Math.round((vehicle.capacityKg * vehicle.loadPct) / 100).toLocaleString()} / {vehicle.capacityKg.toLocaleString()} kg
-                </span>
-              </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                <div
-                  className="h-full rounded-full bg-gradient-primary transition-all"
-                  style={{ width: `${vehicle.loadPct}%` }}
-                />
-              </div>
-            </div>
-          </div>
-
           {/* Configuración */}
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Configuración
             </p>
             <div className="space-y-2 rounded-lg border border-border bg-surface-muted p-4 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Auto gestión</span>
-                <span className="font-medium text-foreground">
-                  {vehicle.autoManaged ? "Activada" : "Desactivada"}
-                </span>
-              </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Creado</span>
                 <span className="font-medium text-foreground">{vehicle.createdAt}</span>

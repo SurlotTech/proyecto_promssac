@@ -1,7 +1,6 @@
 import { Truck, Bike, Package, Car, ChevronRight } from "lucide-react";
 import { Vehicle, VehicleType } from "@/data/vehicles";
 import StatusBadge from "./StatusBadge";
-import { cn } from "@/lib/utils";
 
 const typeIcon: Record<VehicleType, typeof Truck> = {
   Furgón: Truck,
@@ -24,7 +23,7 @@ const VehicleCard = ({ v, onClick }: { v: Vehicle; onClick: () => void }) => {
           </div>
           <div>
             <p className="font-semibold text-foreground">{v.plate}</p>
-            <p className="text-xs text-muted-foreground">{v.type} · {v.group}</p>
+            <p className="text-xs text-muted-foreground">{v.type}</p>
           </div>
         </div>
         <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
@@ -35,22 +34,6 @@ const VehicleCard = ({ v, onClick }: { v: Vehicle; onClick: () => void }) => {
         <span className="text-xs text-muted-foreground">
           {v.driver ?? "Sin asignar"}
         </span>
-      </div>
-
-      <div className="mt-3">
-        <div className="mb-1 flex items-center justify-between text-[11px] text-muted-foreground">
-          <span>Carga actual</span>
-          <span className="font-medium">{v.loadPct}%</span>
-        </div>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-          <div
-            className={cn(
-              "h-full rounded-full transition-all",
-              v.loadPct >= 80 ? "bg-primary" : v.loadPct >= 50 ? "bg-warning" : "bg-success"
-            )}
-            style={{ width: `${v.loadPct}%` }}
-          />
-        </div>
       </div>
     </button>
   );

@@ -1,5 +1,17 @@
-import { useMemo, useState } from "react";
-import { Download, LayoutGrid, List, Plus, Truck, Upload, Wrench, CheckCircle2, MapPin } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  LayoutGrid,
+  List,
+  Plus,
+  Truck,
+  Upload,
+  Wrench,
+  CheckCircle2,
+  MapPin,
+} from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import StatCard from "@/components/StatCard";
 import VehicleFilters, { Filters } from "@/components/vehicles/VehicleFilters";
@@ -11,17 +23,33 @@ import { vehicles as allVehicles, Vehicle } from "@/data/vehicles";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+/** Ítems de paginación: números o elipsis si hay muchas páginas */
+function paginationItems(current: number, total: number): (number | "ellipsis")[] {
+  if (total <= 9) return Array.from({ length: total }, (_, i) => i + 1);
+  const set = new Set<number>([1, total, current, current - 1, current + 1]);
+  const sorted = [...set].filter((p) => p >= 1 && p <= total).sort((a, b) => a - b);
+  const out: (number | "ellipsis")[] = [];
+  for (let i = 0; i < sorted.length; i++) {
+    if (i > 0 && sorted[i] - sorted[i - 1] > 1) out.push("ellipsis");
+    out.push(sorted[i]);
+  }
+  return out;
+}
+
+/** Filas por página (lista filtrada). */
+const PAGE_SIZE = 8;
+
 const Vehiculos = () => {
   const [filters, setFilters] = useState<Filters>({
     search: "",
     type: "all",
     status: "all",
-    group: "all",
   });
   const [view, setView] = useState<"table" | "grid">("table");
   const [selected, setSelected] = useState<Vehicle | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [page, setPage] = useState(1);
 
   const filtered = useMemo(() => {
     return allVehicles.filter((v) => {
@@ -32,10 +60,26 @@ const Vehiculos = () => {
         (v.driver ?? "").toLowerCase().includes(s);
       const matchType = filters.type === "all" || v.type === filters.type;
       const matchStatus = filters.status === "all" || v.status === filters.status;
-      const matchGroup = filters.group === "all" || v.group === filters.group;
-      return matchSearch && matchType && matchStatus && matchGroup;
+      return matchSearch && matchType && matchStatus;
     });
   }, [filters]);
+
+  const totalFiltered = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filtered.slice(start, start + PAGE_SIZE);
+  }, [filtered, currentPage]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [filters]);
+
+  useEffect(() => {
+    setPage((p) => Math.min(p, totalPages));
+  }, [totalPages]);
 
   const stats = useMemo(() => {
     const total = allVehicles.length;
@@ -105,92 +149,165 @@ const Vehiculos = () => {
           />
         </div>
 
-        {/* Filtros */}
+        {/* Filtros + vista tabla/tarjetas (misma fila desde sm) */}
         <VehicleFilters
           filters={filters}
           onChange={setFilters}
           onReset={() =>
-            setFilters({ search: "", type: "all", status: "all", group: "all" })
+            setFilters({ search: "", type: "all", status: "all" })
+          }
+          toolbarRight={
+            <div className="hidden shrink-0 items-center gap-1 rounded-lg border border-border/70 bg-white p-1 sm:inline-flex">
+              <button
+                type="button"
+                onClick={() => setView("table")}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                  view === "table"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                )}
+              >
+                <List className="size-4 shrink-0" /> Tabla
+              </button>
+              <button
+                type="button"
+                onClick={() => setView("grid")}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                  view === "grid"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                )}
+              >
+                <LayoutGrid className="size-4 shrink-0" /> Tarjetas
+              </button>
+            </div>
           }
         />
 
-        {/* Toolbar de vista */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm text-muted-foreground">
-            Mostrando{" "}
-            <span className="font-semibold text-foreground">{filtered.length}</span>{" "}
-            de{" "}
-            <span className="font-semibold text-foreground">{allVehicles.length}</span>{" "}
-            vehículos
-          </p>
-          <div className="hidden items-center gap-1 rounded-lg border border-border bg-card p-1 sm:inline-flex">
-            <button
-              onClick={() => setView("table")}
-              className={cn(
-                "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
-                view === "table"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <List className="h-3.5 w-3.5" /> Tabla
-            </button>
-            <button
-              onClick={() => setView("grid")}
-              className={cn(
-                "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
-                view === "grid"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <LayoutGrid className="h-3.5 w-3.5" /> Tarjetas
-            </button>
-          </div>
-        </div>
-
         {/* Contenido */}
-        {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card py-16 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-              <Truck className="h-8 w-8 text-muted-foreground" />
+        <>
+          {filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card py-16 text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                <Truck className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <p className="mt-4 text-base font-semibold text-foreground">
+                No se encontraron vehículos
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Ajusta los filtros o crea un nuevo vehículo.
+              </p>
+              <Button
+                onClick={() => setCreateOpen(true)}
+                className="mt-4 bg-primary hover:bg-primary-hover"
+              >
+                <Plus className="mr-2 h-4 w-4" /> Nuevo vehículo
+              </Button>
             </div>
-            <p className="mt-4 text-base font-semibold text-foreground">
-              No se encontraron vehículos
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Ajusta los filtros o crea un nuevo vehículo.
-            </p>
-            <Button
-              onClick={() => setCreateOpen(true)}
-              className="mt-4 bg-primary hover:bg-primary-hover"
-            >
-              <Plus className="mr-2 h-4 w-4" /> Nuevo vehículo
-            </Button>
-          </div>
-        ) : (
-          <>
-            {/* Mobile: siempre tarjetas */}
-            <div className="grid grid-cols-1 gap-3 sm:hidden">
-              {filtered.map((v) => (
-                <VehicleCard key={v.id} v={v} onClick={() => openDetail(v)} />
-              ))}
-            </div>
+          ) : (
+            <>
+              {/* Mobile: siempre tarjetas */}
+              <div className="grid grid-cols-1 gap-3 sm:hidden">
+                {paginated.map((v) => (
+                  <VehicleCard key={v.id} v={v} onClick={() => openDetail(v)} />
+                ))}
+              </div>
 
-            {/* Desktop: según vista */}
-            <div className="hidden sm:block">
-              {view === "table" ? (
-                <VehicleTable vehicles={filtered} onSelect={openDetail} />
-              ) : (
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                  {filtered.map((v) => (
-                    <VehicleCard key={v.id} v={v} onClick={() => openDetail(v)} />
-                  ))}
-                </div>
-              )}
-            </div>
-          </>
-        )}
+              {/* Desktop: según vista */}
+              <div className="hidden sm:block">
+                {view === "table" ? (
+                  <VehicleTable vehicles={paginated} onSelect={openDetail} />
+                ) : (
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    {paginated.map((v) => (
+                      <VehicleCard key={v.id} v={v} onClick={() => openDetail(v)} />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-muted-foreground">
+                  Mostrando{" "}
+                  <span className="font-semibold text-foreground">
+                    {(currentPage - 1) * PAGE_SIZE + 1}
+                  </span>
+                  –
+                  <span className="font-semibold text-foreground">
+                    {Math.min(currentPage * PAGE_SIZE, totalFiltered)}
+                  </span>{" "}
+                  de{" "}
+                  <span className="font-semibold text-foreground">{totalFiltered}</span> vehículos
+                </p>
+
+                <nav
+                  className="flex flex-wrap items-center justify-end gap-2"
+                  aria-label="Paginación de vehículos"
+                >
+                  <button
+                    type="button"
+                    disabled={currentPage <= 1}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    aria-label="Página anterior"
+                    className={cn(
+                      "flex size-9 shrink-0 items-center justify-center rounded-full border-2 bg-white transition-colors",
+                      currentPage <= 1
+                        ? "cursor-not-allowed border-primary/25 text-primary/35"
+                        : "border-primary text-primary hover:bg-primary-soft",
+                    )}
+                  >
+                    <ChevronLeft className="size-4" strokeWidth={2.25} />
+                  </button>
+
+                  {paginationItems(currentPage, totalPages).map((item, idx) =>
+                    item === "ellipsis" ? (
+                      <span
+                        key={`e-${idx}`}
+                        className="flex size-9 shrink-0 items-center justify-center text-sm font-medium text-muted-foreground"
+                        aria-hidden
+                      >
+                        …
+                      </span>
+                    ) : (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => setPage(item)}
+                        aria-label={`Ir a página ${item}`}
+                        aria-current={currentPage === item ? "page" : undefined}
+                        className={cn(
+                          "flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition-colors",
+                          currentPage === item
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "border-2 border-primary bg-white text-foreground hover:bg-primary-soft",
+                        )}
+                      >
+                        {item}
+                      </button>
+                    ),
+                  )}
+
+                  <button
+                    type="button"
+                    disabled={currentPage >= totalPages}
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    aria-label="Página siguiente"
+                    className={cn(
+                      "flex size-9 shrink-0 items-center justify-center rounded-full border-2 bg-white transition-colors",
+                      currentPage >= totalPages
+                        ? "cursor-not-allowed border-primary/25 text-primary/35"
+                        : "border-primary text-primary hover:bg-primary-soft",
+                    )}
+                  >
+                    <ChevronRight className="size-4" strokeWidth={2.25} />
+                  </button>
+                </nav>
+              </div>
+            </>
+          )}
+        </>
       </div>
 
       <VehicleDetailDrawer
