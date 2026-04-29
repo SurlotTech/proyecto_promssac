@@ -16,6 +16,7 @@ import OrderFilters, {
   OrderFiltersState,
 } from "@/components/orders/OrderFilters";
 import OrderTable from "@/components/orders/OrderTable";
+import NewOrderDialog from "@/components/orders/NewOrderDialog";
 import { Button } from "@/components/ui/button";
 import {
   orders as allOrders,
@@ -23,6 +24,7 @@ import {
   orderSubstatusOptions,
   vehiclePlatesInOrders,
 } from "@/data/orders";
+import { routes as routeCatalog } from "@/data/routes";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -72,6 +74,16 @@ const Ordenes = () => {
   const [filters, setFilters] = useState<OrderFiltersState>(defaultOrderFilters);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [page, setPage] = useState(1);
+  const [createOrderOpen, setCreateOrderOpen] = useState(false);
+
+  const orderRouteOptions = useMemo(
+    () =>
+      routeCatalog.map((r) => ({
+        id: r.id,
+        label: `${r.id} — ${r.name}`,
+      })),
+    [],
+  );
 
   useEffect(() => {
     setSelectedIds(new Set());
@@ -128,7 +140,7 @@ const Ordenes = () => {
             size="sm"
             type="button"
             className="h-9 gap-2 bg-primary shadow-glow hover:bg-primary-hover"
-            onClick={() => toast.info("Próximamente: alta de orden desde formulario.")}
+            onClick={() => setCreateOrderOpen(true)}
           >
             <Plus className="size-4 shrink-0" />
             <span className="hidden sm:inline">Nueva orden</span>
@@ -257,6 +269,12 @@ const Ordenes = () => {
           </>
         )}
       </div>
+
+      <NewOrderDialog
+        open={createOrderOpen}
+        onOpenChange={setCreateOrderOpen}
+        routeOptions={orderRouteOptions}
+      />
     </div>
   );
 };

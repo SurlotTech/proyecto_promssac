@@ -9,6 +9,8 @@ import Index from "./pages/Index.tsx";
 import Vehiculos from "./pages/Vehiculos.tsx";
 import Rutas from "./pages/Rutas.tsx";
 import Ordenes from "./pages/Ordenes.tsx";
+import CompletarOrden from "./pages/CompletarOrden.tsx";
+import OrdenProductos from "./pages/OrdenProductos.tsx";
 import Flota from "./pages/Flota.tsx";
 import Placeholder from "./pages/Placeholder.tsx";
 import NotFound from "./pages/NotFound.tsx";
@@ -27,6 +29,8 @@ const App = () => (
             <Route path="/vehiculos" element={<Vehiculos />} />
             <Route path="/rutas" element={<Rutas />} />
             <Route path="/ordenes" element={<Ordenes />} />
+            <Route path="/ordenes/completar" element={<CompletarOrden />} />
+            <Route path="/ordenes/productos" element={<OrdenProductos />} />
             <Route path="/flota" element={<Flota />} />
             <Route
               path="/usuarios"

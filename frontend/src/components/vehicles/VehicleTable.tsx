@@ -1,6 +1,7 @@
 import { MoreHorizontal, Eye, Pencil, Trash2 } from "lucide-react";
 import { Vehicle } from "@/data/vehicles";
 import StatusBadge from "./StatusBadge";
+import { vehicleTypeIcon } from "./vehicleTypeIcon";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,18 +30,25 @@ const VehicleTable = ({ vehicles, onSelect }: Props) => {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {vehicles.map((v) => (
+            {vehicles.map((v) => {
+              const TypeIcon = vehicleTypeIcon[v.type];
+              return (
                 <tr
                   key={v.id}
                   onClick={() => onSelect(v)}
                   className="group cursor-pointer transition-colors hover:bg-surface-muted"
                 >
                   <td className="px-5 py-4">
-                    <div>
-                      <p className="font-semibold text-foreground">{v.plate}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {v.capacityKg.toLocaleString()} kg cap.
-                      </p>
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
+                        <TypeIcon className="h-5 w-5" aria-hidden />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-foreground">{v.plate}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {v.capacityKg.toLocaleString()} kg cap.
+                        </p>
+                      </div>
                     </div>
                   </td>
                   <td className="px-5 py-4 text-foreground">{v.type}</td>
@@ -70,7 +78,8 @@ const VehicleTable = ({ vehicles, onSelect }: Props) => {
                     </DropdownMenu>
                   </td>
                 </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>

@@ -1,16 +1,10 @@
-import { Truck, Bike, Package, Car, ChevronRight } from "lucide-react";
-import { Vehicle, VehicleType } from "@/data/vehicles";
+import { ChevronRight } from "lucide-react";
+import { Vehicle } from "@/data/vehicles";
 import StatusBadge from "./StatusBadge";
-
-const typeIcon: Record<VehicleType, typeof Truck> = {
-  Furgón: Truck,
-  Camión: Package,
-  Moto: Bike,
-  Camioneta: Car,
-};
+import { vehicleTypeIcon } from "./vehicleTypeIcon";
 
 const VehicleCard = ({ v, onClick }: { v: Vehicle; onClick: () => void }) => {
-  const Icon = typeIcon[v.type];
+  const Icon = vehicleTypeIcon[v.type];
   return (
     <button
       onClick={onClick}
