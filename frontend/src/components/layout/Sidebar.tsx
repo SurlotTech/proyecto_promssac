@@ -119,16 +119,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
           </ul>
         </nav>
 
-        {/* Card pro */}
-        <div className="m-3 rounded-xl bg-sidebar-accent p-4">
-          <p className="text-xs font-semibold text-white">Plan Empresa</p>
-          <p className="mt-1 text-[11px] text-sidebar-foreground/70">
-            12 vehículos · 8 conductores activos
-          </p>
-          <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-black/30">
-            <div className="h-full w-3/4 rounded-full bg-gradient-primary" />
-          </div>
-        </div>
+
       </aside>
     </>
   );

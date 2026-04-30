@@ -98,46 +98,7 @@ const FleetFilters = ({ filters, onChange, onApply, variant = "bar" }: Props) =>
           </Select>
         </div>
 
-        <div
-          className={cn(
-            "relative min-w-0 space-y-1.5 sm:col-span-2 lg:col-span-1 xl:col-auto",
-            !isSidebar && "lg:max-w-[min(100%,17rem)]",
-          )}
-        >
-          <Label className="text-xs font-medium text-muted-foreground">Grupo</Label>
-          <div className="relative">
-            <Select
-              value={filters.groupId}
-              onValueChange={(v) => onChange({ ...filters, groupId: v })}
-            >
-              <SelectTrigger className={cn(pill, hasGroup && "pr-9")}>
-                <SelectValue placeholder="Todos los grupos" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los grupos</SelectItem>
-                {fleetGroups.map((g) => (
-                  <SelectItem key={g.id} value={g.id}>
-                    {g.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {hasGroup ? (
-              <button
-                type="button"
-                className="absolute right-2 top-1/2 z-[1] flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
-                aria-label="Quitar filtro de grupo"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onChange({ ...filters, groupId: "all" });
-                }}
-              >
-                <X className="size-4" />
-              </button>
-            ) : null}
-          </div>
-        </div>
+
       </div>
 
       <div

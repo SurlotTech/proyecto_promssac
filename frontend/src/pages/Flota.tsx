@@ -50,10 +50,10 @@ const Flota = () => {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-background">
-      <PageHeader
+      {/*<PageHeader
         title="Flota en vivo"
         subtitle="Ubicación referencial en mapa y listado de unidades. Datos demo hasta conectar APIs."
-      />
+      />*/}
 
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row lg:items-stretch">
         <aside className="flex min-h-0 w-full flex-col border-b border-border/80 lg:w-[min(100%,400px)] lg:max-w-[40vw] lg:shrink-0 lg:border-b-0 lg:border-r">
