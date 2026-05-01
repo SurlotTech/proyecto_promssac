@@ -14,14 +14,16 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-
-type VehicleOption = { id: string; plate: string };
+import type { MobileUserRouteOption } from "@/domain/mobileUsers";
+import { mobileUserRouteSelectLabel } from "@/domain/mobileUsers";
+import type { VehicleOption } from "@/domain/vehicles";
+import { vehicleRouteSelectLabel } from "@/domain/vehicles";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   vehicles: VehicleOption[];
-  drivers: string[];
+  mobileUsers: MobileUserRouteOption[];
 }
 
 /** Select compacto: texto elegido en semibold; placeholder más suave */
@@ -35,7 +37,7 @@ const dispatchInputClass =
 function emptyForm() {
   return {
     routeName: "",
-    mobileUser: "",
+    mobileUserId: "",
     vehicleId: "",
     dispatchDate: "",
     startTime: "",
@@ -45,7 +47,17 @@ function emptyForm() {
   };
 }
 
-const NewRouteDialog = ({ open, onOpenChange, vehicles, drivers }: Props) => {
+function resolveVehicleIdForMobile(
+  mobileId: string,
+  mobileUsers: MobileUserRouteOption[],
+  vehicles: VehicleOption[],
+): string {
+  const u = mobileUsers.find((m) => m.id === mobileId);
+  if (!u?.vehiculoId) return "";
+  return vehicles.some((v) => v.id === u.vehiculoId) ? u.vehiculoId : "";
+}
+
+const NewRouteDialog = ({ open, onOpenChange, vehicles, mobileUsers }: Props) => {
   const [form, setForm] = useState(emptyForm);
 
   useEffect(() => {
@@ -56,10 +68,19 @@ const NewRouteDialog = ({ open, onOpenChange, vehicles, drivers }: Props) => {
 
   const requiredOk =
     form.routeName.trim() &&
-    form.mobileUser &&
+    form.mobileUserId &&
     form.vehicleId &&
     form.dispatchDate &&
     form.startTime;
+
+  const handleMobileChange = (mobileId: string) => {
+    const vehicleId = resolveVehicleIdForMobile(mobileId, mobileUsers, vehicles);
+    setForm((f) => ({
+      ...f,
+      mobileUserId: mobileId,
+      vehicleId,
+    }));
+  };
 
   const handleSave = () => {
     if (!requiredOk) {
@@ -126,42 +147,47 @@ const NewRouteDialog = ({ open, onOpenChange, vehicles, drivers }: Props) => {
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground">
-                    Usuario móvil <span className="text-primary">*</span>
+                    Usuario móvil (conductor) <span className="text-primary">*</span>
                   </Label>
-                  <Select
-                    value={form.mobileUser || undefined}
-                    onValueChange={(v) => setForm((f) => ({ ...f, mobileUser: v }))}
-                  >
+                  <Select value={form.mobileUserId || undefined} onValueChange={handleMobileChange}>
                     <SelectTrigger className={selectTriggerClass}>
                       <SelectValue placeholder="Seleccionar conductor" />
                     </SelectTrigger>
-                    <SelectContent align="start">
-                      {drivers.map((d) => (
-                        <SelectItem key={d} value={d} className="text-sm">
-                          {d}
-                        </SelectItem>
-                      ))}
+                    <SelectContent align="start" className="max-h-[min(50vh,280px)]">
+                      {mobileUsers.length === 0 ? (
+                        <div className="px-2 py-3 text-xs text-muted-foreground">No hay usuarios móviles activos.</div>
+                      ) : (
+                        mobileUsers.map((u) => (
+                          <SelectItem key={u.id} value={u.id} className="text-sm" title={u.nombreCompleto}>
+                            {mobileUserRouteSelectLabel(u)}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground">
-                    Vehículo <span className="text-primary">*</span>
+                    Vehículo (placa y tipo) <span className="text-primary">*</span>
                   </Label>
                   <Select
                     value={form.vehicleId || undefined}
                     onValueChange={(v) => setForm((f) => ({ ...f, vehicleId: v }))}
                   >
                     <SelectTrigger className={selectTriggerClass}>
-                      <SelectValue placeholder="Seleccionar unidad" />
+                      <SelectValue placeholder="Seleccionar placa y tipo" />
                     </SelectTrigger>
-                    <SelectContent align="start">
-                      {vehicles.map((v) => (
-                        <SelectItem key={v.id} value={v.id} className="text-sm font-medium">
-                          {v.plate}
-                        </SelectItem>
-                      ))}
+                    <SelectContent align="start" className="max-h-[min(50vh,280px)]">
+                      {vehicles.length === 0 ? (
+                        <div className="px-2 py-3 text-xs text-muted-foreground">No hay vehículos cargados.</div>
+                      ) : (
+                        vehicles.map((v) => (
+                          <SelectItem key={v.id} value={v.id} className="text-sm" title={vehicleRouteSelectLabel(v)}>
+                            {vehicleRouteSelectLabel(v)}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>

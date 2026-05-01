@@ -27,10 +27,12 @@ interface Props {
   onCreated?: () => void;
 }
 
+/** El API exige `group` no vacío; no se muestra en UI. */
+const DEFAULT_VEHICLE_GROUP = "General";
+
 const NewVehicleDialog = ({ open, onOpenChange, onCreated }: Props) => {
   const [plate, setPlate] = useState("");
   const [type, setType] = useState("");
-  const [group, setGroup] = useState("Lima Norte");
   const [driver, setDriver] = useState("");
   const [status, setStatus] = useState<VehicleStatus>("active");
   const [saving, setSaving] = useState(false);
@@ -38,7 +40,6 @@ const NewVehicleDialog = ({ open, onOpenChange, onCreated }: Props) => {
   const reset = () => {
     setPlate("");
     setType("");
-    setGroup("Lima Norte");
     setDriver("");
     setStatus("active");
   };
@@ -50,7 +51,7 @@ const NewVehicleDialog = ({ open, onOpenChange, onCreated }: Props) => {
       await vehiclesApi.create({
         plate: plate.trim().toUpperCase(),
         type,
-        group,
+        group: DEFAULT_VEHICLE_GROUP,
         driver: driver.trim() === "" ? null : driver.trim(),
         status,
         capacityKg: 1200,
@@ -114,23 +115,6 @@ const NewVehicleDialog = ({ open, onOpenChange, onCreated }: Props) => {
                 </SelectContent>
               </Select>
             </div>
-          </div>
-
-          <div className="grid gap-2">
-            <Label>Grupo operativo</Label>
-            <Select value={group} onValueChange={setGroup}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Lima Norte">Lima Norte</SelectItem>
-                <SelectItem value="Lima Sur">Lima Sur</SelectItem>
-                <SelectItem value="Lima Centro">Lima Centro</SelectItem>
-                <SelectItem value="Callao">Callao</SelectItem>
-                <SelectItem value="Lima Este">Lima Este</SelectItem>
-                <SelectItem value="Lima Oeste">Lima Oeste</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
 
           <div className="grid gap-2">

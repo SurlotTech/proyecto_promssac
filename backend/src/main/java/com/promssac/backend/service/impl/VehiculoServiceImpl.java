@@ -3,7 +3,7 @@ package com.promssac.backend.service.impl;
 import com.promssac.backend.exception.BusinessException;
 import com.promssac.backend.exception.ResourceNotFoundException;
 import com.promssac.backend.model.dto.request.VehicleWriteRequest;
-import com.promssac.backend.model.dto.request.VehiculoRequest;
+import com.promssac.backend.model.dto.response.VehicleOptionResponse;
 import com.promssac.backend.model.dto.response.VehicleResponse;
 import com.promssac.backend.model.entity.Vehiculo;
 import com.promssac.backend.model.enums.EstadoVehiculo;
@@ -17,7 +17,6 @@ import java.util.Locale;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +38,15 @@ public class VehiculoServiceImpl implements VehiculoService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<VehicleOptionResponse> listarOpciones() {
+        return vehiculoRepository.findAll().stream()
+                .map(v -> new VehicleOptionResponse(
+                        v.getId().toString(), v.getPlaca(), v.getTipo().getApiLabel()))
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public VehicleResponse obtener(UUID id) {
         return toVehicleResponse(findOrThrow(id));
     }
@@ -46,12 +54,12 @@ public class VehiculoServiceImpl implements VehiculoService {
     @Override
     @Transactional
     public VehicleResponse crear(VehicleWriteRequest request) {
-        VehiculoRequest internal = toVehiculoRequest(request);
-        if (vehiculoRepository.existsByPlaca(internal.getPlaca())) {
-            throw new BusinessException("Ya existe un vehículo con la placa: " + internal.getPlaca());
+        String placa = request.getPlate().trim().toUpperCase(Locale.ROOT);
+        if (vehiculoRepository.existsByPlaca(placa)) {
+            throw new BusinessException("Ya existe un vehículo con la placa: " + placa);
         }
         Vehiculo vehiculo = new Vehiculo();
-        copyRequestOntoEntity(vehiculo, internal);
+        copyWriteRequestOntoEntity(vehiculo, request);
         Vehiculo guardado = vehiculoRepository.save(vehiculo);
         log.info("Vehículo creado id={} placa={}", guardado.getId(), guardado.getPlaca());
         return toVehicleResponse(guardado);
@@ -60,13 +68,13 @@ public class VehiculoServiceImpl implements VehiculoService {
     @Override
     @Transactional
     public VehicleResponse actualizar(UUID id, VehicleWriteRequest request) {
-        VehiculoRequest internal = toVehiculoRequest(request);
         Vehiculo vehiculo = findOrThrow(id);
-        boolean placaCambiada = !vehiculo.getPlaca().equalsIgnoreCase(internal.getPlaca());
-        if (placaCambiada && vehiculoRepository.existsByPlaca(internal.getPlaca())) {
-            throw new BusinessException("Ya existe un vehículo con la placa: " + internal.getPlaca());
+        String placa = request.getPlate().trim().toUpperCase(Locale.ROOT);
+        boolean placaCambiada = !vehiculo.getPlaca().equalsIgnoreCase(placa);
+        if (placaCambiada && vehiculoRepository.existsByPlaca(placa)) {
+            throw new BusinessException("Ya existe un vehículo con la placa: " + placa);
         }
-        copyRequestOntoEntity(vehiculo, internal);
+        copyWriteRequestOntoEntity(vehiculo, request);
         Vehiculo actualizado = vehiculoRepository.save(vehiculo);
         log.info("Vehículo actualizado id={}", actualizado.getId());
         return toVehicleResponse(actualizado);
@@ -85,9 +93,16 @@ public class VehiculoServiceImpl implements VehiculoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Vehículo", id));
     }
 
-    private static void copyRequestOntoEntity(Vehiculo entity, VehiculoRequest request) {
-        BeanUtils.copyProperties(request, entity);
-        entity.setPlaca(request.getPlaca().toUpperCase(Locale.ROOT));
+    private static void copyWriteRequestOntoEntity(Vehiculo entity, VehicleWriteRequest w) {
+        entity.setPlaca(w.getPlate().trim().toUpperCase(Locale.ROOT));
+        entity.setTipo(TipoVehiculo.fromApiLabel(w.getType()));
+        entity.setGrupo(w.getGroup().trim());
+        entity.setConductor(w.getDriver() == null || w.getDriver().isBlank() ? null : w.getDriver().trim());
+        entity.setEstado(EstadoVehiculo.fromApiKey(w.getStatus()));
+        entity.setCapacidadKg(w.getCapacityKg());
+        entity.setPorcentajeCarga(w.getLoadPct());
+        entity.setUltimoServicio(parseOptionalDate(w.getLastService()));
+        entity.setAutoGestion(w.getAutoManaged());
     }
 
     private VehicleResponse toVehicleResponse(Vehiculo v) {
@@ -104,19 +119,6 @@ public class VehiculoServiceImpl implements VehiculoService {
         dto.setCreatedAt(v.getCreadoEn() == null ? "" : v.getCreadoEn().format(UI_DATETIME));
         dto.setAutoManaged(Boolean.TRUE.equals(v.getAutoGestion()));
         return dto;
-    }
-
-    private static VehiculoRequest toVehiculoRequest(VehicleWriteRequest w) {
-        return new VehiculoRequest(
-                w.getPlate().trim().toUpperCase(Locale.ROOT),
-                TipoVehiculo.fromApiLabel(w.getType()),
-                w.getGroup().trim(),
-                w.getDriver() == null || w.getDriver().isBlank() ? null : w.getDriver().trim(),
-                EstadoVehiculo.fromApiKey(w.getStatus()),
-                w.getCapacityKg(),
-                w.getLoadPct(),
-                parseOptionalDate(w.getLastService()),
-                w.getAutoManaged());
     }
 
     private static LocalDate parseOptionalDate(String ddMmYyyy) {

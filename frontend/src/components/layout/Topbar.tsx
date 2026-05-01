@@ -1,4 +1,5 @@
 import { Bell, HelpCircle, Menu, MessageSquare, Search, Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -15,6 +16,8 @@ interface TopbarProps {
 }
 
 const Topbar = ({ onMenuClick }: TopbarProps) => {
+  const navigate = useNavigate();
+
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-topbar/95 px-4 backdrop-blur-md sm:px-6">
       <button
@@ -66,10 +69,12 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>Mi cuenta</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Perfil</DropdownMenuItem>
-            <DropdownMenuItem>Preferencias</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">Cerrar sesión</DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer" onSelect={() => navigate("/usuarios/web/perfil")}>
+              Perfil
+            </DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer" disabled>
+              Preferencias
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

@@ -74,5 +74,3 @@ export const routePriorityMeta: Record<RoutePriority, { label: string; className
 };
 
 export const places = ["Lima Centro", "Lima Norte", "Lima Sur", "Lima Este", "Lima Oeste"];
-
-export const drivers = ["Carlos Mendoza", "Emerson Tineo", "Ana López", "Pedro Ramos", "María García"];

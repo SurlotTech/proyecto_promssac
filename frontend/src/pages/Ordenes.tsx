@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ChevronLeft,
   ChevronRight,
@@ -66,6 +67,7 @@ function paginationItems(current: number, total: number): (number | "ellipsis")[
 }
 
 const Ordenes = () => {
+  const navigate = useNavigate();
   const { data: allOrders = [], isLoading, isError, error } = useOrdersQuery();
   const { data: routeCatalog = [] } = useRoutesQuery();
 
@@ -211,7 +213,7 @@ const Ordenes = () => {
               orders={paginated}
               selectedIds={selectedIds}
               onSelectionChange={setSelectedIds}
-              onView={(o) => toast.message(`Detalle de ${o.id} (demo).`)}
+              onView={(o) => navigate(`/ordenes/detalle/${encodeURIComponent(o.id)}`)}
             />
 
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

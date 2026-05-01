@@ -1,4 +1,4 @@
-import type { Vehicle } from "@/domain/vehicles";
+import type { Vehicle, VehicleOption } from "@/domain/vehicles";
 import { apiGet, apiPost } from "@/lib/api";
 import { endpoints } from "./endpoints";
 
@@ -17,6 +17,10 @@ export interface VehicleWriteBody {
 export const vehiclesApi = {
   list(): Promise<Vehicle[]> {
     return apiGet<Vehicle[]>(endpoints.vehicles);
+  },
+
+  listOpciones(): Promise<VehicleOption[]> {
+    return apiGet<VehicleOption[]>(endpoints.vehiclesOpciones);
   },
 
   create(body: VehicleWriteBody): Promise<Vehicle> {

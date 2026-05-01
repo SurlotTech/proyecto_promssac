@@ -21,8 +21,8 @@ import RouteCard from "@/components/routes/RouteCard";
 import NewRouteDialog from "@/components/routes/NewRouteDialog";
 import { Button } from "@/components/ui/button";
 import type { Route as RouteData } from "@/domain/routes";
-import { places, drivers } from "@/domain/routes";
-import { useRoutesQuery, useVehiclesQuery } from "@/hooks/useOperationsQueries";
+import { places } from "@/domain/routes";
+import { useMobileUserRouteOptionsQuery, useRoutesQuery, useVehicleOptionsQuery } from "@/hooks/useOperationsQueries";
 import { cn } from "@/lib/utils";
 
 const defaultFilters: Filters = {
@@ -50,16 +50,26 @@ const PAGE_SIZE = 6;
 
 const Rutas = () => {
   const { data: allRoutes = [], isLoading, isError, error } = useRoutesQuery();
-  const { data: vehiclesRaw = [] } = useVehiclesQuery();
+  const { data: vehicleOpciones = [] } = useVehicleOptionsQuery();
+  const { data: mobileUsersRuta = [] } = useMobileUserRouteOptionsQuery();
+
   const vehicleOptions = useMemo(
-    () => vehiclesRaw.map((x) => ({ id: x.id, plate: x.plate })),
-    [vehiclesRaw],
+    () => vehicleOpciones.map((x) => ({ id: x.id, plate: x.plate })),
+    [vehicleOpciones],
   );
 
   const vehicleTypeByPlate = useMemo(
-    () => Object.fromEntries(vehiclesRaw.map((v) => [v.plate, v.type])),
-    [vehiclesRaw],
+    () => Object.fromEntries(vehicleOpciones.map((v) => [v.plate, v.type])),
+    [vehicleOpciones],
   );
+
+  const driverFilterOptions = useMemo(() => {
+    const fromRoutes = allRoutes
+      .map((r) => r.mobileUser)
+      .filter((s): s is string => Boolean(s && String(s).trim()));
+    const fromMobile = mobileUsersRuta.map((u) => u.nombreCompleto.trim()).filter(Boolean);
+    return [...new Set([...fromRoutes, ...fromMobile])].sort((a, b) => a.localeCompare(b, "es"));
+  }, [allRoutes, mobileUsersRuta]);
 
   const [filters, setFilters] = useState<Filters>(defaultFilters);
   const [selected, setSelected] = useState<RouteData | null>(null);
@@ -203,7 +213,7 @@ const Rutas = () => {
           onReset={handleReset}
           vehicles={vehicleOptions}
           places={places}
-          drivers={drivers}
+          drivers={driverFilterOptions}
           toolbarRight={
             <div className="hidden shrink-0 items-center gap-1 rounded-lg border border-border/70 bg-white p-1 sm:inline-flex">
               <button
@@ -359,8 +369,8 @@ const Rutas = () => {
       <NewRouteDialog
         open={createRouteOpen}
         onOpenChange={setCreateRouteOpen}
-        vehicles={vehicleOptions}
-        drivers={drivers}
+        vehicles={vehicleOpciones}
+        mobileUsers={mobileUsersRuta}
       />
     </div>
   );

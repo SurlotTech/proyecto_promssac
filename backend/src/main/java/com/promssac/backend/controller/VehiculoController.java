@@ -1,6 +1,7 @@
 package com.promssac.backend.controller;
 
 import com.promssac.backend.model.dto.request.VehicleWriteRequest;
+import com.promssac.backend.model.dto.response.VehicleOptionResponse;
 import com.promssac.backend.model.dto.response.VehicleResponse;
 import com.promssac.backend.service.VehiculoService;
 import jakarta.validation.Valid;
@@ -30,6 +31,11 @@ public class VehiculoController {
     @GetMapping
     public ResponseEntity<List<VehicleResponse>> listar() {
         return ResponseEntity.ok(vehiculoService.listar());
+    }
+
+    @GetMapping("/opciones")
+    public ResponseEntity<List<VehicleOptionResponse>> listarOpciones() {
+        return ResponseEntity.ok(vehiculoService.listarOpciones());
     }
 
     @GetMapping("/{id}")

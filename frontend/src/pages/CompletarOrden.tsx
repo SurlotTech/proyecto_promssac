@@ -170,10 +170,8 @@ const CompletarOrden = () => {
     }
   };
 
-  const canProceed = validateStep(currentStep);
-
   const handleNext = () => {
-    if (!canProceed) {
+    if (!validateStep(currentStep)) {
       const fieldNames = ["Datos de orden", "Datos de contacto", "Dirección"];
       toast.error(`Completa los campos obligatorios de ${fieldNames[currentStep]}.`);
       return;
@@ -620,30 +618,6 @@ const CompletarOrden = () => {
               {currentStep === 0 ? "Cancelar" : "Anterior"}
             </Button>
             <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3">
-              {currentStep < STEPS.length - 1 && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-10 w-full gap-2 border-primary/40 text-primary hover:bg-primary-soft sm:w-auto"
-                  onClick={() => {
-                    if (!validateStep(currentStep)) {
-                      const fieldNames = ["Datos de orden", "Datos de contacto", "Dirección"];
-                      toast.error(
-                        `Completa los campos obligatorios de ${fieldNames[currentStep]}.`
-                      );
-                      return;
-                    }
-                    if (!completedSteps.includes(currentStep)) {
-                      setCompletedSteps((prev) => [...prev, currentStep]);
-                    }
-                    setCurrentStep((prev) => prev + 1);
-                  }}
-                >
-                  Siguiente
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              )}
               {currentStep === STEPS.length - 1 && (
                 <>
                   <Button
@@ -678,19 +652,7 @@ const CompletarOrden = () => {
                   type="button"
                   size="sm"
                   className="h-10 w-full gap-2 bg-primary text-primary-foreground hover:bg-primary-hover sm:w-auto sm:min-w-[140px]"
-                  onClick={() => {
-                    if (!validateStep(currentStep)) {
-                      const fieldNames = ["Datos de orden", "Datos de contacto", "Dirección"];
-                      toast.error(
-                        `Completa los campos obligatorios de ${fieldNames[currentStep]}.`
-                      );
-                      return;
-                    }
-                    if (!completedSteps.includes(currentStep)) {
-                      setCompletedSteps((prev) => [...prev, currentStep]);
-                    }
-                    setCurrentStep((prev) => prev + 1);
-                  }}
+                  onClick={handleNext}
                 >
                   Siguiente
                   <ArrowRight className="ml-2 h-4 w-4" />

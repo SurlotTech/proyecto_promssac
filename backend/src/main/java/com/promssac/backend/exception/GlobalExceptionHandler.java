@@ -4,6 +4,7 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -21,6 +22,13 @@ public class GlobalExceptionHandler {
                 .orElse("Petición inválida");
         log.warn("Validación fallida: {}", msg);
         return Map.of("error", msg);
+    }
+
+    @ResponseStatus(HttpStatus.PAYLOAD_TOO_LARGE)
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public Map<String, String> manejarTamanoMultipart(MaxUploadSizeExceededException ex) {
+        log.warn("Archivo multipart demasiado grande: {}", ex.getMessage());
+        return Map.of("error", "El archivo supera el tamaño máximo permitido (10 MB).");
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

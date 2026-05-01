@@ -1,4 +1,5 @@
 # Maven / IDE
 backend/target/
+backend/data/
 .idea/
 *.iml
