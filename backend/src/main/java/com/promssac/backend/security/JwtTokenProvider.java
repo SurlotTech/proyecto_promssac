@@ -10,9 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-/**
- * Generación / validación de JWT (sesión stateless). Ajusta {@code app.jwt.secret} en producción.
- */
 @Component
 @Slf4j
 public class JwtTokenProvider {

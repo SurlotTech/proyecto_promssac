@@ -1,7 +1,6 @@
 import { MoreHorizontal, Eye, Pencil, Trash2, MapPin } from "lucide-react";
 import RouteStatusBadge from "@/components/routes/RouteStatusBadge";
-import { Route } from "@/data/routes";
-import { vehicles as fleetVehicles } from "@/data/vehicles";
+import { Route } from "@/domain/routes";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,9 +18,11 @@ import { cn } from "@/lib/utils";
 interface Props {
   routes: Route[];
   onSelect: (r: Route) => void;
+  /** Placa → tipo de vehículo (desde API de flota). */
+  vehicleTypeByPlate?: Record<string, string>;
 }
 
-const RouteTable = ({ routes, onSelect }: Props) => {
+const RouteTable = ({ routes, onSelect, vehicleTypeByPlate = {} }: Props) => {
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
       <div className="overflow-x-auto scrollbar-thin">
@@ -42,7 +43,7 @@ const RouteTable = ({ routes, onSelect }: Props) => {
           </thead>
           <tbody className="divide-y divide-border">
             {routes.map((r) => {
-              const fleetVehicle = fleetVehicles.find((x) => x.plate === r.vehiclePlate);
+              const vehType = vehicleTypeByPlate[r.vehiclePlate];
               const pct = collectionPercent(r.currentCollection, r.totalCollection);
               const dispatchPct = dispatchPercent(r.dispatchCompleted, r.dispatchTotal);
 
@@ -69,7 +70,7 @@ const RouteTable = ({ routes, onSelect }: Props) => {
                     <div className="min-w-0">
                       <p className="font-semibold leading-tight text-foreground">{r.vehiclePlate}</p>
                       <p className="mt-0.5 text-xs font-normal text-muted-foreground">
-                        {fleetVehicle?.type ?? "—"}
+                        {vehType ?? "—"}
                       </p>
                     </div>
                   </td>

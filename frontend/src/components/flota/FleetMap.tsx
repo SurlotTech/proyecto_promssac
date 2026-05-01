@@ -1,19 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { format, parseISO } from "date-fns";
-import { es } from "date-fns/locale";
 import L from "leaflet";
-import {
-  MapContainer,
-  Marker,
-  Popup,
-  TileLayer,
-  useMap,
-  useMapEvents,
-} from "react-leaflet";
+import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
-import type { FleetDevice } from "@/data/liveFleet";
-import { LIMA_CENTER, fleetStatusLabels } from "@/data/liveFleet";
+import type { FleetDevice } from "@/domain/fleet";
+import { LIMA_CENTER } from "@/domain/fleet";
+import FleetMapMarkerPopupContent from "./FleetMapMarkerPopupContent";
 
 function fleetIcon(selected: boolean) {
   const shadow = selected
@@ -100,9 +92,21 @@ interface Props {
   devices: FleetDevice[];
   selectedId: string | null;
   onMarkerClick: (id: string) => void;
+  /** Al cerrar la burbuja del marcador (X), deselecciona si era la unidad activa. */
+  onMarkerPopupClose?: (deviceId: string) => void;
 }
 
-const FleetMap = ({ devices, selectedId, onMarkerClick }: Props) => {
+const FleetMap = ({ devices, selectedId, onMarkerClick, onMarkerPopupClose }: Props) => {
+  const markerRefs = useRef<Map<string, L.Marker>>(new Map());
+
+  useEffect(() => {
+    if (selectedId) {
+      markerRefs.current.get(selectedId)?.openPopup();
+    } else {
+      markerRefs.current.forEach((m) => m.closePopup());
+    }
+  }, [selectedId]);
+
   return (
     <div className="relative flex h-full min-h-[280px] min-w-0 flex-1 flex-col bg-muted">
       <MapContainer
@@ -122,18 +126,17 @@ const FleetMap = ({ devices, selectedId, onMarkerClick }: Props) => {
             key={d.id}
             position={[d.lat, d.lng]}
             icon={fleetIcon(selectedId === d.id)}
+            ref={(instance) => {
+              if (instance) markerRefs.current.set(d.id, instance);
+              else markerRefs.current.delete(d.id);
+            }}
             eventHandlers={{
               click: () => onMarkerClick(d.id),
+              popupclose: () => onMarkerPopupClose?.(d.id),
             }}
           >
-            <Popup>
-              <div className="min-w-[160px] space-y-1 text-sm">
-                <p className="font-semibold leading-tight">{d.plate}</p>
-                <p className="text-xs text-muted-foreground">{fleetStatusLabels[d.status]}</p>
-                <p className="text-[11px] tabular-nums text-muted-foreground">
-                  {format(parseISO(d.lastSeenIso), "dd/MM/yyyy HH:mm", { locale: es })}
-                </p>
-              </div>
+            <Popup className="fleet-map-popup" closeButton minWidth={260} maxWidth={320}>
+              <FleetMapMarkerPopupContent device={d} />
             </Popup>
           </Marker>
         ))}
@@ -153,6 +156,7 @@ const FleetMap = ({ devices, selectedId, onMarkerClick }: Props) => {
       <p className="pointer-events-none absolute bottom-3 right-3 z-[500] max-w-[min(90vw,280px)] rounded-md bg-white/95 px-2 py-1 text-center text-[10px] leading-snug text-muted-foreground shadow">
         © OpenStreetMap · Vista referencial FleetOps
       </p>
+
     </div>
   );
 };

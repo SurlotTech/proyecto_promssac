@@ -1,5 +1,5 @@
 import { MoreHorizontal, Eye, Pencil, Trash2 } from "lucide-react";
-import { Vehicle } from "@/data/vehicles";
+import type { Vehicle } from "@/domain/vehicles";
 import StatusBadge from "./StatusBadge";
 import { vehicleTypeIcon } from "./vehicleTypeIcon";
 import {

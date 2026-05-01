@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { toast } from "sonner";
 import NewProductDialog from "@/components/orders/NewProductDialog";
-import type { OrderProductRow } from "@/data/orderProducts";
+import type { OrderProductRow } from "@/domain/orderProducts";
 import {
   readOrderDraft,
   type OrderProductsLocationState,

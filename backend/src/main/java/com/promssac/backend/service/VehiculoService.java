@@ -1,19 +1,19 @@
 package com.promssac.backend.service;
 
-import com.promssac.backend.model.dto.request.VehiculoRequest;
-import com.promssac.backend.model.dto.response.VehiculoResponse;
+import com.promssac.backend.model.dto.request.VehicleWriteRequest;
+import com.promssac.backend.model.dto.response.VehicleResponse;
 import java.util.List;
 import java.util.UUID;
 
 public interface VehiculoService {
 
-    List<VehiculoResponse> listarTodos();
+    List<VehicleResponse> listar();
 
-    VehiculoResponse buscarPorId(UUID id);
+    VehicleResponse obtener(UUID id);
 
-    VehiculoResponse crear(VehiculoRequest request);
+    VehicleResponse crear(VehicleWriteRequest request);
 
-    VehiculoResponse actualizar(UUID id, VehiculoRequest request);
+    VehicleResponse actualizar(UUID id, VehicleWriteRequest request);
 
     void eliminar(UUID id);
 }

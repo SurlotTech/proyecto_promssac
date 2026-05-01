@@ -20,7 +20,9 @@ import RouteTable from "@/components/routes/RouteTable";
 import RouteCard from "@/components/routes/RouteCard";
 import NewRouteDialog from "@/components/routes/NewRouteDialog";
 import { Button } from "@/components/ui/button";
-import { routes as allRoutes, Route as RouteData, vehicles, places, drivers } from "@/data/routes";
+import type { Route as RouteData } from "@/domain/routes";
+import { places, drivers } from "@/domain/routes";
+import { useRoutesQuery, useVehiclesQuery } from "@/hooks/useOperationsQueries";
 import { cn } from "@/lib/utils";
 
 const defaultFilters: Filters = {
@@ -47,6 +49,18 @@ function paginationItems(current: number, total: number): (number | "ellipsis")[
 const PAGE_SIZE = 6;
 
 const Rutas = () => {
+  const { data: allRoutes = [], isLoading, isError, error } = useRoutesQuery();
+  const { data: vehiclesRaw = [] } = useVehiclesQuery();
+  const vehicleOptions = useMemo(
+    () => vehiclesRaw.map((x) => ({ id: x.id, plate: x.plate })),
+    [vehiclesRaw],
+  );
+
+  const vehicleTypeByPlate = useMemo(
+    () => Object.fromEntries(vehiclesRaw.map((v) => [v.plate, v.type])),
+    [vehiclesRaw],
+  );
+
   const [filters, setFilters] = useState<Filters>(defaultFilters);
   const [selected, setSelected] = useState<RouteData | null>(null);
   const [view, setView] = useState<"table" | "grid">("table");
@@ -54,7 +68,7 @@ const Rutas = () => {
   const [createRouteOpen, setCreateRouteOpen] = useState(false);
 
   const filteredRoutes = useMemo(() => {
-    return allRoutes.filter((r) => {
+    return allRoutes.filter((r: RouteData) => {
       if (filters.search) {
         const search = filters.search.toLowerCase();
         if (
@@ -86,7 +100,7 @@ const Rutas = () => {
       }
       return true;
     });
-  }, [filters]);
+  }, [filters, allRoutes]);
 
   const totalFiltered = filteredRoutes.length;
   const totalPages = Math.max(1, Math.ceil(totalFiltered / PAGE_SIZE));
@@ -111,11 +125,28 @@ const Rutas = () => {
     const completed = allRoutes.filter((r) => r.status === "completed").length;
     const totalCollection = allRoutes.reduce((acc, r) => acc + r.totalCollection, 0);
     return { total, active, completed, totalCollection };
-  }, []);
+  }, [allRoutes]);
 
   const handleReset = () => {
     setFilters(defaultFilters);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-1 items-center justify-center p-12 text-sm text-muted-foreground">
+        Cargando rutas…
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-2 p-12 text-center">
+        <p className="text-sm font-medium text-destructive">No se pudieron cargar las rutas</p>
+        <p className="text-xs text-muted-foreground">{error instanceof Error ? error.message : "Error"}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade-in">
@@ -170,7 +201,7 @@ const Rutas = () => {
           filters={filters}
           onChange={setFilters}
           onReset={handleReset}
-          vehicles={vehicles}
+          vehicles={vehicleOptions}
           places={places}
           drivers={drivers}
           toolbarRight={
@@ -215,17 +246,31 @@ const Rutas = () => {
           <>
             <div className="grid grid-cols-1 gap-3 sm:hidden">
               {paginatedRoutes.map((r) => (
-                <RouteCard key={r.id} route={r} onSelect={setSelected} />
+                <RouteCard
+                  key={r.id}
+                  route={r}
+                  onSelect={setSelected}
+                  vehicleTypeByPlate={vehicleTypeByPlate}
+                />
               ))}
             </div>
 
             <div className="hidden sm:block">
               {view === "table" ? (
-                <RouteTable routes={paginatedRoutes} onSelect={setSelected} />
+                <RouteTable
+                  routes={paginatedRoutes}
+                  onSelect={setSelected}
+                  vehicleTypeByPlate={vehicleTypeByPlate}
+                />
               ) : (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                   {paginatedRoutes.map((r) => (
-                    <RouteCard key={r.id} route={r} onSelect={setSelected} />
+                    <RouteCard
+                      key={r.id}
+                      route={r}
+                      onSelect={setSelected}
+                      vehicleTypeByPlate={vehicleTypeByPlate}
+                    />
                   ))}
                 </div>
               )}
@@ -314,7 +359,7 @@ const Rutas = () => {
       <NewRouteDialog
         open={createRouteOpen}
         onOpenChange={setCreateRouteOpen}
-        vehicles={vehicles}
+        vehicles={vehicleOptions}
         drivers={drivers}
       />
     </div>

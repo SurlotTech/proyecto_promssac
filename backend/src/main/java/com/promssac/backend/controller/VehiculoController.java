@@ -1,7 +1,7 @@
 package com.promssac.backend.controller;
 
-import com.promssac.backend.model.dto.request.VehiculoRequest;
-import com.promssac.backend.model.dto.response.VehiculoResponse;
+import com.promssac.backend.model.dto.request.VehicleWriteRequest;
+import com.promssac.backend.model.dto.response.VehicleResponse;
 import com.promssac.backend.service.VehiculoService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -28,23 +28,23 @@ public class VehiculoController {
     private final VehiculoService vehiculoService;
 
     @GetMapping
-    public ResponseEntity<List<VehiculoResponse>> listar() {
-        return ResponseEntity.ok(vehiculoService.listarTodos());
+    public ResponseEntity<List<VehicleResponse>> listar() {
+        return ResponseEntity.ok(vehiculoService.listar());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<VehiculoResponse> buscarPorId(@PathVariable UUID id) {
-        return ResponseEntity.ok(vehiculoService.buscarPorId(id));
+    public ResponseEntity<VehicleResponse> buscarPorId(@PathVariable UUID id) {
+        return ResponseEntity.ok(vehiculoService.obtener(id));
     }
 
     @PostMapping
-    public ResponseEntity<VehiculoResponse> crear(@Valid @RequestBody VehiculoRequest request) {
+    public ResponseEntity<VehicleResponse> crear(@Valid @RequestBody VehicleWriteRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(vehiculoService.crear(request));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<VehiculoResponse> actualizar(@PathVariable UUID id,
-                                                       @Valid @RequestBody VehiculoRequest request) {
+    public ResponseEntity<VehicleResponse> actualizar(@PathVariable UUID id,
+                                                    @Valid @RequestBody VehicleWriteRequest request) {
         return ResponseEntity.ok(vehiculoService.actualizar(id, request));
     }
 

@@ -1,15 +1,5 @@
 import { NavLink } from "react-router-dom";
-import {
-  LayoutDashboard,
-  Route,
-  Package,
-  Truck,
-  Users,
-  MapPin,
-  Settings,
-  LifeBuoy,
-  X,
-} from "lucide-react";
+import { LayoutDashboard, Route, Package, Truck, MapPin, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SidebarProps {
@@ -23,13 +13,11 @@ const navItems = [
   { to: "/ordenes", label: "Órdenes", icon: Package },
   { to: "/flota", label: "Flota en vivo", icon: MapPin },
   { to: "/vehiculos", label: "Vehículos", icon: Truck },
-  { to: "/usuarios", label: "Usuarios móviles", icon: Users },
 ];
 
 const Sidebar = ({ open, onClose }: SidebarProps) => {
   return (
     <>
-      {/* Overlay móvil */}
       <div
         onClick={onClose}
         className={cn(
@@ -44,7 +32,6 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
           open ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        {/* Logo */}
         <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-5">
           <div className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-primary shadow-glow">
@@ -66,7 +53,6 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
           </button>
         </div>
 
-        {/* Nav */}
         <nav className="flex-1 overflow-y-auto scrollbar-thin px-3 py-4">
           <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50">
             Operaciones
@@ -93,33 +79,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
               </li>
             ))}
           </ul>
-
-          <p className="mt-6 px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50">
-            Sistema
-          </p>
-          <ul className="space-y-1">
-            <li>
-              <a
-                href="#"
-                className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground transition-all duration-200 hover:bg-sidebar-accent hover:text-white"
-              >
-                <Settings className="h-[18px] w-[18px]" />
-                <span>Configuración</span>
-              </a>
-            </li>
-            <li>
-              <a
-                href="#"
-                className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground transition-all duration-200 hover:bg-sidebar-accent hover:text-white"
-              >
-                <LifeBuoy className="h-[18px] w-[18px]" />
-                <span>Soporte</span>
-              </a>
-            </li>
-          </ul>
         </nav>
-
-
       </aside>
     </>
   );

@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { statusMeta, VehicleStatus } from "@/data/vehicles";
+import { statusMeta, type VehicleStatus } from "@/domain/vehicles";
 
 const StatusBadge = ({ status }: { status: VehicleStatus }) => {
   const meta = statusMeta[status];

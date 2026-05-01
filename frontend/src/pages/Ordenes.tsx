@@ -18,13 +18,8 @@ import OrderFilters, {
 import OrderTable from "@/components/orders/OrderTable";
 import NewOrderDialog from "@/components/orders/NewOrderDialog";
 import { Button } from "@/components/ui/button";
-import {
-  orders as allOrders,
-  Order,
-  orderSubstatusOptions,
-  vehiclePlatesInOrders,
-} from "@/data/orders";
-import { routes as routeCatalog } from "@/data/routes";
+import type { Order } from "@/domain/orders";
+import { useOrdersQuery, useRoutesQuery } from "@/hooks/useOperationsQueries";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -71,6 +66,18 @@ function paginationItems(current: number, total: number): (number | "ellipsis")[
 }
 
 const Ordenes = () => {
+  const { data: allOrders = [], isLoading, isError, error } = useOrdersQuery();
+  const { data: routeCatalog = [] } = useRoutesQuery();
+
+  const orderSubstatusOptions = useMemo(
+    () => Array.from(new Set(allOrders.map((o) => o.substatus))).sort(),
+    [allOrders],
+  );
+  const vehiclePlatesInOrders = useMemo(
+    () => Array.from(new Set(allOrders.map((o) => o.vehiclePlate).filter((p) => p !== "—"))).sort(),
+    [allOrders],
+  );
+
   const [filters, setFilters] = useState<OrderFiltersState>(defaultOrderFilters);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [page, setPage] = useState(1);
@@ -82,7 +89,7 @@ const Ordenes = () => {
         id: r.id,
         label: `${r.id} — ${r.name}`,
       })),
-    [],
+    [routeCatalog],
   );
 
   useEffect(() => {
@@ -91,7 +98,7 @@ const Ordenes = () => {
 
   const filtered = useMemo(
     () => allOrders.filter((o) => orderMatches(o, filters)),
-    [filters],
+    [filters, allOrders],
   );
 
   const totalFiltered = filtered.length;
@@ -117,9 +124,9 @@ const Ordenes = () => {
     const pending = allOrders.filter((o) => o.status === "pending").length;
     const delivered = allOrders.filter((o) => o.status === "delivered").length;
     return { total, inRoute, pending, delivered };
-  }, []);
+  }, [allOrders]);
 
-  const orderIds = useMemo(() => allOrders.map((o) => o.id), []);
+  const orderIds = useMemo(() => allOrders.map((o) => o.id), [allOrders]);
 
   const handleApplyFilters = () => {
     toast.success(`${filtered.length} orden${filtered.length !== 1 ? "es" : ""} encontrada${filtered.length !== 1 ? "s" : ""}.`);
@@ -129,6 +136,23 @@ const Ordenes = () => {
     setFilters(defaultOrderFilters);
     toast.message("Filtros restablecidos.");
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-1 items-center justify-center p-12 text-sm text-muted-foreground">
+        Cargando órdenes…
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-2 p-12 text-center">
+        <p className="text-sm font-medium text-destructive">No se pudieron cargar las órdenes</p>
+        <p className="text-xs text-muted-foreground">{error instanceof Error ? error.message : "Error"}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade-in">

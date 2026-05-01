@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ChevronLeft,
   ChevronRight,
@@ -19,11 +20,11 @@ import VehicleTable from "@/components/vehicles/VehicleTable";
 import VehicleCard from "@/components/vehicles/VehicleCard";
 import VehicleDetailDrawer from "@/components/vehicles/VehicleDetailDrawer";
 import NewVehicleDialog from "@/components/vehicles/NewVehicleDialog";
-import { vehicles as allVehicles, Vehicle } from "@/data/vehicles";
+import type { Vehicle } from "@/domain/vehicles";
+import { useVehiclesQuery } from "@/hooks/useOperationsQueries";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-/** Ítems de paginación: números o elipsis si hay muchas páginas */
 function paginationItems(current: number, total: number): (number | "ellipsis")[] {
   if (total <= 9) return Array.from({ length: total }, (_, i) => i + 1);
   const set = new Set<number>([1, total, current, current - 1, current + 1]);
@@ -36,10 +37,12 @@ function paginationItems(current: number, total: number): (number | "ellipsis")[
   return out;
 }
 
-/** Filas por página (lista filtrada). */
 const PAGE_SIZE = 8;
 
 const Vehiculos = () => {
+  const queryClient = useQueryClient();
+  const { data: allVehicles = [], isLoading, isError, error } = useVehiclesQuery();
+
   const [filters, setFilters] = useState<Filters>({
     search: "",
     type: "all",
@@ -62,7 +65,7 @@ const Vehiculos = () => {
       const matchStatus = filters.status === "all" || v.status === filters.status;
       return matchSearch && matchType && matchStatus;
     });
-  }, [filters]);
+  }, [filters, allVehicles]);
 
   const totalFiltered = filtered.length;
   const totalPages = Math.max(1, Math.ceil(totalFiltered / PAGE_SIZE));
@@ -87,12 +90,29 @@ const Vehiculos = () => {
     const inRoute = allVehicles.filter((v) => v.status === "in_route").length;
     const maintenance = allVehicles.filter((v) => v.status === "maintenance").length;
     return { total, active, inRoute, maintenance };
-  }, []);
+  }, [allVehicles]);
 
   const openDetail = (v: Vehicle) => {
     setSelected(v);
     setDrawerOpen(true);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-1 items-center justify-center p-12 text-sm text-muted-foreground">
+        Cargando vehículos…
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-2 p-12 text-center">
+        <p className="text-sm font-medium text-destructive">No se pudo cargar la flota</p>
+        <p className="text-xs text-muted-foreground">{error instanceof Error ? error.message : "Error"}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade-in">
@@ -131,7 +151,7 @@ const Vehiculos = () => {
           <StatCard
             label="Activos"
             value={stats.active}
-            delta={`${Math.round((stats.active / stats.total) * 100)}% disponible`}
+            delta={`${stats.total ? Math.round((stats.active / stats.total) * 100) : 0}% disponible`}
             icon={CheckCircle2}
             tone="success"
           />
@@ -315,7 +335,11 @@ const Vehiculos = () => {
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
       />
-      <NewVehicleDialog open={createOpen} onOpenChange={setCreateOpen} />
+      <NewVehicleDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onCreated={() => queryClient.invalidateQueries({ queryKey: ["vehicles"] })}
+      />
     </div>
   );
 };

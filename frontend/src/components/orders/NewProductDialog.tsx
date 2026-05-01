@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import type { OrderProductRow } from "@/data/orderProducts";
+import type { OrderProductRow } from "@/domain/orderProducts";
 
 const inputClass =
   "h-9 border-border/80 text-sm font-medium shadow-sm focus-visible:ring-2 focus-visible:ring-ring";

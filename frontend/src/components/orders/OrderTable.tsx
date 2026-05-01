@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import OrderStatusBadge from "@/components/orders/OrderStatusBadge";
-import type { Order } from "@/data/orders";
+import type { Order } from "@/domain/orders";
 import { cn } from "@/lib/utils";
 
 interface Props {

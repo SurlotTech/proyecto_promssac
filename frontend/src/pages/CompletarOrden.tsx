@@ -30,9 +30,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Stepper, Step } from "@/components/ui/stepper";
+import { Stepper, type Step } from "@/components/ui/stepper";
 import RouteDateRangePicker from "@/components/routes/RouteDateRangePicker";
-import { places, routePriorityMeta } from "@/data/routes";
+import { places, routePriorityMeta, type RoutePriority } from "@/domain/routes";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -69,8 +69,6 @@ const customFieldLabels: Record<(typeof customFieldKeys)[number], string> = {
   guiaRemision: "Guía de remisión",
   guiaTransportista: "Guía de transportista",
 };
-
-type RoutePriority = keyof typeof routePriorityMeta;
 
 const STEPS: Step[] = [
   { id: "order", title: "Datos de orden", description: "ID, fecha, ruta" },
@@ -155,7 +153,12 @@ const CompletarOrden = () => {
   const validateStep = (step: number): boolean => {
     switch (step) {
       case 0:
-        return Boolean(draft?.displayOrderId) && deliveryFrom && deliveryTo && mode;
+        return Boolean(
+          draft?.displayOrderId?.trim() &&
+            deliveryFrom.trim() &&
+            deliveryTo.trim() &&
+            mode.trim(),
+        );
       case 1:
         return Boolean(contactName.trim());
       case 2:

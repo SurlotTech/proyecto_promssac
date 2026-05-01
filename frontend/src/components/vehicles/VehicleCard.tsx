@@ -1,5 +1,5 @@
 import { ChevronRight } from "lucide-react";
-import { Vehicle } from "@/data/vehicles";
+import type { Vehicle } from "@/domain/vehicles";
 import StatusBadge from "./StatusBadge";
 import { vehicleTypeIcon } from "./vehicleTypeIcon";
 

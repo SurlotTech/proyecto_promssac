@@ -1,6 +1,5 @@
 import { Clock, MapPin, MoreHorizontal, Route as RouteIcon, Truck, User, Eye, Pencil, Trash2 } from "lucide-react";
-import { Route, routePriorityMeta } from "@/data/routes";
-import { vehicles as fleetVehicles } from "@/data/vehicles";
+import { Route, routePriorityMeta } from "@/domain/routes";
 import RouteStatusBadge from "@/components/routes/RouteStatusBadge";
 import {
   collectionPercent,
@@ -19,10 +18,11 @@ import {
 interface Props {
   route: Route;
   onSelect: (r: Route) => void;
+  vehicleTypeByPlate?: Record<string, string>;
 }
 
-const RouteCard = ({ route: r, onSelect }: Props) => {
-  const fleetVehicle = fleetVehicles.find((x) => x.plate === r.vehiclePlate);
+const RouteCard = ({ route: r, onSelect, vehicleTypeByPlate = {} }: Props) => {
+  const vehType = vehicleTypeByPlate[r.vehiclePlate];
   const collPct = collectionPercent(r.currentCollection, r.totalCollection);
   const dispatchPct = dispatchPercent(r.dispatchCompleted, r.dispatchTotal);
   const pri = routePriorityMeta[r.priority];
@@ -83,8 +83,8 @@ const RouteCard = ({ route: r, onSelect }: Props) => {
           <Truck className="h-3.5 w-3.5 shrink-0 text-muted-foreground" strokeWidth={2} />
           <span className="min-w-0 truncate">
             <span className="font-medium tabular-nums">{r.vehiclePlate}</span>
-            {fleetVehicle?.type ? (
-              <span className="text-muted-foreground"> · {fleetVehicle.type}</span>
+            {vehType ? (
+              <span className="text-muted-foreground"> · {vehType}</span>
             ) : null}
           </span>
         </div>

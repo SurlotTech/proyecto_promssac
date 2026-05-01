@@ -18,31 +18,64 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { statusMeta, type VehicleStatus } from "@/data/vehicles";
+import { statusMeta, type VehicleStatus } from "@/domain/vehicles";
+import { vehiclesApi } from "@/services";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onCreated?: () => void;
 }
 
-const NewVehicleDialog = ({ open, onOpenChange }: Props) => {
+const NewVehicleDialog = ({ open, onOpenChange, onCreated }: Props) => {
   const [plate, setPlate] = useState("");
   const [type, setType] = useState("");
+  const [group, setGroup] = useState("Lima Norte");
   const [driver, setDriver] = useState("");
   const [status, setStatus] = useState<VehicleStatus>("active");
+  const [saving, setSaving] = useState(false);
 
-  const handleSave = () => {
-    if (!plate || !type) return;
-    toast.success(`Vehículo ${plate} creado correctamente`);
+  const reset = () => {
     setPlate("");
     setType("");
+    setGroup("Lima Norte");
     setDriver("");
     setStatus("active");
-    onOpenChange(false);
+  };
+
+  const handleSave = async () => {
+    if (!plate || !type) return;
+    setSaving(true);
+    try {
+      await vehiclesApi.create({
+        plate: plate.trim().toUpperCase(),
+        type,
+        group,
+        driver: driver.trim() === "" ? null : driver.trim(),
+        status,
+        capacityKg: 1200,
+        loadPct: 0,
+        autoManaged: false,
+      });
+      toast.success(`Vehículo ${plate.trim().toUpperCase()} registrado.`);
+      reset();
+      onCreated?.();
+      onOpenChange(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Error al guardar");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        if (!o) reset();
+        onOpenChange(o);
+      }}
+    >
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Nuevo vehículo</DialogTitle>
@@ -84,16 +117,33 @@ const NewVehicleDialog = ({ open, onOpenChange }: Props) => {
           </div>
 
           <div className="grid gap-2">
+            <Label>Grupo operativo</Label>
+            <Select value={group} onValueChange={setGroup}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Lima Norte">Lima Norte</SelectItem>
+                <SelectItem value="Lima Sur">Lima Sur</SelectItem>
+                <SelectItem value="Lima Centro">Lima Centro</SelectItem>
+                <SelectItem value="Callao">Callao</SelectItem>
+                <SelectItem value="Lima Este">Lima Este</SelectItem>
+                <SelectItem value="Lima Oeste">Lima Oeste</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-2">
             <Label>Conductor asociado</Label>
             <Select value={driver || undefined} onValueChange={setDriver}>
               <SelectTrigger>
                 <SelectValue placeholder="Seleccionar conductor (opcional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="cm">Carlos Mendoza</SelectItem>
-                <SelectItem value="et">Emerson Tineo</SelectItem>
-                <SelectItem value="ji">Jorge Ilizarbe</SelectItem>
-                <SelectItem value="ms">María Sánchez</SelectItem>
+                <SelectItem value="Carlos Mendoza">Carlos Mendoza</SelectItem>
+                <SelectItem value="Emerson Tineo">Emerson Tineo</SelectItem>
+                <SelectItem value="Jorge Ilizarbe">Jorge Ilizarbe</SelectItem>
+                <SelectItem value="María Sánchez">María Sánchez</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -116,15 +166,15 @@ const NewVehicleDialog = ({ open, onOpenChange }: Props) => {
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
             Cancelar
           </Button>
           <Button
-            onClick={handleSave}
-            disabled={!plate || !type}
+            onClick={() => void handleSave()}
+            disabled={!plate || !type || saving}
             className="bg-primary hover:bg-primary-hover"
           >
-            Guardar vehículo
+            {saving ? "Guardando…" : "Guardar vehículo"}
           </Button>
         </DialogFooter>
       </DialogContent>

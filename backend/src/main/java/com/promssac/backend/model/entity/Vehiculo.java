@@ -36,7 +36,6 @@ public class Vehiculo {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    /** Placa del vehículo. Ej: BFS-748 */
     @Column(nullable = false, unique = true, length = 20)
     private String placa;
 
@@ -44,11 +43,9 @@ public class Vehiculo {
     @Column(nullable = false, length = 30)
     private TipoVehiculo tipo;
 
-    /** Grupo operativo al que pertenece. Ej: Lima Norte */
     @Column(nullable = false, length = 60)
     private String grupo;
 
-    /** Nombre del conductor asignado. Null si no tiene conductor. */
     @Column(length = 120)
     private String conductor;
 
@@ -56,19 +53,15 @@ public class Vehiculo {
     @Column(nullable = false, length = 30)
     private EstadoVehiculo estado;
 
-    /** Capacidad máxima de carga en kilogramos. */
     @Column(nullable = false)
     private Integer capacidadKg;
 
-    /** Porcentaje de carga actual (0-100). */
     @Column(nullable = false)
     private Integer porcentajeCarga;
 
-    /** Fecha del último servicio de mantenimiento. */
     @Column
     private LocalDate ultimoServicio;
 
-    /** Si es true, el sistema puede asignarle órdenes automáticamente. */
     @Column(nullable = false)
     private Boolean autoGestion;
 

@@ -9,7 +9,6 @@ export interface OrderCompletarLocationState {
   orderDraft: OrderCreationDraft;
 }
 
-/** Estado al navegar a la lista de productos de una orden en borrador. */
 export interface OrderProductsLocationState {
   displayOrderId: string;
 }
@@ -20,7 +19,7 @@ export function persistOrderDraft(draft: OrderCreationDraft): void {
   try {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
   } catch {
-    /* ignore quota / private mode */
+    return;
   }
 }
 
@@ -45,6 +44,6 @@ export function clearOrderDraft(): void {
   try {
     sessionStorage.removeItem(STORAGE_KEY);
   } catch {
-    /* ignore */
+    return;
   }
 }

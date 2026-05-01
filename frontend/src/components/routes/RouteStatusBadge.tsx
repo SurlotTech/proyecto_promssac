@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { RouteStatus, routeStatusMeta } from "@/data/routes";
+import { routeStatusMeta, type RouteStatus } from "@/domain/routes";
 
 const RouteStatusBadge = ({ status }: { status: RouteStatus }) => {
   const meta = routeStatusMeta[status];

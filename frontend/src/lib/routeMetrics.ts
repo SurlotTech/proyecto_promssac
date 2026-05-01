@@ -1,4 +1,4 @@
-import type { RouteStatus } from "@/data/routes";
+import type { RouteStatus } from "@/domain/routes";
 
 export function formatRouteCurrency(amount: number): string {
   return new Intl.NumberFormat("es-PE", {

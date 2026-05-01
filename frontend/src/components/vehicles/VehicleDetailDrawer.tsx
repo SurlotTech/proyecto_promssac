@@ -4,7 +4,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Vehicle } from "@/data/vehicles";
+import type { Vehicle } from "@/domain/vehicles";
 import StatusBadge from "./StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Calendar, Gauge, Pencil, Truck, User } from "lucide-react";
