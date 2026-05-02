@@ -3,7 +3,7 @@ package com.promssac.backend.controller;
 import com.promssac.backend.model.dto.request.ActivoPatchRequest;
 import com.promssac.backend.model.dto.request.WebUserCreateRequest;
 import com.promssac.backend.model.dto.request.WebUserUpdateRequest;
-import com.promssac.backend.model.dto.response.WebUserCreatedResponse;
+import com.promssac.backend.model.dto.response.ResourceIdResponse;
 import com.promssac.backend.model.dto.response.WebUserDetailResponse;
 import com.promssac.backend.model.dto.response.WebUserListItemResponse;
 import com.promssac.backend.service.UsuarioWebService;
@@ -37,7 +37,7 @@ public class UsuarioWebController {
     }
 
     @PostMapping
-    public ResponseEntity<WebUserCreatedResponse> crear(@Valid @RequestBody WebUserCreateRequest body) {
+    public ResponseEntity<ResourceIdResponse> crear(@Valid @RequestBody WebUserCreateRequest body) {
         return ResponseEntity.status(HttpStatus.CREATED).body(usuarioWebService.crear(body));
     }
 
@@ -47,7 +47,7 @@ public class UsuarioWebController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<WebUserCreatedResponse> actualizar(
+    public ResponseEntity<ResourceIdResponse> actualizar(
             @PathVariable UUID id, @Valid @RequestBody WebUserUpdateRequest body) {
         return ResponseEntity.ok(usuarioWebService.actualizar(id, body));
     }

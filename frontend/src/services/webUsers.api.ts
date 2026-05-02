@@ -1,3 +1,4 @@
+import type { ApiResourceId } from "@/domain/apiResourceId";
 import type { WebUserDetail, WebUserListItem, WebUserPermissionMode } from "@/domain/webUsers";
 import { apiGet, apiPatch, apiPost, apiPut } from "@/lib/api";
 import { endpoints } from "./endpoints";
@@ -18,8 +19,6 @@ export type WebUserUpdateBody = Omit<WebUserCreateBody, "contrasena"> & {
   contrasena?: string;
 };
 
-export type WebUserCreated = { id: string };
-
 export const webUsersApi = {
   list(): Promise<WebUserListItem[]> {
     return apiGet<WebUserListItem[]>(endpoints.usuariosWeb);
@@ -29,12 +28,12 @@ export const webUsersApi = {
     return apiGet<WebUserDetail>(`${endpoints.usuariosWeb}/${id}`);
   },
 
-  create(body: WebUserCreateBody): Promise<WebUserCreated> {
-    return apiPost<WebUserCreated, WebUserCreateBody>(endpoints.usuariosWeb, body);
+  create(body: WebUserCreateBody): Promise<ApiResourceId> {
+    return apiPost<ApiResourceId, WebUserCreateBody>(endpoints.usuariosWeb, body);
   },
 
-  update(id: string, body: WebUserUpdateBody): Promise<WebUserCreated> {
-    return apiPut<WebUserCreated, WebUserUpdateBody>(`${endpoints.usuariosWeb}/${id}`, body);
+  update(id: string, body: WebUserUpdateBody): Promise<ApiResourceId> {
+    return apiPut<ApiResourceId, WebUserUpdateBody>(`${endpoints.usuariosWeb}/${id}`, body);
   },
 
   setActivo(id: string, activo: boolean): Promise<void> {

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fleetApi, mobileUsersApi, ordersApi, routesApi, vehiclesApi, webUsersApi } from "@/services";
+import { fleetApi, mobileUsersApi, ordersApi, routesApi, vehiclesApi, webRolesApi, webUsersApi } from "@/services";
 
 export function useVehiclesQuery() {
   return useQuery({
@@ -35,6 +35,28 @@ export function useWebUsersQuery() {
   return useQuery({
     queryKey: ["usuarios-web"],
     queryFn: () => webUsersApi.list(),
+  });
+}
+
+export function useWebRolesQuery() {
+  return useQuery({
+    queryKey: ["roles-web"],
+    queryFn: () => webRolesApi.list(),
+  });
+}
+
+export function useWebRoleOptionsQuery() {
+  return useQuery({
+    queryKey: ["roles-web", "opciones"],
+    queryFn: () => webRolesApi.listOpciones(),
+  });
+}
+
+export function useWebRoleDetailQuery(id: string | undefined) {
+  return useQuery({
+    queryKey: ["rol-web", id],
+    queryFn: () => webRolesApi.getById(id!),
+    enabled: Boolean(id),
   });
 }
 

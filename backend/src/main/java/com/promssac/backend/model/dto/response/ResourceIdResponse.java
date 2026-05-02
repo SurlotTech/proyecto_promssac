@@ -4,10 +4,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/** Respuesta mínima POST/PUT: solo el id del recurso creado o actualizado. */
 @Getter
 @Setter
 @NoArgsConstructor
-public class WebUserCreatedResponse {
+public class ResourceIdResponse {
 
     private String id;
 }

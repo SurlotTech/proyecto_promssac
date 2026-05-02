@@ -21,7 +21,7 @@ import {
 import { FullscreenLoadOrError } from "@/components/common/FullscreenLoadOrError";
 import { defaultWebPermissionMap, permissionGroups, PermissionGroupCard } from "./NuevoRol";
 import { webUsersApi } from "@/services/webUsers.api";
-import { useWebUserDetailQuery } from "@/hooks/useOperationsQueries";
+import { useWebRoleOptionsQuery, useWebUserDetailQuery } from "@/hooks/useOperationsQueries";
 import { toast } from "sonner";
 
 const FormSectionTitle = ({ children }: { children: ReactNode }) => (
@@ -40,6 +40,7 @@ const EditarUsuario = () => {
     isLoading: detailLoading,
     isError: detailError,
   } = useWebUserDetailQuery(editId);
+  const { data: roleOptions = [] } = useWebRoleOptionsQuery();
   const hydratedRef = useRef(false);
 
   const [permissionsExpanded, setPermissionsExpanded] = useState(true);
@@ -339,10 +340,21 @@ const EditarUsuario = () => {
                         <SelectTrigger id="eu-role-select" className="h-10 bg-background">
                           <SelectValue placeholder="Seleccionar rol" />
                         </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="admin">Administrador</SelectItem>
-                          <SelectItem value="supervisor">Supervisor</SelectItem>
-                          <SelectItem value="operador">Operador</SelectItem>
+                        <SelectContent className="max-h-[min(50vh,280px)]">
+                          {selectedRole &&
+                            !roleOptions.some((r) => r.clave === selectedRole) && (
+                              <SelectItem value={selectedRole} disabled className="text-sm">
+                                {selectedRole} (rol no disponible o inactivo)
+                              </SelectItem>
+                            )}
+                          {roleOptions.map((r) => (
+                            <SelectItem key={r.clave} value={r.clave} className="text-sm">
+                              {r.nombre}
+                            </SelectItem>
+                          ))}
+                          {roleOptions.length === 0 && !selectedRole && (
+                            <div className="px-2 py-3 text-xs text-muted-foreground">No hay roles activos.</div>
+                          )}
                         </SelectContent>
                       </Select>
                     </div>

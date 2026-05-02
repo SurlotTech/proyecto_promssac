@@ -19,6 +19,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { defaultWebPermissionMap, permissionGroups, PermissionGroupCard } from "./NuevoRol";
+import { useWebRoleOptionsQuery } from "@/hooks/useOperationsQueries";
 import { webUsersApi } from "@/services/webUsers.api";
 import { toast } from "sonner";
 
@@ -31,6 +32,7 @@ const FormSectionTitle = ({ children }: { children: ReactNode }) => (
 const NuevoUsuarioWeb = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { data: roleOptions = [] } = useWebRoleOptionsQuery();
   const [permissionsExpanded, setPermissionsExpanded] = useState(false);
   const [permissionType, setPermissionType] = useState<"rol" | "personalizado">("rol");
   const [selectedRole, setSelectedRole] = useState("");
@@ -279,10 +281,16 @@ const NuevoUsuarioWeb = () => {
                         <SelectTrigger id="nu-role-select" className="h-10 bg-background">
                           <SelectValue placeholder="Seleccionar rol" />
                         </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="admin">Administrador</SelectItem>
-                          <SelectItem value="supervisor">Supervisor</SelectItem>
-                          <SelectItem value="operador">Operador</SelectItem>
+                        <SelectContent className="max-h-[min(50vh,280px)]">
+                          {roleOptions.length === 0 ? (
+                            <div className="px-2 py-3 text-xs text-muted-foreground">No hay roles activos. Crea uno en Roles de usuario.</div>
+                          ) : (
+                            roleOptions.map((r) => (
+                              <SelectItem key={r.clave} value={r.clave} className="text-sm">
+                                {r.nombre}
+                              </SelectItem>
+                            ))
+                          )}
                         </SelectContent>
                       </Select>
                     </div>

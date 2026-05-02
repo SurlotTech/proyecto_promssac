@@ -7,11 +7,13 @@ import com.promssac.backend.exception.BusinessException;
 import com.promssac.backend.exception.ResourceNotFoundException;
 import com.promssac.backend.model.dto.request.WebUserCreateRequest;
 import com.promssac.backend.model.dto.request.WebUserUpdateRequest;
-import com.promssac.backend.model.dto.response.WebUserCreatedResponse;
+import com.promssac.backend.model.dto.response.ResourceIdResponse;
 import com.promssac.backend.model.dto.response.WebUserDetailResponse;
 import com.promssac.backend.model.dto.response.WebUserListItemResponse;
+import com.promssac.backend.model.entity.RolWeb;
 import com.promssac.backend.model.entity.UsuarioWeb;
 import com.promssac.backend.model.enums.ModoPermisoUsuarioWeb;
+import com.promssac.backend.repository.RolWebRepository;
 import com.promssac.backend.repository.UsuarioWebRepository;
 import com.promssac.backend.service.UsuarioWebService;
 import java.time.LocalDateTime;
@@ -20,8 +22,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,12 +37,12 @@ public class UsuarioWebServiceImpl implements UsuarioWebService {
 
     private static final DateTimeFormatter ULTIMA_CONEX_UI =
             DateTimeFormatter.ofPattern("dd-MM-yy HH:mm", Locale.ROOT);
-    private static final Set<String> ROLES_VALIDOS = Set.of("admin", "supervisor", "operador");
     private static final String PERMISOS_VACIOS = "{}";
     private static final String MSG_USUARIO_DUPLICADO = "Ya existe un usuario con ese nombre de usuario.";
     private static final String MSG_EMAIL_DUPLICADO = "Ya existe un usuario con ese correo.";
 
     private final UsuarioWebRepository usuarioWebRepository;
+    private final RolWebRepository rolWebRepository;
     private final PasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper;
 
@@ -49,7 +51,10 @@ public class UsuarioWebServiceImpl implements UsuarioWebService {
     @Override
     @Transactional(readOnly = true)
     public List<WebUserListItemResponse> listar() {
-        return usuarioWebRepository.findAllByOrderByCreadoEnDesc().stream().map(this::toListItem).toList();
+        Map<String, String> nombrePorClave = indexarNombresRol();
+        return usuarioWebRepository.findAllByOrderByCreadoEnDesc().stream()
+                .map(u -> toListItem(u, nombrePorClave))
+                .toList();
     }
 
     @Override
@@ -63,7 +68,7 @@ public class UsuarioWebServiceImpl implements UsuarioWebService {
 
     @Override
     @Transactional
-    public WebUserCreatedResponse crear(WebUserCreateRequest request) {
+    public ResourceIdResponse crear(WebUserCreateRequest request) {
         String usuario = request.getNombreUsuario().trim();
         String email = request.getEmail().trim();
         if (usuarioWebRepository.existsByNombreUsuarioIgnoreCase(usuario)) {
@@ -94,7 +99,7 @@ public class UsuarioWebServiceImpl implements UsuarioWebService {
 
     @Override
     @Transactional
-    public WebUserCreatedResponse actualizar(UUID id, WebUserUpdateRequest request) {
+    public ResourceIdResponse actualizar(UUID id, WebUserUpdateRequest request) {
         UsuarioWeb entity = usuarioWebRepository
                 .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario web", id));
@@ -150,16 +155,25 @@ public class UsuarioWebServiceImpl implements UsuarioWebService {
             if (rk.isEmpty()) {
                 throw new BusinessException("Selecciona un rol de usuario.");
             }
-            if (!ROLES_VALIDOS.contains(rk.toLowerCase(Locale.ROOT))) {
-                throw new BusinessException("Rol no reconocido.");
+            RolWeb rol = rolWebRepository
+                    .findByClaveIgnoreCase(rk)
+                    .orElseThrow(() -> new BusinessException("Rol no reconocido."));
+            if (!Boolean.TRUE.equals(rol.getActivo())) {
+                throw new BusinessException("El rol está desactivado. Elige otro rol o activa este rol.");
             }
-            return new RolPermisos(rk.toLowerCase(Locale.ROOT), PERMISOS_VACIOS);
+            return new RolPermisos(rol.getClave().toLowerCase(Locale.ROOT), PERMISOS_VACIOS);
         }
         return new RolPermisos(null, serializarPermisos(permisosMap));
     }
 
-    private static WebUserCreatedResponse idResponse(UUID id) {
-        WebUserCreatedResponse dto = new WebUserCreatedResponse();
+    private Map<String, String> indexarNombresRol() {
+        return rolWebRepository.findAll().stream()
+                .collect(Collectors.toMap(
+                        r -> r.getClave().toLowerCase(Locale.ROOT), RolWeb::getNombre, (a, b) -> a));
+    }
+
+    private static ResourceIdResponse idResponse(UUID id) {
+        ResourceIdResponse dto = new ResourceIdResponse();
         dto.setId(id.toString());
         return dto;
     }
@@ -195,18 +209,18 @@ public class UsuarioWebServiceImpl implements UsuarioWebService {
         }
     }
 
-    private WebUserListItemResponse toListItem(UsuarioWeb u) {
+    private WebUserListItemResponse toListItem(UsuarioWeb u, Map<String, String> nombrePorClave) {
         WebUserListItemResponse dto = new WebUserListItemResponse();
         dto.setId(u.getId().toString());
         dto.setNombreCompleto(u.getNombreCompleto());
         dto.setNombreUsuario(u.getNombreUsuario());
         dto.setEstado(Boolean.TRUE.equals(u.getActivo()) ? "Activo" : "Inactivo");
-        dto.setRolPermisos(etiquetaRolPermisos(u));
+        dto.setRolPermisos(etiquetaRolPermisos(u, nombrePorClave));
         dto.setUltimaConexion(formatearUltimaConexion(u.getUltimaConexion()));
         return dto;
     }
 
-    private static String etiquetaRolPermisos(UsuarioWeb u) {
+    private static String etiquetaRolPermisos(UsuarioWeb u, Map<String, String> nombrePorClave) {
         if (u.getModoPermisos() == ModoPermisoUsuarioWeb.PERSONALIZADO) {
             return "Personalizado";
         }
@@ -214,12 +228,7 @@ public class UsuarioWebServiceImpl implements UsuarioWebService {
         if (rk == null) {
             return "-";
         }
-        return switch (rk.toLowerCase(Locale.ROOT)) {
-            case "admin" -> "Administrador";
-            case "supervisor" -> "Supervisor";
-            case "operador" -> "Operador";
-            default -> rk;
-        };
+        return nombrePorClave.getOrDefault(rk.toLowerCase(Locale.ROOT), rk);
     }
 
     private static String formatearUltimaConexion(LocalDateTime t) {

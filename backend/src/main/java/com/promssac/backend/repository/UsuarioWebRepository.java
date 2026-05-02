@@ -1,9 +1,12 @@
 package com.promssac.backend.repository;
 
 import com.promssac.backend.model.entity.UsuarioWeb;
+import com.promssac.backend.model.enums.ModoPermisoUsuarioWeb;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface UsuarioWebRepository extends JpaRepository<UsuarioWeb, UUID> {
 
@@ -16,4 +19,8 @@ public interface UsuarioWebRepository extends JpaRepository<UsuarioWeb, UUID> {
     boolean existsByEmailIgnoreCaseAndIdNot(String email, UUID id);
 
     List<UsuarioWeb> findAllByOrderByCreadoEnDesc();
+
+    @Query(
+            "SELECT COUNT(u) FROM UsuarioWeb u WHERE u.modoPermisos = :modo AND LOWER(u.rolClave) = LOWER(:clave)")
+    long countUsuariosConRolClave(@Param("modo") ModoPermisoUsuarioWeb modo, @Param("clave") String clave);
 }

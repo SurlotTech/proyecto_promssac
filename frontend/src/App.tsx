@@ -19,7 +19,7 @@ import NuevoUsuarioWeb from "./pages/NuevoUsuarioWeb.tsx";
 import PerfilUsuario from "./pages/PerfilUsuario.tsx";
 import RolesUsuario from "./pages/RolesUsuario.tsx";
 import NuevoRol from "./pages/NuevoRol.tsx";
-import DetalleRol from "./pages/DetalleRol.tsx";
+import EditarRol from "./pages/EditarRol.tsx";
 import Subestados from "./pages/Subestados.tsx";
 import NuevoSubestado from "./pages/NuevoSubestado.tsx";
 import NotFound from "./pages/NotFound.tsx";
@@ -54,7 +54,7 @@ const App = () => (
             <Route path="/config/subestados" element={<Navigate to="/configuracion/subestados" replace />} />
             <Route path="/usuarios/roles" element={<RolesUsuario />} />
             <Route path="/usuarios/roles/nuevo" element={<NuevoRol />} />
-            <Route path="/usuarios/roles/detalle" element={<DetalleRol />} />
+            <Route path="/usuarios/roles/:id/editar" element={<EditarRol />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
