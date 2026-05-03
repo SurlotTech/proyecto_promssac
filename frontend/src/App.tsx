@@ -22,6 +22,8 @@ import NuevoRol from "./pages/NuevoRol.tsx";
 import EditarRol from "./pages/EditarRol.tsx";
 import Subestados from "./pages/Subestados.tsx";
 import NuevoSubestado from "./pages/NuevoSubestado.tsx";
+import Alertas from "./pages/Alertas.tsx";
+import ConfiguracionAlertas from "./pages/ConfiguracionAlertas.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -35,6 +37,7 @@ const App = () => (
           <Route element={<AppLayout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/vehiculos" element={<Vehiculos />} />
+            <Route path="/alertas" element={<Alertas />} />
             <Route path="/rutas" element={<Rutas />} />
             <Route path="/ordenes" element={<Ordenes />} />
             <Route path="/ordenes/detalle/:orderId" element={<DetalleOrden />} />
@@ -51,6 +54,7 @@ const App = () => (
             <Route path="/usuarios/movil/:id/editar" element={<NuevoUsuarioMovil />} />
             <Route path="/configuracion/subestados" element={<Subestados />} />
             <Route path="/configuracion/subestados/nuevo" element={<NuevoSubestado />} />
+            <Route path="/configuracion/alertas" element={<ConfiguracionAlertas />} />
             <Route path="/config/subestados" element={<Navigate to="/configuracion/subestados" replace />} />
             <Route path="/usuarios/roles" element={<RolesUsuario />} />
             <Route path="/usuarios/roles/nuevo" element={<NuevoRol />} />

@@ -11,6 +11,7 @@ import {
   Settings,
   ChevronDown,
   ChevronRight,
+  Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +31,7 @@ const operationsItems: NavItem[] = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/rutas", label: "Rutas", icon: Route },
   { to: "/ordenes", label: "Órdenes", icon: Package },
+  { to: "/alertas", label: "Alertas", icon: Bell },
   { to: "/flota", label: "Flota en vivo", icon: MapPin },
   { to: "/vehiculos", label: "Vehículos", icon: Truck },
 ];
@@ -46,7 +48,10 @@ const usersGroup: NavItem = {
 const systemGroup: NavItem = {
   label: "Configuración",
   icon: Settings,
-  subItems: [{ to: "/configuracion/subestados", label: "Subestados" }],
+  subItems: [
+    { to: "/configuracion/subestados", label: "Subestados" },
+    { to: "/configuracion/alertas", label: "Configuración de alertas" },
+  ],
 };
 
 const pathMatchesSub = (pathname: string, to: string) =>
