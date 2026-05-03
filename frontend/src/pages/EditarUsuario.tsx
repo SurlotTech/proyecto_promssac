@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft, ChevronDown, ChevronUp, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +33,7 @@ const FormSectionTitle = ({ children }: { children: ReactNode }) => (
 const EditarUsuario = () => {
   const navigate = useNavigate();
   const { id: editId } = useParams<{ id: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const goToList = () => navigate("/usuarios/web");
   const {
@@ -73,6 +74,35 @@ const EditarUsuario = () => {
     setSelectedRole(mode === "rol" && detail.roleKey ? detail.roleKey : "");
     setActivePermissions({ ...defaultWebPermissionMap(), ...detail.permissions });
   }, [detail]);
+
+  /** Desde listado: ?tab=permisos | ?tab=rol (misma pantalla que “Copia 1”). */
+  useEffect(() => {
+    if (!detail) return;
+    const tab = searchParams.get("tab");
+    if (tab !== "permisos" && tab !== "rol") return;
+
+    if (tab === "permisos") {
+      setPermissionType("personalizado");
+      setPermissionsExpanded(true);
+    } else {
+      setPermissionType("rol");
+      setPermissionsExpanded(true);
+    }
+
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("tab");
+        return next;
+      },
+      { replace: true },
+    );
+
+    const scrollId = tab === "rol" ? "eu-role-select" : "eu-permisos-section";
+    requestAnimationFrame(() => {
+      document.getElementById(scrollId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [detail, searchParams, setSearchParams]);
 
   const togglePermission = (permId: string, val: boolean) => {
     setActivePermissions((prev) => ({ ...prev, [permId]: val }));
@@ -286,7 +316,10 @@ const EditarUsuario = () => {
             </div>
           </section>
 
-          <section className="flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+          <section
+            id="eu-permisos-section"
+            className="flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm"
+          >
             <button
               type="button"
               className="flex w-full items-center justify-between gap-3 border-b border-border bg-muted/35 px-5 py-3 text-left transition-colors hover:bg-muted/50"

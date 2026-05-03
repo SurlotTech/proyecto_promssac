@@ -7,7 +7,7 @@ import {
 import type { Vehicle } from "@/domain/vehicles";
 import StatusBadge from "./StatusBadge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Gauge, Pencil, Truck, User } from "lucide-react";
+import { Calendar, Gauge, IdCard, Pencil, Truck, User } from "lucide-react";
 
 interface Props {
   vehicle: Vehicle | null;
@@ -22,6 +22,9 @@ const VehicleDetailDrawer = ({ vehicle, open, onOpenChange }: Props) => {
     { label: "Capacidad", value: `${vehicle.capacityKg.toLocaleString()} kg`, icon: Gauge },
     { label: "Último servicio", value: vehicle.lastService, icon: Calendar },
     { label: "Conductor", value: vehicle.driver ?? "Sin asignar", icon: User },
+    ...(vehicle.driverId
+      ? [{ label: "ID usuario móvil (conductor)", value: vehicle.driverId, icon: IdCard }]
+      : []),
   ];
 
   return (

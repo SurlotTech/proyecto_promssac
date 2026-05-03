@@ -37,7 +37,7 @@ const App = () => (
           <Route element={<AppLayout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/vehiculos" element={<Vehiculos />} />
-            <Route path="/alertas" element={<Alertas />} />
+            <Route path="/alertas" element={<Navigate to="/configuracion/alertas" replace />} />
             <Route path="/rutas" element={<Rutas />} />
             <Route path="/ordenes" element={<Ordenes />} />
             <Route path="/ordenes/detalle/:orderId" element={<DetalleOrden />} />
@@ -54,7 +54,8 @@ const App = () => (
             <Route path="/usuarios/movil/:id/editar" element={<NuevoUsuarioMovil />} />
             <Route path="/configuracion/subestados" element={<Subestados />} />
             <Route path="/configuracion/subestados/nuevo" element={<NuevoSubestado />} />
-            <Route path="/configuracion/alertas" element={<ConfiguracionAlertas />} />
+            <Route path="/configuracion/alertas" element={<Alertas />} />
+            <Route path="/configuracion/alertas/parametros" element={<ConfiguracionAlertas />} />
             <Route path="/config/subestados" element={<Navigate to="/configuracion/subestados" replace />} />
             <Route path="/usuarios/roles" element={<RolesUsuario />} />
             <Route path="/usuarios/roles/nuevo" element={<NuevoRol />} />

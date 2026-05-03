@@ -1,6 +1,5 @@
 package com.promssac.backend.model.dto.response;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -8,7 +7,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class VehicleResponse {
 
     private String id;
@@ -16,6 +14,7 @@ public class VehicleResponse {
     private String type;
     private String group;
     private String driver;
+    private String driverId;
     private String status;
     private Integer capacityKg;
     private Integer loadPct;

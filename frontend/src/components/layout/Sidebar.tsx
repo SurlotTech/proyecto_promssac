@@ -11,7 +11,6 @@ import {
   Settings,
   ChevronDown,
   ChevronRight,
-  Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,14 +23,13 @@ type NavItem = {
   to?: string;
   label: string;
   icon: ComponentType<{ className?: string }>;
-  subItems?: { to: string; label: string }[];
+  subItems?: { to: string; label: string; end?: boolean }[];
 };
 
 const operationsItems: NavItem[] = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/rutas", label: "Rutas", icon: Route },
   { to: "/ordenes", label: "Órdenes", icon: Package },
-  { to: "/alertas", label: "Alertas", icon: Bell },
   { to: "/flota", label: "Flota en vivo", icon: MapPin },
   { to: "/vehiculos", label: "Vehículos", icon: Truck },
 ];
@@ -50,7 +48,8 @@ const systemGroup: NavItem = {
   icon: Settings,
   subItems: [
     { to: "/configuracion/subestados", label: "Subestados" },
-    { to: "/configuracion/alertas", label: "Configuración de alertas" },
+    { to: "/configuracion/alertas", label: "Alertas", end: true },
+    { to: "/configuracion/alertas/parametros", label: "Configuración de alertas" },
   ],
 };
 
@@ -130,6 +129,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
                 <li key={sub.to}>
                   <NavLink
                     to={sub.to}
+                    end={sub.end === true}
                     onClick={onClose}
                     className={({ isActive }) =>
                       cn(

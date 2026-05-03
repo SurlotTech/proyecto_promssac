@@ -1,6 +1,7 @@
 package com.promssac.backend.repository;
 
 import com.promssac.backend.model.entity.UsuarioMovil;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,4 +20,7 @@ public interface UsuarioMovilRepository extends JpaRepository<UsuarioMovil, UUID
 
     @Query("SELECT u FROM UsuarioMovil u JOIN FETCH u.vehiculo WHERE u.id = :id")
     Optional<UsuarioMovil> findWithVehiculoById(@Param("id") UUID id);
+
+    @Query("SELECT u FROM UsuarioMovil u JOIN FETCH u.vehiculo v WHERE v.id IN :ids")
+    List<UsuarioMovil> findByVehiculoIdInWithVehiculo(@Param("ids") Collection<UUID> ids);
 }

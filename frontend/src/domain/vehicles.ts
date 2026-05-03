@@ -9,7 +9,10 @@ export interface Vehicle {
   plate: string;
   type: VehicleType;
   group: string;
+  /** Nombre del usuario móvil asignado al vehículo (si hay). */
   driver: string | null;
+  /** Id del usuario móvil asignado (JSON: `driverId`) para reasignar o editar. */
+  driverId?: string | null;
   status: VehicleStatus;
   capacityKg: number;
   loadPct: number;

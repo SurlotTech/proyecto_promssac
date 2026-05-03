@@ -5,16 +5,21 @@ import com.promssac.backend.exception.ResourceNotFoundException;
 import com.promssac.backend.model.dto.request.VehicleWriteRequest;
 import com.promssac.backend.model.dto.response.VehicleOptionResponse;
 import com.promssac.backend.model.dto.response.VehicleResponse;
+import com.promssac.backend.model.entity.UsuarioMovil;
 import com.promssac.backend.model.entity.Vehiculo;
 import com.promssac.backend.model.enums.EstadoVehiculo;
 import com.promssac.backend.model.enums.TipoVehiculo;
+import com.promssac.backend.repository.UsuarioMovilRepository;
 import com.promssac.backend.repository.VehiculoRepository;
 import com.promssac.backend.service.VehiculoService;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,12 +33,20 @@ public class VehiculoServiceImpl implements VehiculoService {
     private static final DateTimeFormatter UI_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter UI_DATETIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
+    /** Activo primero; luego el registro más reciente. */
+    private static final Comparator<UsuarioMovil> PREFER_DRIVER =
+            Comparator.comparing((UsuarioMovil u) -> Boolean.TRUE.equals(u.getActivo()))
+                    .thenComparing(UsuarioMovil::getCreadoEn, Comparator.reverseOrder());
+
     private final VehiculoRepository vehiculoRepository;
+    private final UsuarioMovilRepository usuarioMovilRepository;
 
     @Override
     @Transactional(readOnly = true)
     public List<VehicleResponse> listar() {
-        return vehiculoRepository.findAll().stream().map(this::toVehicleResponse).toList();
+        List<Vehiculo> all = vehiculoRepository.findAll();
+        Map<UUID, UsuarioMovil> driverByVehicle = indexDriversByVehicleId(all.stream().map(Vehiculo::getId).toList());
+        return all.stream().map(v -> toVehicleResponse(v, driverByVehicle.get(v.getId()))).toList();
     }
 
     @Override
@@ -48,7 +61,9 @@ public class VehiculoServiceImpl implements VehiculoService {
     @Override
     @Transactional(readOnly = true)
     public VehicleResponse obtener(UUID id) {
-        return toVehicleResponse(findOrThrow(id));
+        Vehiculo v = findOrThrow(id);
+        UsuarioMovil asignado = resolveAssignedDriver(v.getId());
+        return toVehicleResponse(v, asignado);
     }
 
     @Override
@@ -62,7 +77,7 @@ public class VehiculoServiceImpl implements VehiculoService {
         copyWriteRequestOntoEntity(vehiculo, request);
         Vehiculo guardado = vehiculoRepository.save(vehiculo);
         log.info("Vehículo creado id={} placa={}", guardado.getId(), guardado.getPlaca());
-        return toVehicleResponse(guardado);
+        return toVehicleResponse(guardado, null);
     }
 
     @Override
@@ -77,7 +92,8 @@ public class VehiculoServiceImpl implements VehiculoService {
         copyWriteRequestOntoEntity(vehiculo, request);
         Vehiculo actualizado = vehiculoRepository.save(vehiculo);
         log.info("Vehículo actualizado id={}", actualizado.getId());
-        return toVehicleResponse(actualizado);
+        UsuarioMovil asignado = resolveAssignedDriver(actualizado.getId());
+        return toVehicleResponse(actualizado, asignado);
     }
 
     @Override
@@ -105,13 +121,38 @@ public class VehiculoServiceImpl implements VehiculoService {
         entity.setAutoGestion(w.getAutoManaged());
     }
 
-    private VehicleResponse toVehicleResponse(Vehiculo v) {
+    private UsuarioMovil resolveAssignedDriver(UUID vehiculoId) {
+        return pickBestDriver(usuarioMovilRepository.findByVehiculoIdInWithVehiculo(List.of(vehiculoId)));
+    }
+
+    private Map<UUID, UsuarioMovil> indexDriversByVehicleId(List<UUID> vehiculoIds) {
+        if (vehiculoIds.isEmpty()) {
+            return Map.of();
+        }
+        return usuarioMovilRepository.findByVehiculoIdInWithVehiculo(vehiculoIds).stream()
+                .collect(Collectors.groupingBy(u -> u.getVehiculo().getId()))
+                .entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> pickBestDriver(e.getValue())));
+    }
+
+    private static UsuarioMovil pickBestDriver(List<UsuarioMovil> candidatos) {
+        return candidatos.stream().max(PREFER_DRIVER).orElse(null);
+    }
+
+    private VehicleResponse toVehicleResponse(Vehiculo v, UsuarioMovil conductorAsignado) {
         VehicleResponse dto = new VehicleResponse();
         dto.setId(v.getId().toString());
         dto.setPlate(v.getPlaca());
         dto.setType(v.getTipo().getApiLabel());
         dto.setGroup(v.getGrupo());
-        dto.setDriver(v.getConductor());
+        if (conductorAsignado != null) {
+            dto.setDriver(conductorAsignado.getNombreCompleto());
+            dto.setDriverId(conductorAsignado.getId().toString());
+        } else {
+            dto.setDriver(v.getConductor());
+            dto.setDriverId(null);
+        }
         dto.setStatus(v.getEstado().getApiKey());
         dto.setCapacityKg(v.getCapacidadKg());
         dto.setLoadPct(v.getPorcentajeCarga());
