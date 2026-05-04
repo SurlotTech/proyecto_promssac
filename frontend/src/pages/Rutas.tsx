@@ -1,11 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  ChevronLeft,
-  ChevronRight,
   Download,
   FileUp,
-  LayoutGrid,
-  List,
   Plus,
   Route,
   Send,
@@ -18,12 +14,19 @@ import StatCard from "@/components/StatCard";
 import RouteFilters, { RouteFilters as Filters } from "@/components/routes/RouteFilters";
 import RouteTable from "@/components/routes/RouteTable";
 import RouteCard from "@/components/routes/RouteCard";
+import AssignRouteDialog from "@/components/routes/AssignRouteDialog";
 import NewRouteDialog from "@/components/routes/NewRouteDialog";
+import RoutesPaginationBar from "@/components/routes/RoutesPaginationBar";
+import RoutesViewToggle from "@/components/routes/RoutesViewToggle";
 import { Button } from "@/components/ui/button";
 import type { Route as RouteData } from "@/domain/routes";
 import { places } from "@/domain/routes";
+import { routeMatchesFilters } from "@/lib/routeListFilter";
+import { ROUTES_QUERY_KEY } from "@/hooks/useRoutesQueryInvalidation";
 import { useMobileUserRouteOptionsQuery, useRoutesQuery, useVehicleOptionsQuery } from "@/hooks/useOperationsQueries";
-import { cn } from "@/lib/utils";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { routesApi } from "@/services";
+import { toast } from "sonner";
 
 const defaultFilters: Filters = {
   search: "",
@@ -34,21 +37,10 @@ const defaultFilters: Filters = {
   dateTo: "",
 };
 
-function paginationItems(current: number, total: number): (number | "ellipsis")[] {
-  if (total <= 9) return Array.from({ length: total }, (_, i) => i + 1);
-  const set = new Set<number>([1, total, current, current - 1, current + 1]);
-  const sorted = [...set].filter((p) => p >= 1 && p <= total).sort((a, b) => a - b);
-  const out: (number | "ellipsis")[] = [];
-  for (let i = 0; i < sorted.length; i++) {
-    if (i > 0 && sorted[i] - sorted[i - 1] > 1) out.push("ellipsis");
-    out.push(sorted[i]);
-  }
-  return out;
-}
-
 const PAGE_SIZE = 6;
 
 const Rutas = () => {
+  const qc = useQueryClient();
   const { data: allRoutes = [], isLoading, isError, error } = useRoutesQuery();
   const { data: vehicleOpciones = [] } = useVehicleOptionsQuery();
   const { data: mobileUsersRuta = [] } = useMobileUserRouteOptionsQuery();
@@ -75,42 +67,39 @@ const Rutas = () => {
   const [selected, setSelected] = useState<RouteData | null>(null);
   const [view, setView] = useState<"table" | "grid">("table");
   const [page, setPage] = useState(1);
-  const [createRouteOpen, setCreateRouteOpen] = useState(false);
+  const [routeDialogOpen, setRouteDialogOpen] = useState(false);
+  const [editingRoute, setEditingRoute] = useState<RouteData | null>(null);
+  const [assignRouteOpen, setAssignRouteOpen] = useState(false);
 
-  const filteredRoutes = useMemo(() => {
-    return allRoutes.filter((r: RouteData) => {
-      if (filters.search) {
-        const search = filters.search.toLowerCase();
-        if (
-          !r.id.toLowerCase().includes(search) &&
-          !r.name.toLowerCase().includes(search) &&
-          !r.vehiclePlate.toLowerCase().includes(search)
-        ) {
-          return false;
-        }
-      }
-      if (filters.vehicle !== "all" && r.vehicleId !== filters.vehicle) {
-        return false;
-      }
-      if (filters.place !== "all" && r.place !== filters.place) {
-        return false;
-      }
-      if (filters.driver !== "all" && r.mobileUser !== filters.driver) {
-        return false;
-      }
-      if (filters.dateFrom) {
-        const routeDate = new Date(r.deliveryDate.split("/").reverse().join("-"));
-        const fromDate = new Date(filters.dateFrom);
-        if (routeDate < fromDate) return false;
-      }
-      if (filters.dateTo) {
-        const routeDate = new Date(r.deliveryDate.split("/").reverse().join("-"));
-        const toDate = new Date(filters.dateTo);
-        if (routeDate > toDate) return false;
-      }
-      return true;
-    });
-  }, [filters, allRoutes]);
+  const deleteRouteMut = useMutation({
+    mutationFn: (id: string) => routesApi.remove(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ROUTES_QUERY_KEY });
+      toast.success("Ruta eliminada.");
+      setSelected(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const openNewRoute = () => {
+    setEditingRoute(null);
+    setRouteDialogOpen(true);
+  };
+
+  const openEditRoute = (r: RouteData) => {
+    setEditingRoute(r);
+    setRouteDialogOpen(true);
+  };
+
+  const confirmDeleteRoute = (r: RouteData) => {
+    if (!window.confirm(`¿Eliminar la ruta «${r.code}»? Esta acción no se puede deshacer.`)) return;
+    deleteRouteMut.mutate(r.id);
+  };
+
+  const filteredRoutes = useMemo(
+    () => allRoutes.filter((r) => routeMatchesFilters(r, filters)),
+    [filters, allRoutes],
+  );
 
   const totalFiltered = filteredRoutes.length;
   const totalPages = Math.max(1, Math.ceil(totalFiltered / PAGE_SIZE));
@@ -137,8 +126,11 @@ const Rutas = () => {
     return { total, active, completed, totalCollection };
   }, [allRoutes]);
 
-  const handleReset = () => {
-    setFilters(defaultFilters);
+  const handleResetFilters = () => setFilters(defaultFilters);
+
+  const closeRouteDialog = (open: boolean) => {
+    setRouteDialogOpen(open);
+    if (!open) setEditingRoute(null);
   };
 
   if (isLoading) {
@@ -169,7 +161,13 @@ const Rutas = () => {
               <FileUp className="size-4 shrink-0" />
               <span className="hidden sm:inline">Importar</span>
             </Button>
-            <Button variant="outline" size="sm" className="h-9 gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-9 gap-2"
+              onClick={() => setAssignRouteOpen(true)}
+            >
               <Send className="size-4 shrink-0" />
               <span className="hidden sm:inline">Asignar ruta</span>
             </Button>
@@ -181,7 +179,7 @@ const Rutas = () => {
               size="sm"
               type="button"
               className="h-9 gap-2 bg-primary shadow-glow hover:bg-primary-hover"
-              onClick={() => setCreateRouteOpen(true)}
+              onClick={openNewRoute}
             >
               <Plus className="size-4 shrink-0" />
               <span className="hidden sm:inline">Nueva ruta</span>
@@ -210,38 +208,11 @@ const Rutas = () => {
         <RouteFilters
           filters={filters}
           onChange={setFilters}
-          onReset={handleReset}
+          onReset={handleResetFilters}
           vehicles={vehicleOptions}
           places={places}
           drivers={driverFilterOptions}
-          toolbarRight={
-            <div className="hidden shrink-0 items-center gap-1 rounded-lg border border-border/70 bg-white p-1 sm:inline-flex">
-              <button
-                type="button"
-                onClick={() => setView("table")}
-                className={cn(
-                  "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-                  view === "table"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-                )}
-              >
-                <List className="size-4 shrink-0" /> Tabla
-              </button>
-              <button
-                type="button"
-                onClick={() => setView("grid")}
-                className={cn(
-                  "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-                  view === "grid"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-                )}
-              >
-                <LayoutGrid className="size-4 shrink-0" /> Tarjetas
-              </button>
-            </div>
-          }
+          toolbarRight={<RoutesViewToggle view={view} onViewChange={setView} />}
         />
 
         {filteredRoutes.length === 0 ? (
@@ -260,6 +231,8 @@ const Rutas = () => {
                   key={r.id}
                   route={r}
                   onSelect={setSelected}
+                  onEdit={openEditRoute}
+                  onDelete={confirmDeleteRoute}
                   vehicleTypeByPlate={vehicleTypeByPlate}
                 />
               ))}
@@ -270,6 +243,8 @@ const Rutas = () => {
                 <RouteTable
                   routes={paginatedRoutes}
                   onSelect={setSelected}
+                  onEdit={openEditRoute}
+                  onDelete={confirmDeleteRoute}
                   vehicleTypeByPlate={vehicleTypeByPlate}
                 />
               ) : (
@@ -279,6 +254,8 @@ const Rutas = () => {
                       key={r.id}
                       route={r}
                       onSelect={setSelected}
+                      onEdit={openEditRoute}
+                      onDelete={confirmDeleteRoute}
                       vehicleTypeByPlate={vehicleTypeByPlate}
                     />
                   ))}
@@ -286,92 +263,26 @@ const Rutas = () => {
               )}
             </div>
 
-            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-muted-foreground">
-                Mostrando{" "}
-                <span className="font-semibold text-foreground">
-                  {(currentPage - 1) * PAGE_SIZE + 1}
-                </span>
-                –
-                <span className="font-semibold text-foreground">
-                  {Math.min(currentPage * PAGE_SIZE, totalFiltered)}
-                </span>{" "}
-                de <span className="font-semibold text-foreground">{totalFiltered}</span> rutas
-              </p>
-
-              <nav
-                className="flex flex-wrap items-center justify-end gap-2"
-                aria-label="Paginación de rutas"
-              >
-                <button
-                  type="button"
-                  disabled={currentPage <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  aria-label="Página anterior"
-                  className={cn(
-                    "flex size-9 shrink-0 items-center justify-center rounded-full border-2 bg-white transition-colors",
-                    currentPage <= 1
-                      ? "cursor-not-allowed border-primary/25 text-primary/35"
-                      : "border-primary text-primary hover:bg-primary-soft",
-                  )}
-                >
-                  <ChevronLeft className="size-4" strokeWidth={2.25} />
-                </button>
-
-                {paginationItems(currentPage, totalPages).map((item, idx) =>
-                  item === "ellipsis" ? (
-                    <span
-                      key={`e-${idx}`}
-                      className="flex size-9 shrink-0 items-center justify-center text-sm font-medium text-muted-foreground"
-                      aria-hidden
-                    >
-                      …
-                    </span>
-                  ) : (
-                    <button
-                      key={item}
-                      type="button"
-                      onClick={() => setPage(item)}
-                      aria-label={`Ir a página ${item}`}
-                      aria-current={currentPage === item ? "page" : undefined}
-                      className={cn(
-                        "flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition-colors",
-                        currentPage === item
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "border-2 border-primary bg-white text-foreground hover:bg-primary-soft",
-                      )}
-                    >
-                      {item}
-                    </button>
-                  ),
-                )}
-
-                <button
-                  type="button"
-                  disabled={currentPage >= totalPages}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  aria-label="Página siguiente"
-                  className={cn(
-                    "flex size-9 shrink-0 items-center justify-center rounded-full border-2 bg-white transition-colors",
-                    currentPage >= totalPages
-                      ? "cursor-not-allowed border-primary/25 text-primary/35"
-                      : "border-primary text-primary hover:bg-primary-soft",
-                  )}
-                >
-                  <ChevronRight className="size-4" strokeWidth={2.25} />
-                </button>
-              </nav>
-            </div>
+            <RoutesPaginationBar
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalFiltered={totalFiltered}
+              pageSize={PAGE_SIZE}
+              onPageChange={setPage}
+            />
           </>
         )}
       </div>
 
       <NewRouteDialog
-        open={createRouteOpen}
-        onOpenChange={setCreateRouteOpen}
+        open={routeDialogOpen}
+        onOpenChange={closeRouteDialog}
+        editingRoute={editingRoute}
         vehicles={vehicleOpciones}
         mobileUsers={mobileUsersRuta}
       />
+
+      <AssignRouteDialog open={assignRouteOpen} onOpenChange={setAssignRouteOpen} routes={allRoutes} />
     </div>
   );
 };

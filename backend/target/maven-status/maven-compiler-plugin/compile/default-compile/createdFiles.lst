@@ -21,12 +21,14 @@ com/promssac/backend/config/SecurityConfig.class
 com/promssac/backend/model/dto/request/ActivoPatchRequest.class
 com/promssac/backend/model/dto/response/MobileUserDetailResponse.class
 com/promssac/backend/model/dto/response/WebUserListItemResponse.class
+com/promssac/backend/model/dto/request/OrderCreateRequest.class
 com/promssac/backend/service/impl/UsuarioMovilServiceImpl$1.class
 com/promssac/backend/controller/VehiculoController.class
 com/promssac/backend/model/dto/request/MobileUserCreateRequest.class
 com/promssac/backend/integration/entel/EntelOnWayClient.class
 com/promssac/backend/service/impl/UsuarioWebServiceImpl$RolPermisos.class
 com/promssac/backend/config/CorsConfig.class
+com/promssac/backend/model/dto/request/OrderAssignBulkRequest.class
 com/promssac/backend/model/dto/response/MobileUserResponse.class
 com/promssac/backend/service/impl/UsuarioWebServiceImpl$1.class
 com/promssac/backend/exception/ResourceNotFoundException.class
@@ -79,3 +81,4 @@ com/promssac/backend/model/dto/request/RolWebCreateRequest.class
 com/promssac/backend/model/entity/Ruta.class
 com/promssac/backend/model/dto/response/RolWebDetailResponse.class
 com/promssac/backend/service/VehiculoService.class
+com/promssac/backend/model/dto/request/RouteWriteRequest.class

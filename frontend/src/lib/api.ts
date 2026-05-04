@@ -28,6 +28,16 @@ export async function apiPost<T, B>(path: string, body: B): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+/** POST que responde 204 No Content sin cuerpo JSON. */
+export async function apiPostNoContent<B>(path: string, body: B): Promise<void> {
+  const res = await fetch(`${base}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(await parseError(res));
+}
+
 async function fetchMultipartJson<T>(
   method: "POST" | "PUT",
   path: string,

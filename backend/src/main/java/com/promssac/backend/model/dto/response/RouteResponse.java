@@ -1,7 +1,7 @@
 package com.promssac.backend.model.dto.response;
 
 import java.math.BigDecimal;
-import lombok.AllArgsConstructor;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -9,10 +9,11 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class RouteResponse {
 
-    private String id;
+    private UUID id;
+
+    private String code;
     private String name;
     private String vehicleId;
     private String vehiclePlate;

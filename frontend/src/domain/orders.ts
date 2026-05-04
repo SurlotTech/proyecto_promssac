@@ -1,3 +1,6 @@
+/** Opción de ruta para combos al crear o editar una orden. */
+export type OrderRouteOption = { id: string; label: string };
+
 export type OrderStatus =
   | "pending"
   | "preparing"
@@ -17,6 +20,8 @@ export interface Order {
   routeDateIso: string;
   createdAtIso: string;
   isLastDispatch: boolean;
+  /** UUID de la ruta asignada en backend, si existe. */
+  routeId?: string;
 }
 
 export const orderStatusMeta: Record<

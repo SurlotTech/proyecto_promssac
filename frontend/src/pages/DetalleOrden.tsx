@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -24,8 +24,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import OrderStatusBadge from "@/components/orders/OrderStatusBadge";
-import { orderStatusMeta } from "@/domain/orders";
-import { useOrdersQuery } from "@/hooks/useOperationsQueries";
+import { useOrdersQuery, useRoutesQuery } from "@/hooks/useOperationsQueries";
+import { persistOrderDraft, type OrderCreationDraft, type OrderCompletarLocationState } from "@/lib/orderCreationDraft";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -36,56 +36,15 @@ type TimelineEvent = {
   user: string;
 };
 
-function formatLongDateEs(isoDate: string): string {
-  const d = new Date(isoDate + "T12:00:00");
-  return new Intl.DateTimeFormat("es-PE", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(d);
-}
-
-function buildTimeline(orderId: string, createdIso: string, statusLabel: string): { dateLabel: string; events: TimelineEvent[] }[] {
-  const dateLabel = formatLongDateEs(createdIso);
-  return [
-    {
-      dateLabel,
-      events: [
-        {
-          id: "e1",
-          title: "Ingresado al sistema",
-          time: "08:12",
-          user: "Rosa Gonzales Esquivel",
-        },
-        {
-          id: "e2",
-          title: `Estado actualizado a «${statusLabel}»`,
-          time: "09:40",
-          user: "Sistema",
-        },
-        {
-          id: "e3",
-          title: "Asignación revisada en despacho",
-          time: "11:05",
-          user: "Carlos Mendoza",
-        },
-        {
-          id: "e4",
-          title: `Vinculación de orden ${orderId}`,
-          time: "11:18",
-          user: "Sistema",
-        },
-      ],
-    },
-  ];
-}
+/** Cuando el backend exponga auditoría, reemplazar por datos reales. */
+const ORDER_TIMELINE_PLACEHOLDER: { dateLabel: string; events: TimelineEvent[] }[] = [];
 
 const DetalleOrden = () => {
   const { orderId = "" } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
   const decodedId = decodeURIComponent(orderId);
   const { data: allOrders = [], isLoading } = useOrdersQuery();
+  const { data: routeCatalog = [] } = useRoutesQuery();
   const order = useMemo(
     () => allOrders.find((o) => o.id === decodedId),
     [allOrders, decodedId],
@@ -95,10 +54,22 @@ const DetalleOrden = () => {
   const [comentariosOpen, setComentariosOpen] = useState(true);
   const [comentarioPublico, setComentarioPublico] = useState(false);
 
-  const timeline = useMemo(() => {
-    if (!order) return [];
-    return buildTimeline(order.id, order.createdAtIso, orderStatusMeta[order.status].label);
-  }, [order]);
+  const timeline = order ? ORDER_TIMELINE_PLACEHOLDER : [];
+  const hasTimelineEvents = timeline.some((g) => g.events.length > 0);
+
+  const goToCompletarDatos = useCallback(() => {
+    if (!order) return;
+    const ruta = order.routeId ? routeCatalog.find((r) => r.id === order.routeId) : undefined;
+    const draft: OrderCreationDraft = {
+      displayOrderId: order.id,
+      routeId: order.routeId ?? "",
+      routeLabel: ruta ? `${ruta.code} — ${ruta.name}` : null,
+      autoCode: order.id.startsWith("ORD-AUTO-"),
+    };
+    persistOrderDraft(draft);
+    const state: OrderCompletarLocationState = { orderDraft: draft };
+    navigate("/ordenes/completar", { state });
+  }, [navigate, order, routeCatalog]);
 
   if (isLoading) {
     return (
@@ -184,7 +155,7 @@ const DetalleOrden = () => {
               <XCircle className="size-4" />
               Limpiar orden
             </Button>
-            <Button variant="outline" size="sm" className="h-9 gap-2 font-medium" onClick={() => toast.message("Modificar datos (demo)")}>
+            <Button variant="outline" size="sm" className="h-9 gap-2 font-medium" onClick={goToCompletarDatos}>
               <FileEdit className="size-4" />
               Modificar datos
             </Button>
@@ -332,57 +303,65 @@ const DetalleOrden = () => {
         <main className="min-h-0 min-w-0 flex-1 overflow-y-auto p-4 sm:p-6 lg:px-8 lg:py-6">
           <div className="w-full min-w-0">
             <h2 className="mb-5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Historial</h2>
-            {timeline.map((group) => (
-              <div key={group.dateLabel} className="w-full min-w-0">
-                <p className="mb-4 text-sm font-medium capitalize tracking-tight text-muted-foreground">{group.dateLabel}</p>
-                <div className="relative w-full min-w-0">
-                  {/* Eje vertical: alineado al centro del carril de nodos (fuera de las tarjetas) */}
-                  <div
-                    className="pointer-events-none absolute left-[1.125rem] top-3 bottom-3 z-0 w-0.5 -translate-x-1/2 rounded-full bg-gradient-to-b from-primary via-primary/35 to-border sm:left-[1.375rem]"
-                    aria-hidden
-                  />
-                  <ul className="relative z-[1] w-full min-w-0 space-y-4">
-                    {group.events.map((ev, idx) => (
-                      <li
-                        key={ev.id}
-                        className="grid grid-cols-[2.25rem_minmax(0,1fr)] items-start gap-x-3 sm:grid-cols-[2.75rem_minmax(0,1fr)] sm:gap-x-4"
-                      >
-                        <div className="flex justify-center pt-3.5">
-                          <span
-                            className={cn(
-                              "relative z-[2] flex size-7 shrink-0 items-center justify-center rounded-full border-2 bg-background shadow-sm ring-2 ring-background sm:size-[30px]",
-                              idx === 0 ? "border-primary bg-primary/10" : "border-border",
-                            )}
-                          >
+            {!hasTimelineEvents ? (
+              <div className="rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
+                <p className="text-center text-sm leading-relaxed text-muted-foreground">
+                  No hay eventos en el historial todavía. Aquí verás cambios de estado, asignaciones y
+                  otras acciones cuando el registro de actividad esté disponible desde el servidor.
+                </p>
+              </div>
+            ) : (
+              timeline.map((group) => (
+                <div key={group.dateLabel} className="w-full min-w-0">
+                  <p className="mb-4 text-sm font-medium capitalize tracking-tight text-muted-foreground">{group.dateLabel}</p>
+                  <div className="relative w-full min-w-0">
+                    <div
+                      className="pointer-events-none absolute left-[1.125rem] top-3 bottom-3 z-0 w-0.5 -translate-x-1/2 rounded-full bg-gradient-to-b from-primary via-primary/35 to-border sm:left-[1.375rem]"
+                      aria-hidden
+                    />
+                    <ul className="relative z-[1] w-full min-w-0 space-y-4">
+                      {group.events.map((ev, idx) => (
+                        <li
+                          key={ev.id}
+                          className="grid grid-cols-[2.25rem_minmax(0,1fr)] items-start gap-x-3 sm:grid-cols-[2.75rem_minmax(0,1fr)] sm:gap-x-4"
+                        >
+                          <div className="flex justify-center pt-3.5">
                             <span
                               className={cn(
-                                "size-2 rounded-full sm:size-2.5",
-                                idx === 0 ? "bg-primary" : "bg-muted-foreground/45",
+                                "relative z-[2] flex size-7 shrink-0 items-center justify-center rounded-full border-2 bg-background shadow-sm ring-2 ring-background sm:size-[30px]",
+                                idx === 0 ? "border-primary bg-primary/10" : "border-border",
                               )}
-                            />
-                          </span>
-                        </div>
-                        <article className="min-w-0 rounded-xl border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md sm:p-5">
-                          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-                            <h3 className="min-w-0 text-sm font-semibold leading-snug text-foreground sm:text-base">{ev.title}</h3>
-                            <div className="flex shrink-0 flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-muted-foreground sm:justify-end">
-                              <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-                                <Clock className="size-3.5 shrink-0" />
-                                Registrado: {ev.time}
-                              </span>
-                              <span className="inline-flex min-w-0 items-center gap-1.5">
-                                <User className="size-3.5 shrink-0" />
-                                <span className="truncate">{ev.user}</span>
-                              </span>
-                            </div>
+                            >
+                              <span
+                                className={cn(
+                                  "size-2 rounded-full sm:size-2.5",
+                                  idx === 0 ? "bg-primary" : "bg-muted-foreground/45",
+                                )}
+                              />
+                            </span>
                           </div>
-                        </article>
-                      </li>
-                    ))}
-                  </ul>
+                          <article className="min-w-0 rounded-xl border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md sm:p-5">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+                              <h3 className="min-w-0 text-sm font-semibold leading-snug text-foreground sm:text-base">{ev.title}</h3>
+                              <div className="flex shrink-0 flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-muted-foreground sm:justify-end">
+                                <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                                  <Clock className="size-3.5 shrink-0" />
+                                  Registrado: {ev.time}
+                                </span>
+                                <span className="inline-flex min-w-0 items-center gap-1.5">
+                                  <User className="size-3.5 shrink-0" />
+                                  <span className="truncate">{ev.user}</span>
+                                </span>
+                              </div>
+                            </div>
+                          </article>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </main>
       </div>

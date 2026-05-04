@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import type { Order } from "@/domain/orders";
 import { useOrdersQuery, useRoutesQuery } from "@/hooks/useOperationsQueries";
 import { toast } from "sonner";
+import { paginationItems } from "@/lib/pagination";
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 8;
@@ -54,18 +55,6 @@ function orderMatches(o: Order, f: OrderFiltersState): boolean {
   return true;
 }
 
-function paginationItems(current: number, total: number): (number | "ellipsis")[] {
-  if (total <= 9) return Array.from({ length: total }, (_, i) => i + 1);
-  const set = new Set<number>([1, total, current, current - 1, current + 1]);
-  const sorted = [...set].filter((p) => p >= 1 && p <= total).sort((a, b) => a - b);
-  const out: (number | "ellipsis")[] = [];
-  for (let i = 0; i < sorted.length; i++) {
-    if (i > 0 && sorted[i] - sorted[i - 1] > 1) out.push("ellipsis");
-    out.push(sorted[i]);
-  }
-  return out;
-}
-
 const Ordenes = () => {
   const navigate = useNavigate();
   const { data: allOrders = [], isLoading, isError, error } = useOrdersQuery();
@@ -89,7 +78,7 @@ const Ordenes = () => {
     () =>
       routeCatalog.map((r) => ({
         id: r.id,
-        label: `${r.id} — ${r.name}`,
+        label: `${r.code} — ${r.name}`,
       })),
     [routeCatalog],
   );

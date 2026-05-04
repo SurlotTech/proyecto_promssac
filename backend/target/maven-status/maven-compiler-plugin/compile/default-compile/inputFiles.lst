@@ -18,8 +18,11 @@
 /Users/gio/Desktop/PROMSSAC/backend/src/main/java/com/promssac/backend/model/dto/request/ActivoPatchRequest.java
 /Users/gio/Desktop/PROMSSAC/backend/src/main/java/com/promssac/backend/model/dto/request/MobileUserCreateRequest.java
 /Users/gio/Desktop/PROMSSAC/backend/src/main/java/com/promssac/backend/model/dto/request/MobileUserUpdateRequest.java
+/Users/gio/Desktop/PROMSSAC/backend/src/main/java/com/promssac/backend/model/dto/request/OrderAssignBulkRequest.java
+/Users/gio/Desktop/PROMSSAC/backend/src/main/java/com/promssac/backend/model/dto/request/OrderCreateRequest.java
 /Users/gio/Desktop/PROMSSAC/backend/src/main/java/com/promssac/backend/model/dto/request/RolWebCreateRequest.java
 /Users/gio/Desktop/PROMSSAC/backend/src/main/java/com/promssac/backend/model/dto/request/RolWebUpdateRequest.java
+/Users/gio/Desktop/PROMSSAC/backend/src/main/java/com/promssac/backend/model/dto/request/RouteWriteRequest.java
 /Users/gio/Desktop/PROMSSAC/backend/src/main/java/com/promssac/backend/model/dto/request/VehicleWriteRequest.java
 /Users/gio/Desktop/PROMSSAC/backend/src/main/java/com/promssac/backend/model/dto/request/WebUserCreateRequest.java
 /Users/gio/Desktop/PROMSSAC/backend/src/main/java/com/promssac/backend/model/dto/request/WebUserUpdateRequest.java

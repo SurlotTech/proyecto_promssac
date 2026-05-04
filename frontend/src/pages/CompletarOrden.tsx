@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Stepper, type Step } from "@/components/ui/stepper";
 import RouteDateRangePicker from "@/components/routes/RouteDateRangePicker";
-import { places, routePriorityMeta, type RoutePriority } from "@/domain/routes";
+import { routePriorityMeta, type RoutePriority } from "@/domain/routes";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -87,7 +87,6 @@ const CompletarOrden = () => {
 
   const [deliveryFrom, setDeliveryFrom] = useState("");
   const [deliveryTo, setDeliveryTo] = useState("");
-  const [groupPlace, setGroupPlace] = useState("");
   const [mode, setMode] = useState("default");
   const [priority, setPriority] = useState<RoutePriority>("medium");
   const [cod, setCod] = useState(false);
@@ -241,23 +240,8 @@ const CompletarOrden = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Grupos asociados</Label>
-                <Select value={groupPlace || undefined} onValueChange={setGroupPlace}>
-                  <SelectTrigger className={selectTriggerClass}>
-                    <SelectValue placeholder="Seleccionar grupo" />
-                  </SelectTrigger>
-                  <SelectContent align="start">
-                    {places.map((p) => (
-                      <SelectItem key={p} value={p} className="text-sm">
-                        {p}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
+            <div className="grid max-w-2xl grid-cols-2 gap-3 sm:gap-4">
+              <div className="min-w-0 space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
                   Modo <span className="text-primary">*</span>
                 </Label>
@@ -278,10 +262,7 @@ const CompletarOrden = () => {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:max-w-md">
-              <div className="space-y-1.5">
+              <div className="min-w-0 space-y-1.5">
                 <Label className="text-xs text-muted-foreground">Prioridad</Label>
                 <Select value={priority} onValueChange={(v) => setPriority(v as RoutePriority)}>
                   <SelectTrigger className={selectTriggerClass}>

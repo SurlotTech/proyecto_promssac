@@ -11,6 +11,8 @@ public interface OrdenRepository extends JpaRepository<Orden, UUID> {
 
     Optional<Orden> findByNumeroOrden(String numeroOrden);
 
+    long countByRuta_Id(UUID rutaId);
+
     @Query("select o from Orden o left join fetch o.vehiculo left join fetch o.ruta")
     List<Orden> findAllFetched();
 }

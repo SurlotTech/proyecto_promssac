@@ -1,5 +1,6 @@
 package com.promssac.backend.model.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -8,6 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class OrderResponse {
 
     private String id;
@@ -23,4 +25,7 @@ public class OrderResponse {
 
     @JsonProperty("isLastDispatch")
     private Boolean lastDispatch;
+
+    /** UUID de la ruta asignada, si existe. */
+    private String routeId;
 }

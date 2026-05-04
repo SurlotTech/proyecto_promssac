@@ -1,12 +1,7 @@
-import { MoreHorizontal, Eye, Pencil, Trash2, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
+import RouteActionsMenu from "@/components/routes/RouteActionsMenu";
 import RouteStatusBadge from "@/components/routes/RouteStatusBadge";
 import { Route } from "@/domain/routes";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   collectionPercent,
   dispatchBarFillClass,
@@ -18,11 +13,13 @@ import { cn } from "@/lib/utils";
 interface Props {
   routes: Route[];
   onSelect: (r: Route) => void;
+  onEdit?: (r: Route) => void;
+  onDelete?: (r: Route) => void;
   /** Placa → tipo de vehículo (desde API de flota). */
   vehicleTypeByPlate?: Record<string, string>;
 }
 
-const RouteTable = ({ routes, onSelect, vehicleTypeByPlate = {} }: Props) => {
+const RouteTable = ({ routes, onSelect, onEdit, onDelete, vehicleTypeByPlate = {} }: Props) => {
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
       <div className="overflow-x-auto scrollbar-thin">
@@ -59,7 +56,7 @@ const RouteTable = ({ routes, onSelect, vehicleTypeByPlate = {} }: Props) => {
                         <MapPin className="h-4 w-4" />
                       </div>
                       <div>
-                        <p className="font-semibold text-foreground">{r.id}</p>
+                        <p className="font-semibold text-foreground">{r.code}</p>
                         <p className="text-xs text-muted-foreground truncate max-w-[150px]">
                           {r.name}
                         </p>
@@ -111,22 +108,12 @@ const RouteTable = ({ routes, onSelect, vehicleTypeByPlate = {} }: Props) => {
                     <RouteStatusBadge status={r.status} />
                   </td>
                   <td className="px-4 py-4 text-right" onClick={(e) => e.stopPropagation()}>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-40">
-                        <DropdownMenuItem onClick={() => onSelect(r)}>
-                          <Eye className="mr-2 h-4 w-4" /> Ver detalle
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Pencil className="mr-2 h-4 w-4" /> Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive focus:text-destructive">
-                          <Trash2 className="mr-2 h-4 w-4" /> Eliminar
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <RouteActionsMenu
+                      route={r}
+                      onSelect={onSelect}
+                      onEdit={onEdit}
+                      onDelete={onDelete}
+                    />
                   </td>
                 </tr>
               );

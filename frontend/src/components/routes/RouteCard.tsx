@@ -1,4 +1,5 @@
-import { Clock, MapPin, MoreHorizontal, Route as RouteIcon, Truck, User, Eye, Pencil, Trash2 } from "lucide-react";
+import { Clock, MapPin, Route as RouteIcon, Truck, User } from "lucide-react";
+import RouteActionsMenu from "@/components/routes/RouteActionsMenu";
 import { Route, routePriorityMeta } from "@/domain/routes";
 import RouteStatusBadge from "@/components/routes/RouteStatusBadge";
 import {
@@ -8,20 +9,15 @@ import {
   formatRouteCurrency,
 } from "@/lib/routeMetrics";
 import { cn } from "@/lib/utils";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
 interface Props {
   route: Route;
   onSelect: (r: Route) => void;
+  onEdit?: (r: Route) => void;
+  onDelete?: (r: Route) => void;
   vehicleTypeByPlate?: Record<string, string>;
 }
 
-const RouteCard = ({ route: r, onSelect, vehicleTypeByPlate = {} }: Props) => {
+const RouteCard = ({ route: r, onSelect, onEdit, onDelete, vehicleTypeByPlate = {} }: Props) => {
   const vehType = vehicleTypeByPlate[r.vehiclePlate];
   const collPct = collectionPercent(r.currentCollection, r.totalCollection);
   const dispatchPct = dispatchPercent(r.dispatchCompleted, r.dispatchTotal);
@@ -46,31 +42,20 @@ const RouteCard = ({ route: r, onSelect, vehicleTypeByPlate = {} }: Props) => {
             <RouteIcon className="h-5 w-5" strokeWidth={1.75} />
           </div>
           <div className="min-w-0">
-            <p className="font-semibold leading-tight text-foreground">{r.id}</p>
+            <p className="font-semibold leading-tight text-foreground">{r.code}</p>
             <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{r.name}</p>
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
           <RouteStatusBadge status={r.status} />
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              aria-label="Acciones de ruta"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuItem onClick={() => onSelect(r)}>
-                <Eye className="mr-2 h-4 w-4" /> Ver detalle
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Pencil className="mr-2 h-4 w-4" /> Editar
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive focus:text-destructive">
-                <Trash2 className="mr-2 h-4 w-4" /> Eliminar
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <RouteActionsMenu
+            route={r}
+            onSelect={onSelect}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            triggerClassName="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            triggerAriaLabel="Acciones de ruta"
+          />
         </div>
       </div>
 

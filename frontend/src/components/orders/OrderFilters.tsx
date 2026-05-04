@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { Filter, Info, ListFilter, RotateCcw, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -62,6 +62,10 @@ interface Props {
   toolbarRight?: ReactNode;
 }
 
+function nonEmptyStrings(values: string[]): string[] {
+  return values.filter((v) => v.trim().length > 0);
+}
+
 const OrderFilters = ({
   filters,
   onChange,
@@ -72,6 +76,46 @@ const OrderFilters = ({
   vehiclePlates,
   toolbarRight,
 }: Props) => {
+  /** Radix Select: ningún SelectItem puede usar value="". */
+  const safeOrderIds = nonEmptyStrings(orderIds);
+  const safeSubstatusOptions = nonEmptyStrings(substatusOptions);
+  const safeVehiclePlates = nonEmptyStrings(vehiclePlates);
+
+  const orderCodeSelectValue =
+    filters.orderCode === "all" || safeOrderIds.includes(filters.orderCode)
+      ? filters.orderCode
+      : "all";
+  const substatusSelectValue =
+    filters.substatus === "all" || safeSubstatusOptions.includes(filters.substatus)
+      ? filters.substatus
+      : "all";
+  const vehiclePlateSelectValue =
+    filters.vehiclePlate === "all" || safeVehiclePlates.includes(filters.vehiclePlate)
+      ? filters.vehiclePlate
+      : "all";
+
+  useEffect(() => {
+    if (
+      orderCodeSelectValue === filters.orderCode &&
+      substatusSelectValue === filters.substatus &&
+      vehiclePlateSelectValue === filters.vehiclePlate
+    ) {
+      return;
+    }
+    onChange({
+      ...filters,
+      orderCode: orderCodeSelectValue,
+      substatus: substatusSelectValue,
+      vehiclePlate: vehiclePlateSelectValue,
+    });
+  }, [
+    filters,
+    onChange,
+    orderCodeSelectValue,
+    substatusSelectValue,
+    vehiclePlateSelectValue,
+  ]);
+
   const hasActive =
     filters.orderCode !== "all" ||
     filters.dateFrom ||
@@ -91,7 +135,7 @@ const OrderFilters = ({
           <div className={cn("min-w-0 space-y-1.5 xl:w-auto", filterFieldMax)}>
             <Label className="text-xs text-muted-foreground">Código de orden</Label>
             <Select
-              value={filters.orderCode}
+              value={orderCodeSelectValue}
               onValueChange={(v) => onChange({ ...filters, orderCode: v })}
             >
               <SelectTrigger className={pillSelect}>
@@ -99,7 +143,7 @@ const OrderFilters = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
-                {orderIds.map((id) => (
+                {safeOrderIds.map((id) => (
                   <SelectItem key={id} value={id}>
                     {id}
                   </SelectItem>
@@ -193,7 +237,7 @@ const OrderFilters = ({
           <div className="space-y-1.5 xl:col-span-2">
             <Label className="text-xs text-muted-foreground">Subestado</Label>
             <Select
-              value={filters.substatus}
+              value={substatusSelectValue}
               onValueChange={(v) => onChange({ ...filters, substatus: v })}
             >
               <SelectTrigger className={pillSelect}>
@@ -201,7 +245,7 @@ const OrderFilters = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
-                {substatusOptions.map((s) => (
+                {safeSubstatusOptions.map((s) => (
                   <SelectItem key={s} value={s}>
                     {s}
                   </SelectItem>
@@ -247,7 +291,7 @@ const OrderFilters = ({
           <div className="space-y-1.5 xl:col-span-2">
             <Label className="text-xs text-muted-foreground">Vehículo</Label>
             <Select
-              value={filters.vehiclePlate}
+              value={vehiclePlateSelectValue}
               onValueChange={(v) => onChange({ ...filters, vehiclePlate: v })}
             >
               <SelectTrigger className={pillSelect}>
@@ -255,7 +299,7 @@ const OrderFilters = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
-                {vehiclePlates.map((p) => (
+                {safeVehiclePlates.map((p) => (
                   <SelectItem key={p} value={p}>
                     {p}
                   </SelectItem>

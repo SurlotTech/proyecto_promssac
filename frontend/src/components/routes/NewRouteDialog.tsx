@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -16,70 +17,80 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { MobileUserRouteOption } from "@/domain/mobileUsers";
 import { mobileUserRouteSelectLabel } from "@/domain/mobileUsers";
+import type { Route } from "@/domain/routes";
+import {
+  buildRouteWriteBody,
+  emptyRouteForm,
+  routeToFormState,
+  vehicleIdForMobileUser,
+  type RouteFormState,
+} from "@/lib/routeForm";
+import { routeDialogDispatchInputClass, routeDialogSelectTriggerClass, routeDialogTextInputClass } from "@/components/routes/routeDialogClasses";
+import { useInvalidateRoutesQuery } from "@/hooks/useRoutesQueryInvalidation";
 import type { VehicleOption } from "@/domain/vehicles";
 import { vehicleRouteSelectLabel } from "@/domain/vehicles";
+import { routesApi, type RouteWriteBody } from "@/services/routes.api";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   vehicles: VehicleOption[];
   mobileUsers: MobileUserRouteOption[];
+  editingRoute?: Route | null;
 }
 
-/** Select compacto: texto elegido en semibold; placeholder más suave */
-const selectTriggerClass =
-  "h-9 w-full border-border/80 bg-background px-3 text-sm shadow-sm transition-colors hover:bg-muted/50 focus:ring-2 focus:ring-ring focus:ring-offset-0 [&>span]:line-clamp-1 [&>span]:w-full [&>span]:truncate [&>span]:text-left [&>span]:font-semibold [&>span]:text-foreground [&>span[data-placeholder]]:font-normal [&>span[data-placeholder]]:text-muted-foreground";
+const selectMaxHeightClass = "max-h-[min(50vh,280px)]";
 
-/** Inputs fecha/hora en bloque despacho (ligero contraste, sin caja gigante) */
-const dispatchInputClass =
-  "h-9 border-border/80 bg-muted/50 text-sm font-medium text-foreground shadow-sm focus-visible:ring-2 focus-visible:ring-ring";
-
-function emptyForm() {
-  return {
-    routeName: "",
-    mobileUserId: "",
-    vehicleId: "",
-    dispatchDate: "",
-    startTime: "",
-    maxDeliveryDate: "",
-    maxDeliveryTime: "",
-    minGapMinutes: "20",
-  };
-}
-
-function resolveVehicleIdForMobile(
-  mobileId: string,
-  mobileUsers: MobileUserRouteOption[],
-  vehicles: VehicleOption[],
-): string {
-  const u = mobileUsers.find((m) => m.id === mobileId);
-  if (!u?.vehiculoId) return "";
-  return vehicles.some((v) => v.id === u.vehiculoId) ? u.vehiculoId : "";
-}
-
-const NewRouteDialog = ({ open, onOpenChange, vehicles, mobileUsers }: Props) => {
-  const [form, setForm] = useState(emptyForm);
+const NewRouteDialog = ({ open, onOpenChange, vehicles, mobileUsers, editingRoute }: Props) => {
+  const invalidateRoutes = useInvalidateRoutesQuery();
+  const [form, setForm] = useState<RouteFormState>(emptyRouteForm);
+  const isEdit = Boolean(editingRoute);
 
   useEffect(() => {
     if (!open) {
-      setForm(emptyForm());
+      setForm(emptyRouteForm());
+      return;
     }
-  }, [open]);
+    setForm(editingRoute ? routeToFormState(editingRoute, mobileUsers) : emptyRouteForm());
+  }, [open, editingRoute, mobileUsers]);
+
+  const finishSuccess = (msg: string) => {
+    invalidateRoutes();
+    toast.success(msg);
+    onOpenChange(false);
+  };
+
+  const createMut = useMutation({
+    mutationFn: (body: RouteWriteBody) => routesApi.create(body),
+    onSuccess: () => finishSuccess("Ruta creada correctamente."),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const updateMut = useMutation({
+    mutationFn: ({ id, body }: { id: string; body: RouteWriteBody }) => routesApi.update(id, body),
+    onSuccess: () => finishSuccess("Ruta actualizada."),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const saving = createMut.isPending || updateMut.isPending;
 
   const requiredOk =
-    form.routeName.trim() &&
-    form.mobileUserId &&
-    form.vehicleId &&
-    form.dispatchDate &&
-    form.startTime;
+    Boolean(
+      form.routeName.trim() &&
+        form.mobileUserId &&
+        form.vehicleId &&
+        form.dispatchDate &&
+        form.startTime,
+    );
+
+  const patchForm = (partial: Partial<RouteFormState>) =>
+    setForm((f) => ({ ...f, ...partial }));
 
   const handleMobileChange = (mobileId: string) => {
-    const vehicleId = resolveVehicleIdForMobile(mobileId, mobileUsers, vehicles);
-    setForm((f) => ({
-      ...f,
+    patchForm({
       mobileUserId: mobileId,
-      vehicleId,
-    }));
+      vehicleId: vehicleIdForMobileUser(mobileId, mobileUsers, vehicles),
+    });
   };
 
   const handleSave = () => {
@@ -87,8 +98,12 @@ const NewRouteDialog = ({ open, onOpenChange, vehicles, mobileUsers }: Props) =>
       toast.error("Completa los campos obligatorios marcados con *.");
       return;
     }
-    toast.success("Ruta registrada correctamente.");
-    onOpenChange(false);
+    const body = buildRouteWriteBody(form, editingRoute ?? null);
+    if (editingRoute) {
+      updateMut.mutate({ id: editingRoute.id, body });
+    } else {
+      createMut.mutate(body);
+    }
   };
 
   return (
@@ -113,7 +128,7 @@ const NewRouteDialog = ({ open, onOpenChange, vehicles, mobileUsers }: Props) =>
               <ArrowLeft className="h-4 w-4" strokeWidth={2} />
             </Button>
             <DialogTitle className="text-lg font-semibold tracking-tight text-foreground">
-              Nueva ruta
+              {isEdit ? "Editar ruta" : "Nueva ruta"}
             </DialogTitle>
           </header>
 
@@ -131,15 +146,29 @@ const NewRouteDialog = ({ open, onOpenChange, vehicles, mobileUsers }: Props) =>
               </div>
 
               <div className="space-y-1.5">
+                <Label htmlFor="route-code" className="text-xs text-muted-foreground">
+                  Código de ruta {isEdit ? "" : "(opcional, auto si vacío)"}
+                </Label>
+                <Input
+                  id="route-code"
+                  value={form.routeCode}
+                  onChange={(e) => patchForm({ routeCode: e.target.value })}
+                  placeholder={isEdit ? "Código" : "Vacío = generar automáticamente"}
+                  className={cn(routeDialogTextInputClass, "font-medium text-foreground")}
+                  autoComplete="off"
+                />
+              </div>
+
+              <div className="space-y-1.5">
                 <Label htmlFor="route-name" className="text-xs text-muted-foreground">
-                  Nombre de la ruta / ID de ruta <span className="text-primary">*</span>
+                  Nombre de la ruta <span className="text-primary">*</span>
                 </Label>
                 <Input
                   id="route-name"
                   value={form.routeName}
-                  onChange={(e) => setForm((f) => ({ ...f, routeName: e.target.value }))}
+                  onChange={(e) => patchForm({ routeName: e.target.value })}
                   placeholder="Ej: Ruta Centro — Mañana"
-                  className="h-9 border-border/80 text-sm font-medium shadow-sm focus-visible:ring-2 focus-visible:ring-ring"
+                  className={cn(routeDialogTextInputClass, "font-medium text-foreground")}
                   autoComplete="off"
                 />
               </div>
@@ -150,10 +179,10 @@ const NewRouteDialog = ({ open, onOpenChange, vehicles, mobileUsers }: Props) =>
                     Usuario móvil (conductor) <span className="text-primary">*</span>
                   </Label>
                   <Select value={form.mobileUserId || undefined} onValueChange={handleMobileChange}>
-                    <SelectTrigger className={selectTriggerClass}>
+                    <SelectTrigger className={routeDialogSelectTriggerClass}>
                       <SelectValue placeholder="Seleccionar conductor" />
                     </SelectTrigger>
-                    <SelectContent align="start" className="max-h-[min(50vh,280px)]">
+                    <SelectContent align="start" className={selectMaxHeightClass}>
                       {mobileUsers.length === 0 ? (
                         <div className="px-2 py-3 text-xs text-muted-foreground">No hay usuarios móviles activos.</div>
                       ) : (
@@ -173,12 +202,12 @@ const NewRouteDialog = ({ open, onOpenChange, vehicles, mobileUsers }: Props) =>
                   </Label>
                   <Select
                     value={form.vehicleId || undefined}
-                    onValueChange={(v) => setForm((f) => ({ ...f, vehicleId: v }))}
+                    onValueChange={(v) => patchForm({ vehicleId: v })}
                   >
-                    <SelectTrigger className={selectTriggerClass}>
+                    <SelectTrigger className={routeDialogSelectTriggerClass}>
                       <SelectValue placeholder="Seleccionar placa y tipo" />
                     </SelectTrigger>
-                    <SelectContent align="start" className="max-h-[min(50vh,280px)]">
+                    <SelectContent align="start" className={selectMaxHeightClass}>
                       {vehicles.length === 0 ? (
                         <div className="px-2 py-3 text-xs text-muted-foreground">No hay vehículos cargados.</div>
                       ) : (
@@ -211,8 +240,8 @@ const NewRouteDialog = ({ open, onOpenChange, vehicles, mobileUsers }: Props) =>
                     id="dispatch-date"
                     type="date"
                     value={form.dispatchDate}
-                    onChange={(e) => setForm((f) => ({ ...f, dispatchDate: e.target.value }))}
-                    className={cn(dispatchInputClass, "tabular-nums")}
+                    onChange={(e) => patchForm({ dispatchDate: e.target.value })}
+                    className={cn(routeDialogDispatchInputClass, "tabular-nums")}
                   />
                 </div>
 
@@ -224,8 +253,8 @@ const NewRouteDialog = ({ open, onOpenChange, vehicles, mobileUsers }: Props) =>
                     id="start-time"
                     type="time"
                     value={form.startTime}
-                    onChange={(e) => setForm((f) => ({ ...f, startTime: e.target.value }))}
-                    className={cn(dispatchInputClass, "tabular-nums")}
+                    onChange={(e) => patchForm({ startTime: e.target.value })}
+                    className={cn(routeDialogDispatchInputClass, "tabular-nums")}
                   />
                 </div>
 
@@ -237,21 +266,21 @@ const NewRouteDialog = ({ open, onOpenChange, vehicles, mobileUsers }: Props) =>
                     id="max-delivery-date"
                     type="date"
                     value={form.maxDeliveryDate}
-                    onChange={(e) => setForm((f) => ({ ...f, maxDeliveryDate: e.target.value }))}
-                    className={cn(dispatchInputClass, "tabular-nums")}
+                    onChange={(e) => patchForm({ maxDeliveryDate: e.target.value })}
+                    className={cn(routeDialogDispatchInputClass, "tabular-nums")}
                   />
                 </div>
 
                 <div className="space-y-1.5">
                   <Label htmlFor="max-delivery-time" className="text-xs text-muted-foreground">
-                    Hora máxima de entrega
+                    Hora fin (ventana)
                   </Label>
                   <Input
                     id="max-delivery-time"
                     type="time"
                     value={form.maxDeliveryTime}
-                    onChange={(e) => setForm((f) => ({ ...f, maxDeliveryTime: e.target.value }))}
-                    className={cn(dispatchInputClass, "tabular-nums")}
+                    onChange={(e) => patchForm({ maxDeliveryTime: e.target.value })}
+                    className={cn(routeDialogDispatchInputClass, "tabular-nums")}
                   />
                 </div>
 
@@ -265,9 +294,9 @@ const NewRouteDialog = ({ open, onOpenChange, vehicles, mobileUsers }: Props) =>
                     min={0}
                     step={1}
                     value={form.minGapMinutes}
-                    onChange={(e) => setForm((f) => ({ ...f, minGapMinutes: e.target.value }))}
+                    onChange={(e) => patchForm({ minGapMinutes: e.target.value })}
                     placeholder="20"
-                    className={cn(dispatchInputClass, "max-w-[10rem] tabular-nums")}
+                    className={cn(routeDialogDispatchInputClass, "max-w-[10rem] tabular-nums")}
                   />
                 </div>
               </div>
@@ -282,6 +311,7 @@ const NewRouteDialog = ({ open, onOpenChange, vehicles, mobileUsers }: Props) =>
                 size="sm"
                 className="h-9 w-full sm:w-auto sm:min-w-[120px]"
                 onClick={() => onOpenChange(false)}
+                disabled={saving}
               >
                 Cancelar
               </Button>
@@ -290,9 +320,9 @@ const NewRouteDialog = ({ open, onOpenChange, vehicles, mobileUsers }: Props) =>
                 size="sm"
                 className="h-9 w-full bg-primary text-primary-foreground hover:bg-primary-hover sm:w-auto sm:min-w-[140px]"
                 onClick={handleSave}
-                disabled={!requiredOk}
+                disabled={!requiredOk || saving}
               >
-                Guardar ruta
+                {saving ? "Guardando…" : isEdit ? "Guardar cambios" : "Guardar ruta"}
               </Button>
             </div>
           </footer>

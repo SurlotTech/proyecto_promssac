@@ -23,6 +23,6 @@ export type {
   RolWebOpcion,
   RolWebUpdateBody,
 } from "@/domain/webRoles";
-export { routesApi } from "./routes.api";
+export { routesApi, type RouteWriteBody } from "./routes.api";
 export { ordersApi } from "./orders.api";
 export { fleetApi } from "./fleet.api";
