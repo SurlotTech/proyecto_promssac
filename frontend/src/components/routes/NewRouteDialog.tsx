@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { User, Truck, Calendar, Clock, Timer } from "lucide-react";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogFooter 
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import {
   Select,
   SelectContent,
@@ -16,7 +21,6 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { MobileUserRouteOption } from "@/domain/mobileUsers";
-import { mobileUserRouteSelectLabel } from "@/domain/mobileUsers";
 import type { Route } from "@/domain/routes";
 import {
   buildRouteWriteBody,
@@ -25,10 +29,8 @@ import {
   vehicleIdForMobileUser,
   type RouteFormState,
 } from "@/lib/routeForm";
-import { routeDialogDispatchInputClass, routeDialogSelectTriggerClass, routeDialogTextInputClass } from "@/components/routes/routeDialogClasses";
 import { useInvalidateRoutesQuery } from "@/hooks/useRoutesQueryInvalidation";
 import type { VehicleOption } from "@/domain/vehicles";
-import { vehicleRouteSelectLabel } from "@/domain/vehicles";
 import { routesApi, type RouteWriteBody } from "@/services/routes.api";
 
 interface Props {
@@ -108,224 +110,181 @@ const NewRouteDialog = ({ open, onOpenChange, vehicles, mobileUsers, editingRout
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className={cn(
-          "max-h-[min(90vh,720px)] gap-0 overflow-hidden p-0 sm:max-w-xl",
-          "[&>button]:hidden",
-        )}
-        onOpenAutoFocus={(e) => e.preventDefault()}
-      >
-        <div className="flex max-h-[inherit] flex-col">
-          <header className="flex shrink-0 items-center gap-2 border-b border-border px-4 py-3 sm:px-5">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 shrink-0 rounded-lg text-foreground hover:bg-muted"
-              onClick={() => onOpenChange(false)}
-              aria-label="Volver"
-            >
-              <ArrowLeft className="h-4 w-4" strokeWidth={2} />
-            </Button>
-            <DialogTitle className="text-lg font-semibold tracking-tight text-foreground">
-              {isEdit ? "Editar ruta" : "Nueva ruta"}
-            </DialogTitle>
-          </header>
+      <DialogContent className="p-0 sm:max-w-2xl overflow-hidden border-none shadow-2xl">
+        <div className="flex flex-col h-full bg-white">
+          <DialogHeader className="p-6 pb-4 border-b border-border bg-white">
+            <div className="text-left">
+              <DialogTitle className="text-xl text-foreground font-bold">
+                {isEdit ? "Editar Ruta" : "Nueva Ruta"}
+              </DialogTitle>
+            </div>
+          </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-5">
-            <p className="mb-4 text-[11px] leading-snug text-muted-foreground">
-              <span className="font-semibold text-primary">*</span> Indica que el campo es obligatorio
+          <div className="flex-1 overflow-y-auto px-8 py-6 space-y-8 scrollbar-thin max-h-[min(80vh,600px)]">
+            <p className="text-[11px] text-muted-foreground italic">
+              <span className="text-primary font-bold">*</span> Indica que el campo es obligatorio
             </p>
 
-            <section className="space-y-3">
-              <div className="flex items-center gap-2">
-                <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Información de usuario
-                </h3>
-                <Separator className="flex-1" />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="route-code" className="text-xs text-muted-foreground">
-                  Código de ruta {isEdit ? "" : "(opcional, auto si vacío)"}
-                </Label>
-                <Input
-                  id="route-code"
-                  value={form.routeCode}
-                  onChange={(e) => patchForm({ routeCode: e.target.value })}
-                  placeholder={isEdit ? "Código" : "Vacío = generar automáticamente"}
-                  className={cn(routeDialogTextInputClass, "font-medium text-foreground")}
-                  autoComplete="off"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="route-name" className="text-xs text-muted-foreground">
-                  Nombre de la ruta <span className="text-primary">*</span>
+            {/* SECCIÓN: INFORMACIÓN DE USUARIO */}
+            <div className="space-y-6">
+              <h3 className="text-sm font-bold text-[#3f4254]">
+                Información de usuario
+              </h3>
+              
+              <div className="space-y-2">
+                <Label htmlFor="route-name" className="text-xs font-semibold text-muted-foreground">
+                  Nombre de la ruta / ID de ruta <span className="text-primary">*</span>
                 </Label>
                 <Input
                   id="route-name"
                   value={form.routeName}
                   onChange={(e) => patchForm({ routeName: e.target.value })}
                   placeholder="Ej: Ruta Centro — Mañana"
-                  className={cn(routeDialogTextInputClass, "font-medium text-foreground")}
-                  autoComplete="off"
+                  className="h-11 bg-zinc-50 border-zinc-200 focus:ring-1 focus:ring-primary/20 font-medium"
                 />
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">
-                    Usuario móvil (conductor) <span className="text-primary">*</span>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold text-muted-foreground">
+                    Usuario móvil <span className="text-primary">*</span>
                   </Label>
                   <Select value={form.mobileUserId || undefined} onValueChange={handleMobileChange}>
-                    <SelectTrigger className={routeDialogSelectTriggerClass}>
-                      <SelectValue placeholder="Seleccionar conductor" />
+                    <SelectTrigger className="h-11 bg-zinc-50 border-zinc-200">
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        <SelectValue placeholder="Seleccionar" />
+                      </div>
                     </SelectTrigger>
                     <SelectContent align="start" className={selectMaxHeightClass}>
-                      {mobileUsers.length === 0 ? (
-                        <div className="px-2 py-3 text-xs text-muted-foreground">No hay usuarios móviles activos.</div>
-                      ) : (
-                        mobileUsers.map((u) => (
-                          <SelectItem key={u.id} value={u.id} className="text-sm" title={u.nombreCompleto}>
-                            {mobileUserRouteSelectLabel(u)}
-                          </SelectItem>
-                        ))
-                      )}
+                      {mobileUsers.map((u) => (
+                        <SelectItem key={u.id} value={u.id}>
+                          {u.nombreCompleto}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">
-                    Vehículo (placa y tipo) <span className="text-primary">*</span>
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold text-muted-foreground">
+                    Vehículo <span className="text-primary">*</span>
                   </Label>
                   <Select
                     value={form.vehicleId || undefined}
                     onValueChange={(v) => patchForm({ vehicleId: v })}
                   >
-                    <SelectTrigger className={routeDialogSelectTriggerClass}>
-                      <SelectValue placeholder="Seleccionar placa y tipo" />
+                    <SelectTrigger className="h-11 bg-zinc-50 border-zinc-200">
+                      <div className="flex items-center gap-2">
+                        <Truck className="h-4 w-4 text-muted-foreground" />
+                        <SelectValue placeholder="Seleccionar" />
+                      </div>
                     </SelectTrigger>
                     <SelectContent align="start" className={selectMaxHeightClass}>
-                      {vehicles.length === 0 ? (
-                        <div className="px-2 py-3 text-xs text-muted-foreground">No hay vehículos cargados.</div>
-                      ) : (
-                        vehicles.map((v) => (
-                          <SelectItem key={v.id} value={v.id} className="text-sm" title={vehicleRouteSelectLabel(v)}>
-                            {vehicleRouteSelectLabel(v)}
-                          </SelectItem>
-                        ))
-                      )}
+                      {vehicles.map((v) => (
+                        <SelectItem key={v.id} value={v.id}>
+                          {v.plate} - {v.type}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-            </section>
+            </div>
 
-            <section className="mt-6 space-y-3">
-              <div className="flex items-center gap-2">
-                <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Información de despacho
-                </h3>
-                <Separator className="flex-1" />
-              </div>
+            {/* SECCIÓN: INFORMACIÓN DE DESPACHO */}
+            <div className="space-y-6">
+              <h3 className="text-sm font-bold text-[#3f4254]">
+                Información de despacho
+              </h3>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label htmlFor="dispatch-date" className="text-xs text-muted-foreground">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="dispatch-date" className="text-xs font-semibold text-muted-foreground">
                     Fecha despacho <span className="text-primary">*</span>
                   </Label>
-                  <Input
-                    id="dispatch-date"
-                    type="date"
-                    value={form.dispatchDate}
-                    onChange={(e) => patchForm({ dispatchDate: e.target.value })}
-                    className={cn(routeDialogDispatchInputClass, "tabular-nums")}
-                  />
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+                    <Input
+                      id="dispatch-date"
+                      type="date"
+                      value={form.dispatchDate}
+                      onChange={(e) => patchForm({ dispatchDate: e.target.value })}
+                      className="h-11 bg-white border-zinc-200 pl-10 focus:ring-1 focus:ring-primary/20"
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="start-time" className="text-xs text-muted-foreground">
+                <div className="space-y-2">
+                  <Label htmlFor="start-time" className="text-xs font-semibold text-muted-foreground">
                     Hora inicio <span className="text-primary">*</span>
                   </Label>
-                  <Input
-                    id="start-time"
-                    type="time"
-                    value={form.startTime}
-                    onChange={(e) => patchForm({ startTime: e.target.value })}
-                    className={cn(routeDialogDispatchInputClass, "tabular-nums")}
-                  />
+                  <div className="relative">
+                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+                    <Input
+                      id="start-time"
+                      type="time"
+                      value={form.startTime}
+                      onChange={(e) => patchForm({ startTime: e.target.value })}
+                      className="h-11 bg-white border-zinc-200 pl-10 focus:ring-1 focus:ring-primary/20"
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="max-delivery-date" className="text-xs text-muted-foreground">
+                <div className="space-y-2">
+                  <Label htmlFor="max-delivery-time" className="text-xs font-semibold text-muted-foreground">
                     Fecha máxima de entrega
                   </Label>
-                  <Input
-                    id="max-delivery-date"
-                    type="date"
-                    value={form.maxDeliveryDate}
-                    onChange={(e) => patchForm({ maxDeliveryDate: e.target.value })}
-                    className={cn(routeDialogDispatchInputClass, "tabular-nums")}
-                  />
+                  <div className="relative">
+                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+                    <Input
+                      id="max-delivery-time"
+                      type="time"
+                      value={form.maxDeliveryTime}
+                      onChange={(e) => patchForm({ maxDeliveryTime: e.target.value })}
+                      className="h-11 bg-white border-zinc-200 pl-10 focus:ring-1 focus:ring-primary/20"
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="max-delivery-time" className="text-xs text-muted-foreground">
-                    Hora fin (ventana)
+                <div className="space-y-2">
+                  <Label htmlFor="min-gap" className="text-xs font-semibold text-muted-foreground">
+                    Tiempo mínimo entre entregas
                   </Label>
-                  <Input
-                    id="max-delivery-time"
-                    type="time"
-                    value={form.maxDeliveryTime}
-                    onChange={(e) => patchForm({ maxDeliveryTime: e.target.value })}
-                    className={cn(routeDialogDispatchInputClass, "tabular-nums")}
-                  />
-                </div>
-
-                <div className="space-y-1.5 sm:col-span-2">
-                  <Label htmlFor="min-gap" className="text-xs text-muted-foreground">
-                    Tiempo mínimo entre entregas (minutos)
-                  </Label>
-                  <Input
-                    id="min-gap"
-                    type="number"
-                    min={0}
-                    step={1}
-                    value={form.minGapMinutes}
-                    onChange={(e) => patchForm({ minGapMinutes: e.target.value })}
-                    placeholder="20"
-                    className={cn(routeDialogDispatchInputClass, "max-w-[10rem] tabular-nums")}
-                  />
+                  <div className="relative">
+                    <Timer className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+                    <Input
+                      id="min-gap"
+                      type="number"
+                      min={0}
+                      value={form.minGapMinutes}
+                      onChange={(e) => patchForm({ minGapMinutes: e.target.value })}
+                      placeholder="20"
+                      className="h-11 bg-zinc-50 border-zinc-200 pl-10 focus:ring-1 focus:ring-primary/20"
+                    />
+                  </div>
                 </div>
               </div>
-            </section>
+            </div>
           </div>
 
-          <footer className="shrink-0 border-t border-border bg-muted/30 px-4 py-3 sm:px-5">
-            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-9 w-full sm:w-auto sm:min-w-[120px]"
-                onClick={() => onOpenChange(false)}
-                disabled={saving}
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                className="h-9 w-full bg-primary text-primary-foreground hover:bg-primary-hover sm:w-auto sm:min-w-[140px]"
-                onClick={handleSave}
-                disabled={!requiredOk || saving}
-              >
-                {saving ? "Guardando…" : isEdit ? "Guardar cambios" : "Guardar ruta"}
-              </Button>
-            </div>
-          </footer>
+          <DialogFooter className="border-t border-border bg-zinc-50/50 p-6 sm:justify-end shrink-0">
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={saving}
+              className="h-11 px-8 font-medium"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSave}
+              disabled={!requiredOk || saving}
+              className="h-11 bg-primary hover:bg-primary-hover text-white px-10 font-bold shadow-lg shadow-primary/20 transition-all"
+            >
+              {saving ? "Guardando…" : isEdit ? "Update" : "Guardar ruta"}
+            </Button>
+          </DialogFooter>
         </div>
       </DialogContent>
     </Dialog>

@@ -24,6 +24,7 @@ import { useOrdersQuery, useRoutesQuery } from "@/hooks/useOperationsQueries";
 import { toast } from "sonner";
 import { paginationItems } from "@/lib/pagination";
 import { cn } from "@/lib/utils";
+import { persistOrderDraft, type OrderCreationDraft, type OrderCompletarLocationState } from "@/lib/orderCreationDraft";
 
 const PAGE_SIZE = 8;
 
@@ -128,6 +129,19 @@ const Ordenes = () => {
     toast.message("Filtros restablecidos.");
   };
 
+  const handleEdit = (order: Order) => {
+    const ruta = order.routeId ? routeCatalog.find((r) => r.id === order.routeId) : undefined;
+    const draft: OrderCreationDraft = {
+      displayOrderId: order.id,
+      routeId: order.routeId ?? "",
+      routeLabel: ruta ? `${ruta.code} — ${ruta.name}` : null,
+      autoCode: order.id.startsWith("ORD-AUTO-"),
+    };
+    persistOrderDraft(draft);
+    const state: OrderCompletarLocationState = { orderDraft: draft };
+    navigate("/ordenes/completar", { state });
+  };
+
   if (isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center p-12 text-sm text-muted-foreground">
@@ -203,6 +217,7 @@ const Ordenes = () => {
               selectedIds={selectedIds}
               onSelectionChange={setSelectedIds}
               onView={(o) => navigate(`/ordenes/detalle/${encodeURIComponent(o.id)}`)}
+              onEdit={handleEdit}
             />
 
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

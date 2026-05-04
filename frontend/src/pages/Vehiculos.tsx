@@ -18,7 +18,7 @@ import StatCard from "@/components/StatCard";
 import VehicleFilters, { Filters } from "@/components/vehicles/VehicleFilters";
 import VehicleTable from "@/components/vehicles/VehicleTable";
 import VehicleCard from "@/components/vehicles/VehicleCard";
-import VehicleDetailDrawer from "@/components/vehicles/VehicleDetailDrawer";
+import VehicleEditDialog from "@/components/vehicles/VehicleEditDialog";
 import NewVehicleDialog from "@/components/vehicles/NewVehicleDialog";
 import type { Vehicle } from "@/domain/vehicles";
 import { useVehiclesQuery } from "@/hooks/useOperationsQueries";
@@ -39,7 +39,7 @@ const Vehiculos = () => {
   });
   const [view, setView] = useState<"table" | "grid">("table");
   const [selected, setSelected] = useState<Vehicle | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [page, setPage] = useState(1);
 
@@ -83,7 +83,7 @@ const Vehiculos = () => {
 
   const openDetail = (v: Vehicle) => {
     setSelected(v);
-    setDrawerOpen(true);
+    setEditOpen(true);
   };
 
   if (isLoading) {
@@ -319,10 +319,11 @@ const Vehiculos = () => {
         </>
       </div>
 
-      <VehicleDetailDrawer
+      <VehicleEditDialog
         vehicle={selected}
-        open={drawerOpen}
-        onOpenChange={setDrawerOpen}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        onUpdated={() => queryClient.invalidateQueries({ queryKey: ["vehicles"] })}
       />
       <NewVehicleDialog
         open={createOpen}

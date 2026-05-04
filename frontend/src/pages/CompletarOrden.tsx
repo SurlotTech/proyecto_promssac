@@ -12,6 +12,11 @@ import {
   User,
   FileText,
 } from "lucide-react";
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import { LIMA_CENTER } from "@/domain/fleet";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -70,6 +75,32 @@ const customFieldLabels: Record<(typeof customFieldKeys)[number], string> = {
   guiaTransportista: "Guía de transportista",
 };
 
+// Fix for default marker icon in Leaflet
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon-2x.png",
+  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png",
+});
+
+function MapSync({ center }: { center: [number, number] }) {
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo(center, 15, { duration: 0.5 });
+  }, [center, map]);
+  return null;
+}
+
+function MapEvents({ onLocationSelect }: { onLocationSelect: (lat: number, lng: number) => void }) {
+  useMapEvents({
+    click(e) {
+      onLocationSelect(e.latlng.lat, e.latlng.lng);
+    },
+  });
+  return null;
+}
+
+
 const STEPS: Step[] = [
   { id: "order", title: "Datos de orden", description: "ID, fecha, ruta" },
   { id: "contact", title: "Contacto", description: "Nombre, teléfono" },
@@ -110,6 +141,9 @@ const CompletarOrden = () => {
         string
       >
   );
+
+  const [idType, setIdType] = useState("dni");
+
 
   useEffect(() => {
     const state = location.state as OrderCompletarLocationState | null;
@@ -159,7 +193,8 @@ const CompletarOrden = () => {
             mode.trim(),
         );
       case 1:
-        return Boolean(contactName.trim());
+        return Boolean(contactName.trim() && contactIdentifier.trim());
+
       case 2:
         return Boolean(addressLine.trim());
       case 3:
@@ -312,6 +347,38 @@ const CompletarOrden = () => {
         return (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">
+                Identificador <span className="text-primary">*</span>
+              </Label>
+              <div className="flex gap-2">
+                <Select value={idType} onValueChange={setIdType}>
+                  <SelectTrigger className={cn(selectTriggerClass, "w-[90px] shrink-0 uppercase")}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="dni">DNI</SelectItem>
+                    <SelectItem value="ruc">RUC</SelectItem>
+                    <SelectItem value="otro">Otro</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Input
+                  id="co-identifier"
+                  value={contactIdentifier}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (idType === "dni" || idType === "ruc") {
+                      setContactIdentifier(val.replace(/\D/g, ""));
+                    } else {
+                      setContactIdentifier(val);
+                    }
+                  }}
+                  placeholder="Número de documento"
+                  className={fieldInputClass}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
               <Label htmlFor="co-contact-name" className="text-xs text-muted-foreground">
                 Nombre del contacto <span className="text-primary">*</span>
               </Label>
@@ -324,6 +391,7 @@ const CompletarOrden = () => {
                 autoComplete="name"
               />
             </div>
+
             <div className="space-y-1.5">
               <Label htmlFor="co-phone" className="text-xs text-muted-foreground">
                 Teléfono
@@ -331,24 +399,16 @@ const CompletarOrden = () => {
               <Input
                 id="co-phone"
                 value={contactPhone}
-                onChange={(e) => setContactPhone(e.target.value)}
-                placeholder="+51 999 999 999"
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, "");
+                  setContactPhone(val);
+                }}
+                placeholder="999999999"
                 className={cn(fieldInputClass, "tabular-nums")}
                 autoComplete="tel"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="co-identifier" className="text-xs text-muted-foreground">
-                Identificador de contacto
-              </Label>
-              <Input
-                id="co-identifier"
-                value={contactIdentifier}
-                onChange={(e) => setContactIdentifier(e.target.value)}
-                placeholder="DNI, RUC u otro"
-                className={fieldInputClass}
-              />
-            </div>
+
             <div className="space-y-1.5">
               <Label htmlFor="co-email" className="text-xs text-muted-foreground">
                 Correo electrónico
@@ -359,12 +419,19 @@ const CompletarOrden = () => {
                 value={contactEmail}
                 onChange={(e) => setContactEmail(e.target.value)}
                 placeholder="correo@ejemplo.com"
-                className={fieldInputClass}
+                className={cn(
+                  fieldInputClass,
+                  contactEmail && !contactEmail.includes("@") && "border-destructive focus-visible:ring-destructive"
+                )}
                 autoComplete="email"
               />
+              {contactEmail && !contactEmail.includes("@") && (
+                <p className="text-[10px] text-destructive">Correo inválido (falta @)</p>
+              )}
             </div>
           </div>
         );
+
 
       case 2:
         return (
@@ -465,18 +532,37 @@ const CompletarOrden = () => {
                 </div>
               </div>
 
-              <div className="flex min-h-[220px] flex-col overflow-hidden rounded-xl border border-border bg-muted/30 shadow-sm sm:min-h-[280px] lg:min-h-[320px]">
-                <div className="flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center">
-                  <div className="flex size-12 items-center justify-center rounded-full bg-primary-soft text-primary">
-                    <MapPin className="size-6" strokeWidth={1.75} />
-                  </div>
-                  <p className="text-sm font-medium text-foreground">Vista de mapa</p>
-                  <p className="max-w-xs text-xs leading-relaxed text-muted-foreground">
-                    Aquí integrarías tu mapa (Leaflet, Mapbox, Google). En esta demo solo se
-                    simula la geocodificación con el botón o al salir del campo de dirección.
-                  </p>
+              <div className="relative flex min-h-[220px] flex-col overflow-hidden rounded-xl border border-border bg-muted shadow-sm sm:min-h-[280px] lg:min-h-[320px]">
+                <MapContainer
+                  center={lat && lng ? [parseFloat(lat), parseFloat(lng)] : LIMA_CENTER}
+                  zoom={13}
+                  className="h-full w-full"
+                >
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                  {lat && lng && (
+                    <>
+                      <Marker position={[parseFloat(lat), parseFloat(lng)]} />
+                      <MapSync center={[parseFloat(lat), parseFloat(lng)]} />
+                    </>
+                  )}
+                  <MapEvents
+                    onLocationSelect={(newLat, newLng) => {
+                      setLat(newLat.toFixed(6));
+                      setLng(newLng.toFixed(6));
+                      if (!addressLine) {
+                        setNormalizedAddress(`Ubicación seleccionada en mapa (${newLat.toFixed(4)}, ${newLng.toFixed(4)})`);
+                      }
+                    }}
+                  />
+                </MapContainer>
+                <div className="pointer-events-none absolute bottom-2 right-2 z-[400] rounded bg-white/80 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground shadow-sm">
+                  OpenStreetMap
                 </div>
               </div>
+
             </div>
 
             {lowAddressConfidence && (

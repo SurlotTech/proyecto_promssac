@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import {
   Download,
   FileUp,
@@ -41,6 +43,8 @@ const PAGE_SIZE = 6;
 
 const Rutas = () => {
   const qc = useQueryClient();
+  const navigate = useNavigate();
+
   const { data: allRoutes = [], isLoading, isError, error } = useRoutesQuery();
   const { data: vehicleOpciones = [] } = useVehicleOptionsQuery();
   const { data: mobileUsersRuta = [] } = useMobileUserRouteOptionsQuery();
@@ -81,7 +85,12 @@ const Rutas = () => {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const openDetail = (r: RouteData) => {
+    navigate(`/rutas/${r.id}`);
+  };
+
   const openNewRoute = () => {
+
     setEditingRoute(null);
     setRouteDialogOpen(true);
   };
@@ -230,7 +239,7 @@ const Rutas = () => {
                 <RouteCard
                   key={r.id}
                   route={r}
-                  onSelect={setSelected}
+                  onSelect={openDetail}
                   onEdit={openEditRoute}
                   onDelete={confirmDeleteRoute}
                   vehicleTypeByPlate={vehicleTypeByPlate}
@@ -242,7 +251,7 @@ const Rutas = () => {
               {view === "table" ? (
                 <RouteTable
                   routes={paginatedRoutes}
-                  onSelect={setSelected}
+                  onSelect={openDetail}
                   onEdit={openEditRoute}
                   onDelete={confirmDeleteRoute}
                   vehicleTypeByPlate={vehicleTypeByPlate}
@@ -253,7 +262,7 @@ const Rutas = () => {
                     <RouteCard
                       key={r.id}
                       route={r}
-                      onSelect={setSelected}
+                      onSelect={openDetail}
                       onEdit={openEditRoute}
                       onDelete={confirmDeleteRoute}
                       vehicleTypeByPlate={vehicleTypeByPlate}

@@ -8,6 +8,8 @@ import Vehiculos from "./pages/Vehiculos.tsx";
 import Rutas from "./pages/Rutas.tsx";
 import Ordenes from "./pages/Ordenes.tsx";
 import DetalleOrden from "./pages/DetalleOrden.tsx";
+import DetalleRuta from "./pages/DetalleRuta.tsx";
+
 import CompletarOrden from "./pages/CompletarOrden.tsx";
 import OrdenProductos from "./pages/OrdenProductos.tsx";
 import Flota from "./pages/Flota.tsx";
@@ -39,6 +41,7 @@ const App = () => (
             <Route path="/vehiculos" element={<Vehiculos />} />
             <Route path="/alertas" element={<Navigate to="/configuracion/alertas" replace />} />
             <Route path="/rutas" element={<Rutas />} />
+            <Route path="/rutas/:id" element={<DetalleRuta />} />
             <Route path="/ordenes" element={<Ordenes />} />
             <Route path="/ordenes/detalle/:orderId" element={<DetalleOrden />} />
             <Route path="/ordenes/completar" element={<CompletarOrden />} />

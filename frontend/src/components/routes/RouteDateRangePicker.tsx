@@ -62,11 +62,9 @@ const RouteDateRangePicker = ({ dateFrom, dateTo, onRangeChange, className }: Pr
       {hasValue ? (
         <div
           className={cn(
-            "inline-flex max-w-full items-stretch overflow-hidden rounded-lg border border-border/70 bg-white text-sm shadow-none transition-colors focus-within:ring-2 focus-within:ring-info/40 focus-within:ring-offset-2",
+            "flex !w-fit max-w-full items-stretch overflow-hidden rounded-lg border border-border/70 bg-white text-sm shadow-none transition-colors focus-within:ring-2 focus-within:ring-info/40 focus-within:ring-offset-2",
             open && "ring-2 ring-info/30 ring-offset-2",
             className,
-            /* El padre suele pasar w-full; con valor el control debe medir solo su contenido */
-            "!w-max shrink-0",
           )}
         >
           <PopoverTrigger asChild>

@@ -26,4 +26,8 @@ export const vehiclesApi = {
   create(body: VehicleWriteBody): Promise<Vehicle> {
     return apiPost<Vehicle, VehicleWriteBody>(endpoints.vehicles, body);
   },
+
+  update(id: string, body: VehicleWriteBody): Promise<Vehicle> {
+    return apiPut<Vehicle, VehicleWriteBody>(`${endpoints.vehicles}/${id}`, body);
+  },
 };

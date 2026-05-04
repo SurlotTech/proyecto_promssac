@@ -16,9 +16,10 @@ interface Props {
   selectedIds: Set<string>;
   onSelectionChange: (ids: Set<string>) => void;
   onView?: (o: Order) => void;
+  onEdit?: (o: Order) => void;
 }
 
-const OrderTable = ({ orders, selectedIds, onSelectionChange, onView }: Props) => {
+const OrderTable = ({ orders, selectedIds, onSelectionChange, onView, onEdit }: Props) => {
   const allVisibleIds = useMemo(() => orders.map((o) => o.id), [orders]);
   const allSelected =
     orders.length > 0 && orders.every((o) => selectedIds.has(o.id));
@@ -120,7 +121,10 @@ const OrderTable = ({ orders, selectedIds, onSelectionChange, onView }: Props) =
                       >
                         <Eye className="mr-2 h-4 w-4" /> Ver detalle
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="cursor-pointer">
+                      <DropdownMenuItem
+                        className="cursor-pointer"
+                        onClick={() => onEdit?.(o)}
+                      >
                         <Pencil className="mr-2 h-4 w-4" /> Editar
                       </DropdownMenuItem>
                     </DropdownMenuContent>

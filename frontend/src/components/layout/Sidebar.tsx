@@ -163,11 +163,11 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-gradient-dark text-sidebar-foreground transition-transform duration-300 ease-smooth lg:static lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex w-60 flex-col bg-[#212121] text-sidebar-foreground transition-transform duration-300 ease-smooth lg:static lg:translate-x-0",
           open ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-5">
+        <div className="flex h-12 items-center justify-between px-5">
           <div className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-primary shadow-glow">
               <Truck className="h-5 w-5 text-primary-foreground" />
