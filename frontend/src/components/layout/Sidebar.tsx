@@ -11,12 +11,21 @@ import {
   Settings,
   ChevronDown,
   ChevronRight,
+  ChevronLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface SidebarProps {
   open: boolean;
   onClose: () => void;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
 }
 
 type NavItem = {
@@ -56,7 +65,7 @@ const systemGroup: NavItem = {
 const pathMatchesSub = (pathname: string, to: string) =>
   pathname === to || pathname.startsWith(`${to}/`);
 
-const Sidebar = ({ open, onClose }: SidebarProps) => {
+const Sidebar = ({ open, onClose, isCollapsed, onToggleCollapse }: SidebarProps) => {
   const location = useLocation();
   const [expandedMenus, setExpandedMenus] = useState<string[]>(["Usuarios", "Configuración"]);
 
@@ -68,30 +77,58 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
 
   const renderFlatSection = (items: NavItem[], sectionLabel: string) => (
     <>
-      <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50">
-        {sectionLabel}
-      </p>
-      <ul className="space-y-1">
-        {items.map((item) => (
-          <li key={item.to}>
+      {!isCollapsed ? (
+        <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 transition-opacity duration-300">
+          {sectionLabel}
+        </p>
+      ) : (
+        <div className="mx-auto my-3 w-8 border-t border-white/10" />
+      )}
+      <ul className={cn("flex flex-col gap-1", isCollapsed && "gap-4")}>
+        {items.map((item) => {
+          const navLink = (
             <NavLink
               to={item.to!}
               end={item.to === "/"}
               onClick={onClose}
               className={({ isActive }) =>
                 cn(
-                  "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                  "group flex items-center transition-all duration-200",
+                  isCollapsed
+                    ? "h-10 w-10 justify-center rounded-xl"
+                    : "w-full gap-3 rounded-lg px-3 py-2.5 text-sm font-medium",
                   isActive
-                    ? "bg-primary text-primary-foreground shadow-glow"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-white",
+                    ? isCollapsed
+                      ? "bg-white/15 text-white shadow-sm"
+                      : "bg-primary text-primary-foreground shadow-glow"
+                    : isCollapsed
+                      ? "text-white/70 hover:bg-white/10 hover:text-white"
+                      : "text-white/70 hover:bg-sidebar-accent hover:text-white",
                 )
               }
             >
-              <item.icon className="h-[18px] w-[18px] shrink-0" />
-              <span>{item.label}</span>
+              <item.icon className={cn("shrink-0", isCollapsed ? "h-[20px] w-[20px]" : "h-[18px] w-[18px]")} />
+              {!isCollapsed && <span className="truncate">{item.label}</span>}
             </NavLink>
-          </li>
-        ))}
+          );
+
+          return (
+            <li key={item.to} className={cn("w-full", isCollapsed && "flex justify-center")}>
+              {isCollapsed ? (
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>{navLink}</TooltipTrigger>
+                    <TooltipContent side="right" className="bg-[#212121] border-zinc-800 text-white">
+                      {item.label}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                navLink
+              )}
+            </li>
+          );
+        })}
       </ul>
     </>
   );
@@ -100,53 +137,75 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
     if (!item.subItems?.length) return null;
     const isChildActive = item.subItems.some((s) => pathMatchesSub(location.pathname, s.to));
 
-    return (
-      <li key={item.label}>
-        <div className="space-y-1">
-          <button
-            type="button"
-            onClick={() => toggleMenu(item.label)}
-            className={cn(
-              "group flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
-              isChildActive
-                ? "bg-sidebar-accent text-white"
-                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-white",
-            )}
-          >
-            <span className="flex min-w-0 items-center gap-3">
+    const button = (
+      <button
+        type="button"
+        onClick={() => !isCollapsed && toggleMenu(item.label)}
+        className={cn(
+          "group flex items-center transition-all duration-200",
+          isCollapsed
+            ? "h-10 w-10 justify-center rounded-xl"
+            : "w-full justify-between gap-3 rounded-lg px-3 py-2.5 text-sm font-medium",
+          isChildActive
+            ? isCollapsed ? "bg-white/15 text-white" : "bg-sidebar-accent text-white"
+            : isCollapsed ? "text-white/70 hover:bg-white/10 hover:text-white" : "text-white/70 hover:bg-sidebar-accent hover:text-white",
+        )}
+      >
+        {!isCollapsed ? (
+          <>
+            <div className="flex items-center gap-3">
               <item.icon className="h-[18px] w-[18px] shrink-0" />
               <span className="truncate">{item.label}</span>
-            </span>
+            </div>
             {expandedMenus.includes(item.label) ? (
               <ChevronDown className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
             ) : (
               <ChevronRight className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
             )}
-          </button>
-          {expandedMenus.includes(item.label) && (
-            <ul className="ml-3 space-y-0.5 border-l border-sidebar-border/60 py-1 pl-3">
-              {item.subItems.map((sub) => (
-                <li key={sub.to}>
-                  <NavLink
-                    to={sub.to}
-                    end={sub.end === true}
-                    onClick={onClose}
-                    className={({ isActive }) =>
-                      cn(
-                        "flex items-center justify-between gap-2 rounded-md px-2.5 py-2 text-sm transition-colors",
-                        isActive
-                          ? "bg-primary font-medium text-primary-foreground shadow-glow"
-                          : "text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-white",
-                      )
-                    }
-                  >
-                    <span className="min-w-0 truncate">{sub.label}</span>
-                  </NavLink>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+          </>
+        ) : (
+          <item.icon className="h-[20px] w-[20px] shrink-0" />
+        )}
+      </button>
+    );
+
+    return (
+      <li key={item.label} className={cn("w-full", isCollapsed && "flex justify-center")}>
+        {isCollapsed ? (
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>{button}</TooltipTrigger>
+              <TooltipContent side="right" className="bg-[#212121] border-zinc-800 text-white">
+                {item.label}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : (
+          button
+        )}
+        {!isCollapsed && expandedMenus.includes(item.label) && (
+          <ul className="ml-3 space-y-0.5 border-l border-sidebar-border/60 py-1 pl-3">
+            {item.subItems.map((sub) => (
+              <li key={sub.to}>
+                <NavLink
+                  to={sub.to}
+                  end={sub.end === true}
+                  onClick={onClose}
+                  className={({ isActive }) =>
+                    cn(
+                      "flex items-center justify-between gap-2 rounded-md px-2.5 py-2 text-sm transition-colors",
+                      isActive
+                        ? "bg-primary font-medium text-primary-foreground shadow-glow"
+                        : "text-white/70 hover:bg-sidebar-accent hover:text-white",
+                    )
+                  }
+                >
+                  <span className="min-w-0 truncate">{sub.label}</span>
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        )}
       </li>
     );
   };
@@ -163,21 +222,24 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-60 flex-col bg-[#212121] text-sidebar-foreground transition-transform duration-300 ease-smooth lg:static lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex flex-col bg-[#212121] text-sidebar-foreground transition-all duration-300 ease-smooth lg:static lg:translate-x-0",
+          isCollapsed ? "w-16" : "w-64",
           open ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="flex h-12 items-center justify-between px-5">
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-primary shadow-glow">
+        <div className={cn("flex h-14 items-center px-5", isCollapsed ? "justify-center px-0" : "justify-between")}>
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-primary shadow-glow">
               <Truck className="h-5 w-5 text-primary-foreground" />
             </div>
-            <div className="leading-tight">
-              <p className="text-sm font-bold text-white">FleetOps</p>
-              <p className="text-[10px] uppercase tracking-wider text-sidebar-foreground/60">
-                Last Mile
-              </p>
-            </div>
+            {!isCollapsed && (
+              <div className="leading-tight transition-opacity duration-300">
+                <p className="text-sm font-bold text-white">FleetOps</p>
+                <p className="text-[10px] uppercase tracking-wider text-sidebar-foreground/60">
+                  PROMSSAC
+                </p>
+              </div>
+            )}
           </div>
           <button
             onClick={onClose}
@@ -188,17 +250,63 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
           </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto scrollbar-thin px-3 py-4">
+        <nav className={cn("flex-1 overflow-y-auto py-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10", isCollapsed ? "px-2" : "px-3")}>
           {renderFlatSection(operationsItems, "Operaciones")}
-          <p className="mt-6 px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50">
-            Usuarios
-          </p>
-          <ul className="space-y-1">{renderExpandableGroup(usersGroup)}</ul>
-          <p className="mt-6 px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50">
-            Sistema
-          </p>
-          <ul className="space-y-1">{renderExpandableGroup(systemGroup)}</ul>
+
+          {!isCollapsed ? (
+            <p className="mt-6 px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 transition-opacity duration-300">
+              Usuarios
+            </p>
+          ) : (
+            <div className="mx-auto my-3 w-6 border-t border-white/10" />
+          )}
+          <ul className={cn("flex flex-col gap-1", isCollapsed && "gap-4")}>
+            {renderExpandableGroup(usersGroup)}
+          </ul>
+
+          {!isCollapsed ? (
+            <p className="mt-6 px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 transition-opacity duration-300">
+              Sistema
+            </p>
+          ) : (
+            <div className="mx-auto my-3 w-6 border-t border-white/10" />
+          )}
+          <ul className={cn("flex flex-col gap-1", isCollapsed && "gap-4")}>
+            {renderExpandableGroup(systemGroup)}
+          </ul>
         </nav>
+
+        <div className="p-4">
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={onToggleCollapse}
+                  className={cn(
+                    "flex items-center transition-all duration-200 hover:text-white",
+                    isCollapsed
+                      ? "h-10 w-10 justify-center rounded-xl mx-auto bg-transparent hover:bg-white/10 text-white/70"
+                      : "w-full gap-3 rounded-lg px-3 h-10 text-sidebar-foreground hover:bg-sidebar-accent"
+                  )}
+                >
+                  <div className={cn("flex shrink-0 items-center justify-center rounded", !isCollapsed && "h-6 w-6 border border-white/20")}>
+                    {isCollapsed ? (
+                      <ChevronRight className="h-5 w-5" />
+                    ) : (
+                      <ChevronLeft className="h-4 w-4" />
+                    )}
+                  </div>
+                  {!isCollapsed && <span className="text-sm font-medium">Contraer navegación</span>}
+                </button>
+              </TooltipTrigger>
+              {isCollapsed && (
+                <TooltipContent side="right" className="bg-[#212121] border-zinc-800 text-white">
+                  Expandir navegación
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </aside>
     </>
   );

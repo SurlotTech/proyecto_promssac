@@ -1,6 +1,5 @@
-import { Bell, HelpCircle, Menu, MessageSquare, Search, Settings } from "lucide-react";
+import { Bell, Menu, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,25 +27,10 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
         <Menu className="h-5 w-5" />
       </button>
 
-      {/* Search */}
-      <div className="relative hidden w-72 sm:block lg:ml-0">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-        <Input
-          placeholder="Buscar vehículos, órdenes, conductores..."
-          className="h-9 border-none bg-zinc-800 text-zinc-100 placeholder:text-zinc-500 pl-9 text-xs focus-visible:ring-1 focus-visible:ring-zinc-700"
-        />
-      </div>
-
       <div className="ml-auto flex items-center gap-1 sm:gap-2">
         <button className="relative rounded-lg p-2 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100">
           <Bell className="h-5 w-5" />
           <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary ring-2 ring-[#212121]" />
-        </button>
-        <button className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100">
-          <MessageSquare className="h-5 w-5" />
-        </button>
-        <button className="hidden rounded-lg p-2 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100 sm:inline-flex">
-          <HelpCircle className="h-5 w-5" />
         </button>
         <button className="hidden rounded-lg p-2 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100 sm:inline-flex">
           <Settings className="h-5 w-5" />
@@ -74,6 +58,16 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
             </DropdownMenuItem>
             <DropdownMenuItem className="cursor-pointer" disabled>
               Preferencias
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              className="cursor-pointer text-red-500 focus:bg-red-50 focus:text-red-600 dark:text-red-400 dark:focus:bg-red-950/50 dark:focus:text-red-300" 
+              onSelect={() => {
+                localStorage.removeItem("auth_token");
+                navigate("/login");
+              }}
+            >
+              Cerrar sesión
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

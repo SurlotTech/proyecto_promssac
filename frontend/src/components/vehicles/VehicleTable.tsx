@@ -68,7 +68,7 @@ const VehicleTable = ({ vehicles, onSelect }: Props) => {
                         <DropdownMenuItem onClick={() => onSelect(v)}>
                           <Eye className="mr-2 h-4 w-4" /> Ver detalle
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onSelect(v)}>
                           <Pencil className="mr-2 h-4 w-4" /> Editar
                         </DropdownMenuItem>
                         <DropdownMenuItem className="text-destructive focus:text-destructive">

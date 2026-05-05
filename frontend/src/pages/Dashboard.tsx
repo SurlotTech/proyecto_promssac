@@ -1,345 +1,489 @@
-import { Link } from "react-router-dom";
+import { useMemo } from "react";
 import {
-  AlertTriangle,
-  ArrowRight,
-  Bell,
-  CheckCircle2,
-  Info,
-  MapPin,
-  Navigation,
-  Package,
-  Route,
-  TrendingUp,
   Truck,
+  Package,
+  Route as RouteIcon,
   Users,
+  TrendingUp,
+  CheckCircle2,
+  Clock,
+  AlertTriangle,
+  DollarSign,
+  MapPin,
+  Activity,
+  ArrowUpRight,
+  Wrench,
+  Plus,
+  Download,
 } from "lucide-react";
 import {
-  Area,
   AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
+  Area,
+  ResponsiveContainer,
   XAxis,
   YAxis,
+  Tooltip,
+  CartesianGrid,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
 } from "recharts";
+import { Link } from "react-router-dom";
 import PageHeader from "@/components/PageHeader";
 import StatCard from "@/components/StatCard";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import type { ChartConfig } from "@/components/ui/chart";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { vehicles, statusMeta as vehicleStatusMeta } from "@/data/vehicles";
+import { routes, routeStatusMeta } from "@/data/routes";
 import { cn } from "@/lib/utils";
+import FleetLiveMap from "@/components/dashboard/FleetLiveMap";
 
-const dashboardOrdersTrend = [
-  { label: "Lun", ordenes: 118 },
-  { label: "Mar", ordenes: 132 },
-  { label: "Mié", ordenes: 125 },
-  { label: "Jue", ordenes: 141 },
-  { label: "Vie", ordenes: 138 },
-  { label: "Sáb", ordenes: 98 },
-  { label: "Dom", ordenes: 142 },
+/* ------------------------------ helpers ------------------------------ */
+const fmtMoney = (n: number) =>
+  new Intl.NumberFormat("es-PE", {
+    style: "currency",
+    currency: "PEN",
+    maximumFractionDigits: 0,
+  }).format(n);
+
+const initials = (name: string) =>
+  name
+    .split(" ")
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
+/* ----------------------------- mock series --------------------------- */
+const weekSeries = [
+  { day: "Lun", entregas: 84, pendientes: 22 },
+  { day: "Mar", entregas: 102, pendientes: 18 },
+  { day: "Mié", entregas: 96, pendientes: 25 },
+  { day: "Jue", entregas: 118, pendientes: 14 },
+  { day: "Vie", entregas: 134, pendientes: 19 },
+  { day: "Sáb", entregas: 152, pendientes: 11 },
+  { day: "Dom", entregas: 78, pendientes: 8 },
 ];
 
-const dashboardOrderStatusBreakdown = [
-  { key: "pending", label: "Pendiente", count: 28 },
-  { key: "preparing", label: "En preparación", count: 19 },
-  { key: "in_route", label: "En ruta", count: 44 },
-  { key: "delivered", label: "Entregado", count: 41 },
-  { key: "cancelled", label: "Cancelado", count: 10 },
+const zoneSeries = [
+  { zona: "L. Norte", ordenes: 142 },
+  { zona: "L. Sur", ordenes: 118 },
+  { zona: "L. Centro", ordenes: 96 },
+  { zona: "Callao", ordenes: 84 },
 ];
 
-type DashboardAlertType = "warning" | "info" | "success";
-
-interface DashboardAlert {
-  id: string;
-  type: DashboardAlertType;
-  title: string;
-  timeLabel: string;
-}
-
-const dashboardAlerts: DashboardAlert[] = [
+const recentActivity = [
   {
     id: "a1",
-    type: "warning",
-    title: "BHT-734: demora > 25 min en punto de entrega",
-    timeLabel: "Hace 12 min",
+    icon: CheckCircle2,
+    tone: "success" as const,
+    title: "Ruta RT-2504-014 completada",
+    desc: "María Sánchez · 22/22 entregas",
+    time: "hace 12 min",
   },
   {
     id: "a2",
-    type: "info",
-    title: "Ruta R-204 programada inicia en 30 min",
-    timeLabel: "Hace 35 min",
+    icon: AlertTriangle,
+    tone: "warning" as const,
+    title: "Ruta RT-2604-002 con retraso",
+    desc: "Luis Paredes · Callao Industrial",
+    time: "hace 38 min",
   },
   {
     id: "a3",
-    type: "success",
-    title: "ORD-2604-003 entregada — SLA cumplido",
-    timeLabel: "Hace 1 h",
+    icon: Wrench,
+    tone: "info" as const,
+    title: "Vehículo BKT-760 ingresó a mantenimiento",
+    desc: "Programado por Jorge Ilizarbe",
+    time: "hace 1 h",
   },
   {
     id: "a4",
-    type: "warning",
-    title: "2 vehículos sin actualización GPS > 15 min",
-    timeLabel: "Hace 2 h",
+    icon: Package,
+    tone: "primary" as const,
+    title: "12 nuevas órdenes asignadas",
+    desc: "Lima Norte · turno mañana",
+    time: "hace 2 h",
   },
 ];
 
-const dashboardActiveRoutes = [
-  { id: "R-201", name: "Ruta Norte — distribución", stopsDone: 7, stopsTotal: 12, vehiclePlate: "BFS-748" },
-  { id: "R-204", name: "Ruta Centro retail", stopsDone: 4, stopsTotal: 9, vehiclePlate: "BHT-734" },
-  { id: "R-208", name: "Ruta Sur frío", stopsDone: 11, stopsTotal: 14, vehiclePlate: "BKT-760" },
-  { id: "R-215", name: "Express Miraflores", stopsDone: 2, stopsTotal: 6, vehiclePlate: "CAG-900" },
-];
-
-const ordersChartConfig = {
-  ordenes: {
-    label: "Órdenes",
-    color: "hsl(var(--primary))",
-  },
-} satisfies ChartConfig;
-
-const breakdownColors = [
-  "hsl(var(--muted-foreground))",
-  "hsl(var(--info))",
-  "hsl(var(--primary))",
-  "hsl(var(--success))",
-  "hsl(var(--warning))",
-];
-
-const alertAccent: Record<(typeof dashboardAlerts)[number]["type"], string> = {
-  warning: "border-l-warning bg-warning-soft/40",
-  info: "border-l-info bg-info-soft/50",
-  success: "border-l-success bg-success-soft/40",
+const toneStyles: Record<string, string> = {
+  success: "bg-success-soft text-success",
+  warning: "bg-warning-soft text-warning",
+  info: "bg-info-soft text-info",
+  primary: "bg-primary-soft text-primary",
 };
 
-const alertIcon: Record<(typeof dashboardAlerts)[number]["type"], typeof AlertTriangle> = {
-  warning: AlertTriangle,
-  info: Info,
-  success: CheckCircle2,
-};
-
+/* ------------------------------ component ---------------------------- */
 const Dashboard = () => {
+  const stats = useMemo(() => {
+    const activeVehicles = vehicles.filter(
+      (v) => v.status === "active" || v.status === "in_route"
+    ).length;
+    const inMaintenance = vehicles.filter((v) => v.status === "maintenance").length;
+    const activeRoutes = routes.filter(
+      (r) => r.status === "in_progress" || r.status === "scheduled"
+    ).length;
+    const totalStops = routes.reduce((a, r) => a + r.stopsTotal, 0);
+    const doneStops = routes.reduce((a, r) => a + r.stopsDone, 0);
+    const collected = routes.reduce((a, r) => a + r.collectedAmount, 0);
+    const total = routes.reduce((a, r) => a + r.totalAmount, 0);
+    const fleetUsage = Math.round(
+      (vehicles.reduce((a, v) => a + v.loadPct, 0) / vehicles.length) || 0
+    );
+    const onTimeRate = Math.round((doneStops / Math.max(totalStops, 1)) * 100);
+    return {
+      activeVehicles,
+      inMaintenance,
+      activeRoutes,
+      totalStops,
+      doneStops,
+      collected,
+      total,
+      fleetUsage,
+      onTimeRate,
+      drivers: new Set(vehicles.map((v) => v.driver).filter(Boolean)).size,
+    };
+  }, []);
+
+  const fleetBreakdown = useMemo(() => {
+    const counts = vehicles.reduce<Record<string, number>>((acc, v) => {
+      acc[v.status] = (acc[v.status] || 0) + 1;
+      return acc;
+    }, {});
+    const colors: Record<string, string> = {
+      active: "hsl(var(--success))",
+      in_route: "hsl(var(--info))",
+      maintenance: "hsl(var(--warning))",
+      inactive: "hsl(var(--tertiary))",
+    };
+    return Object.entries(counts).map(([k, v]) => ({
+      name: vehicleStatusMeta[k as keyof typeof vehicleStatusMeta].label,
+      value: v,
+      color: colors[k],
+    }));
+  }, []);
+
+  const topDrivers = useMemo(
+    () =>
+      [...routes]
+        .sort((a, b) => b.stopsDone - a.stopsDone)
+        .slice(0, 5)
+        .map((r) => ({
+          name: r.driver,
+          zone: r.zone,
+          stops: `${r.stopsDone}/${r.stopsTotal}`,
+          pct: Math.round((r.stopsDone / r.stopsTotal) * 100),
+          collected: r.collectedAmount,
+        })),
+    []
+  );
+
+  const activeRoutesList = useMemo(
+    () =>
+      routes
+        .filter((r) => r.status === "in_progress" || r.status === "delayed")
+        .slice(0, 4),
+    []
+  );
+
   return (
     <div className="animate-fade-in">
       <PageHeader
         title="Dashboard"
         subtitle="Resumen operativo de tu flota y entregas en tiempo real."
+        actions={
+          <>
+            <Button variant="outline" size="sm" className="gap-2">
+              <Download className="h-4 w-4" />
+              Exportar
+            </Button>
+            <Link to="/rutas">
+              <Button size="sm" className="gap-2 bg-primary hover:bg-primary-hover">
+                <Plus className="h-4 w-4" />
+                Nueva ruta
+              </Button>
+            </Link>
+          </>
+        }
       />
 
       <div className="space-y-6 p-4 sm:p-6 lg:p-8">
+        {/* KPIs */}
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          <StatCard label="Vehículos activos" value={6} delta="+12% vs ayer" icon={Truck} tone="primary" />
-          <StatCard label="Órdenes hoy" value={142} delta="+8 últimas 1h" icon={Package} tone="info" />
-          <StatCard label="Rutas activas" value={9} icon={Route} tone="success" />
-          <StatCard label="Conductores" value={12} icon={Users} tone="warning" />
+          <StatCard
+            label="Vehículos activos"
+            value={stats.activeVehicles}
+            delta={`${stats.inMaintenance} en mantenimiento`}
+            icon={Truck}
+            tone="primary"
+          />
+          <StatCard
+            label="Rutas activas"
+            value={stats.activeRoutes}
+            delta={`${stats.doneStops}/${stats.totalStops} paradas`}
+            icon={RouteIcon}
+            tone="info"
+          />
+          <StatCard
+            label="Recaudación hoy"
+            value={fmtMoney(stats.collected)}
+            delta={`Meta ${fmtMoney(stats.total)}`}
+            icon={DollarSign}
+            tone="success"
+          />
+          <StatCard
+            label="Uso de flota"
+            value={`${stats.fleetUsage}%`}
+            delta={`${stats.drivers} conductores`}
+            icon={Activity}
+            tone="warning"
+          />
         </div>
 
-        <div className="rounded-xl border border-border bg-gradient-dark p-5 text-white shadow-md sm:p-7">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary shadow-glow">
-                <TrendingUp className="h-6 w-6 text-primary-foreground" />
-              </div>
+        {/* Live fleet map */}
+        <FleetLiveMap />
+
+        {/* Charts row */}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          {/* Area chart - entregas semana */}
+          <div className="rounded-xl border border-border bg-card p-5 shadow-sm lg:col-span-2">
+            <div className="mb-4 flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-bold tracking-tight sm:text-xl">
-                  Tu flota está funcionando al 87%
-                </h2>
-                <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-white/75">
-                  Optimiza la asignación de rutas y reduce tiempos de entrega gestionando tus vehículos
-                  desde un solo lugar.
+                <h3 className="text-base font-semibold text-foreground">
+                  Entregas en la semana
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Comparativa de entregas vs pendientes
                 </p>
               </div>
+              <Badge className="bg-success-soft text-success hover:bg-success-soft">
+                <TrendingUp className="mr-1 h-3 w-3" /> +18.2%
+              </Badge>
             </div>
-            <Link to="/vehiculos" className="shrink-0">
-              <Button className="h-10 w-full rounded-xl bg-primary px-6 shadow-md hover:bg-primary-hover sm:w-auto">
-                Ir a Vehículos
-              </Button>
-            </Link>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={weekSeries} margin={{ left: -20, right: 8, top: 8 }}>
+                  <defs>
+                    <linearGradient id="gEntregas" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.35} />
+                      <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="gPendientes" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(var(--info))" stopOpacity={0.25} />
+                      <stop offset="100%" stopColor="hsl(var(--info))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                  <Tooltip
+                    contentStyle={{
+                      background: "hsl(var(--popover))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: 8,
+                      fontSize: 12,
+                    }}
+                  />
+                  <Area type="monotone" dataKey="entregas" stroke="hsl(var(--primary))" strokeWidth={2.5} fill="url(#gEntregas)" />
+                  <Area type="monotone" dataKey="pendientes" stroke="hsl(var(--info))" strokeWidth={2} fill="url(#gPendientes)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Pie - estado flota */}
+          <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+            <div className="mb-4">
+              <h3 className="text-base font-semibold text-foreground">Estado de flota</h3>
+              <p className="text-xs text-muted-foreground">{vehicles.length} vehículos totales</p>
+            </div>
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={fleetBreakdown}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={48}
+                    outerRadius={72}
+                    paddingAngle={2}
+                    stroke="none"
+                  >
+                    {fleetBreakdown.map((entry, i) => (
+                      <Cell key={i} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      background: "hsl(var(--popover))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: 8,
+                      fontSize: 12,
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {fleetBreakdown.map((s) => (
+                <div key={s.name} className="flex items-center gap-2 text-xs">
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ background: s.color }} />
+                  <span className="text-muted-foreground">{s.name}</span>
+                  <span className="ml-auto font-semibold text-foreground">{s.value}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
-        <div className="grid gap-6 xl:grid-cols-5">
-          <Card className="border-border/80 shadow-sm xl:col-span-3">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base font-semibold">Órdenes — últimos 7 días</CardTitle>
-              <CardDescription>Volumen diario (referencia operativa)</CardDescription>
-            </CardHeader>
-            <CardContent className="pl-0 pr-2 pt-0">
-              <ChartContainer config={ordersChartConfig} className="aspect-[21/10] w-full min-h-[220px] sm:aspect-[2/1]">
-                <AreaChart
-                  data={dashboardOrdersTrend}
-                  margin={{ left: 0, right: 12, top: 8, bottom: 0 }}
-                  accessibilityLayer
-                >
-                  <defs>
-                    <linearGradient id="fillOrdenes" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--color-ordenes)" stopOpacity={0.35} />
-                      <stop offset="95%" stopColor="var(--color-ordenes)" stopOpacity={0.02} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/60" />
-                  <XAxis dataKey="label" tickLine={false} axisLine={false} tickMargin={8} />
-                  <YAxis hide domain={["dataMin - 10", "dataMax + 15"]} />
-                  <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-                  <Area
-                    type="monotone"
-                    dataKey="ordenes"
-                    stroke="var(--color-ordenes)"
-                    strokeWidth={2}
-                    fill="url(#fillOrdenes)"
+        {/* Bar + activity */}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <div className="rounded-xl border border-border bg-card p-5 shadow-sm lg:col-span-2">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-semibold text-foreground">Órdenes por zona</h3>
+                <p className="text-xs text-muted-foreground">Distribución del día actual</p>
+              </div>
+              <Link to="/ordenes" className="text-xs font-medium text-primary hover:underline">
+                Ver todas <ArrowUpRight className="ml-0.5 inline h-3 w-3" />
+              </Link>
+            </div>
+            <div className="h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={zoneSeries} margin={{ left: -20, right: 8, top: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis dataKey="zona" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                  <Tooltip
+                    cursor={{ fill: "hsl(var(--muted))" }}
+                    contentStyle={{
+                      background: "hsl(var(--popover))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: 8,
+                      fontSize: 12,
+                    }}
                   />
-                </AreaChart>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/80 shadow-sm xl:col-span-2">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base font-semibold">Órdenes por estado</CardTitle>
-              <CardDescription>Hoy — distribución referencial</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <ChartContainer
-                config={{
-                  count: { label: "Cantidad", color: "hsl(var(--primary))" },
-                }}
-                className="aspect-[4/3] w-full min-h-[200px] max-h-[280px]"
-              >
-                <BarChart
-                  layout="vertical"
-                  data={dashboardOrderStatusBreakdown}
-                  margin={{ left: 4, right: 16, top: 4, bottom: 4 }}
-                  accessibilityLayer
-                >
-                  <CartesianGrid horizontal={false} strokeDasharray="3 3" className="stroke-border/50" />
-                  <XAxis type="number" hide />
-                  <YAxis
-                    type="category"
-                    dataKey="label"
-                    width={108}
-                    tickLine={false}
-                    axisLine={false}
-                    tick={{ fontSize: 11 }}
-                  />
-                  <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-                  <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={18}>
-                    {dashboardOrderStatusBreakdown.map((_, i) => (
-                      <Cell key={dashboardOrderStatusBreakdown[i].key} fill={breakdownColors[i]} />
-                    ))}
-                  </Bar>
+                  <Bar dataKey="ordenes" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
                 </BarChart>
-              </ChartContainer>
-            </CardContent>
-          </Card>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Activity feed */}
+          <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-base font-semibold text-foreground">Actividad reciente</h3>
+              <Badge variant="secondary" className="text-[10px]">EN VIVO</Badge>
+            </div>
+            <ul className="space-y-4">
+              {recentActivity.map((a) => (
+                <li key={a.id} className="flex gap-3">
+                  <div className={cn("mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", toneStyles[a.tone])}>
+                    <a.icon className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-foreground">{a.title}</p>
+                    <p className="truncate text-xs text-muted-foreground">{a.desc}</p>
+                    <p className="mt-0.5 text-[11px] text-tertiary">
+                      <Clock className="mr-1 inline h-3 w-3" />
+                      {a.time}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Card className="border-border/80 shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+        {/* Active routes + Top drivers */}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+          <div className="rounded-xl border border-border bg-card p-5 shadow-sm lg:col-span-3">
+            <div className="mb-4 flex items-center justify-between">
               <div>
-                <CardTitle className="text-base font-semibold">Alertas recientes</CardTitle>
-                <CardDescription>Eventos que requieren atención</CardDescription>
+                <h3 className="text-base font-semibold text-foreground">Rutas en curso</h3>
+                <p className="text-xs text-muted-foreground">Seguimiento del progreso por ruta</p>
               </div>
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-soft text-primary">
-                <Bell className="size-4" />
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-0">
-              {dashboardAlerts.map((a, idx) => {
-                const Icon = alertIcon[a.type];
-                return (
-                  <div key={a.id}>
-                    {idx > 0 ? <Separator className="my-3" /> : null}
-                    <div
-                      className={cn(
-                        "flex gap-3 rounded-lg border border-l-4 border-border/60 py-2.5 pl-3 pr-2",
-                        alertAccent[a.type],
-                      )}
-                    >
-                      <Icon className="mt-0.5 size-4 shrink-0 text-foreground/80" aria-hidden />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium leading-snug text-foreground">{a.title}</p>
-                        <p className="mt-1 text-xs text-muted-foreground">{a.timeLabel}</p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/80 shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <div>
-                <CardTitle className="text-base font-semibold">Rutas en curso</CardTitle>
-                <CardDescription>Avance de paradas por ruta activa</CardDescription>
-              </div>
-              <Link to="/rutas">
-                <Button variant="ghost" size="sm" className="h-8 gap-1 text-primary hover:text-primary-hover">
-                  Ver todas
-                  <ArrowRight className="size-3.5" />
-                </Button>
+              <Link to="/rutas" className="text-xs font-medium text-primary hover:underline">
+                Gestionar <ArrowUpRight className="ml-0.5 inline h-3 w-3" />
               </Link>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {dashboardActiveRoutes.map((r) => {
+            </div>
+            <div className="space-y-4">
+              {activeRoutesList.map((r) => {
+                const meta = routeStatusMeta[r.status];
                 const pct = Math.round((r.stopsDone / r.stopsTotal) * 100);
                 return (
-                  <div key={r.id} className="rounded-xl border border-border/70 bg-surface-muted/40 p-3">
-                    <div className="flex items-start justify-between gap-2">
+                  <div key={r.id} className="rounded-lg border border-border p-4 transition-colors hover:bg-surface-muted">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <Badge variant="secondary" className="font-mono text-xs">
-                            {r.id}
-                          </Badge>
-                          <span className="truncate text-sm font-semibold text-foreground">{r.name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-foreground">{r.code}</span>
+                          <Badge className={cn("border-0", meta.className)}>{meta.label}</Badge>
                         </div>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          <span className="font-medium text-foreground">{r.vehiclePlate}</span>
-                          {" · "}
-                          Paradas {r.stopsDone}/{r.stopsTotal}
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          <MapPin className="mr-1 inline h-3 w-3" />
+                          {r.zone} · {r.driver} · {r.vehiclePlate}
                         </p>
                       </div>
-                      <span className="shrink-0 text-sm font-semibold tabular-nums text-primary">{pct}%</span>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold text-foreground">
+                          {r.stopsDone}/{r.stopsTotal}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">paradas</p>
+                      </div>
                     </div>
-                    <Progress value={pct} className="mt-2.5 h-2 bg-white" />
+                    <div className="mt-3 flex items-center gap-3">
+                      <Progress value={pct} className="h-1.5 flex-1" />
+                      <span className="w-10 text-right text-xs font-medium text-foreground">{pct}%</span>
+                    </div>
                   </div>
                 );
               })}
-            </CardContent>
-          </Card>
-        </div>
+              {activeRoutesList.length === 0 && (
+                <p className="py-8 text-center text-sm text-muted-foreground">
+                  No hay rutas en curso.
+                </p>
+              )}
+            </div>
+          </div>
 
-        <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-            Accesos rápidos
-          </h2>
-          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {[
-              { to: "/rutas", label: "Rutas", desc: "Planificación", icon: Navigation },
-              { to: "/ordenes", label: "Órdenes", desc: "Entregas", icon: Package },
-              { to: "/vehiculos", label: "Vehículos", desc: "Flota", icon: Truck },
-              { to: "/flota", label: "Flota en vivo", desc: "Mapa", icon: MapPin },
-            ].map(({ to, label, desc, icon: Icon }) => (
-              <Link
-                key={to}
-                to={to}
-                className="group flex flex-col rounded-xl border border-border/80 bg-card p-4 shadow-sm transition-all hover:border-primary/35 hover:shadow-md"
-              >
-                <div className="flex size-10 items-center justify-center rounded-lg bg-primary-soft text-primary transition-transform group-hover:scale-105">
-                  <Icon className="size-5" />
-                </div>
-                <p className="mt-3 font-semibold text-foreground">{label}</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">{desc}</p>
-                <span className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">
-                  Abrir <ArrowRight className="size-3" />
-                </span>
-              </Link>
-            ))}
+          <div className="rounded-xl border border-border bg-card p-5 shadow-sm lg:col-span-2">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-base font-semibold text-foreground">Top conductores</h3>
+              <Badge variant="secondary" className="text-[10px]">HOY</Badge>
+            </div>
+            <ul className="space-y-3">
+              {topDrivers.map((d, i) => (
+                <li
+                  key={d.name}
+                  className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-surface-muted"
+                >
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-muted text-[11px] font-bold text-muted-foreground">
+                    {i + 1}
+                  </div>
+                  <Avatar className="h-9 w-9">
+                    <AvatarFallback className="bg-primary-soft text-xs font-semibold text-primary">
+                      {initials(d.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-foreground">{d.name}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {d.zone} · {d.stops}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-foreground">{d.pct}%</p>
+                    <p className="text-[11px] text-success">{fmtMoney(d.collected)}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>
