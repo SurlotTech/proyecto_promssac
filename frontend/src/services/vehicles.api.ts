@@ -1,5 +1,5 @@
 import type { Vehicle, VehicleOption } from "@/domain/vehicles";
-import { apiGet, apiPost } from "@/lib/api";
+import { apiGet, apiPost, apiPut } from "@/lib/api";
 import { endpoints } from "./endpoints";
 
 export interface VehicleWriteBody {
@@ -7,6 +7,8 @@ export interface VehicleWriteBody {
   type: string;
   group: string;
   driver: string | null;
+  /** UUID usuario móvil (POST/PATCH vehículo lo enlaza en backend). */
+  driverId?: string | null;
   status: string;
   capacityKg: number;
   loadPct: number;

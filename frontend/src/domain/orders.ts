@@ -22,6 +22,25 @@ export interface Order {
   isLastDispatch: boolean;
   /** UUID de la ruta asignada en backend, si existe. */
   routeId?: string;
+
+  /** UUID del vehículo asignado (lista/detalle backend). */
+  vehicleId?: string;
+
+  /** Presentes cuando la orden tiene datos del flujo Completar (GET detalle / lista enriquecida). */
+  contactPhone?: string;
+  contactEmail?: string;
+  addressLine?: string;
+  normalizedAddress?: string;
+  latitude?: number;
+  longitude?: number;
+  serviceMinutes?: number;
+  addressReference?: string;
+  deliveryWindowFrom?: string;
+  deliveryWindowTo?: string;
+  deliveryMode?: string;
+  deliveryPriority?: string;
+  cashOnDelivery?: boolean;
+  customFields?: Record<string, string>;
 }
 
 export const orderStatusMeta: Record<

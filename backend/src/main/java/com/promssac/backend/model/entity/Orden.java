@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -55,6 +56,50 @@ public class Orden {
 
     @Column(name = "contacto_identificador", length = 80)
     private String contactoIdentificador;
+
+    @Column(name = "contacto_telefono", length = 40)
+    private String contactoTelefono;
+
+    @Column(name = "contacto_email", length = 120)
+    private String contactoEmail;
+
+    /** Dirección de entrega (mapa / texto usuario). */
+    @Column(name = "direccion_linea", columnDefinition = "TEXT")
+    private String direccionLinea;
+
+    @Column(name = "direccion_normalizada", columnDefinition = "TEXT")
+    private String direccionNormalizada;
+
+    @Column(name = "latitud", precision = 11, scale = 8)
+    private BigDecimal latitud;
+
+    @Column(name = "longitud", precision = 11, scale = 8)
+    private BigDecimal longitud;
+
+    @Column(name = "tiempo_servicio_minutos")
+    private Integer tiempoServicioMinutos;
+
+    @Column(name = "referencia_direccion", columnDefinition = "TEXT")
+    private String referenciaDireccion;
+
+    @Column(name = "ventana_entrega_desde", length = 16)
+    private String ventanaEntregaDesde;
+
+    @Column(name = "ventana_entrega_hasta", length = 16)
+    private String ventanaEntregaHasta;
+
+    @Column(name = "modo_entrega", length = 64)
+    private String modoEntrega;
+
+    @Column(name = "prioridad_entrega", length = 32)
+    private String prioridadEntrega;
+
+    @Column(name = "contra_entrega")
+    private Boolean contraEntrega;
+
+    /** JSON con campos personalizados (director, guías, etc.). */
+    @Column(name = "campos_personalizados_json", columnDefinition = "TEXT")
+    private String camposPersonalizadosJson;
 
     @Column(name = "fecha_ruta", nullable = false)
     private LocalDate fechaRuta;

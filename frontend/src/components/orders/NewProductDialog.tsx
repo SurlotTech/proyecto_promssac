@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { OrderProductRow } from "@/domain/orderProducts";
+import { ordersApi } from "@/services/orders.api";
 
 const inputClass =
   "h-9 border-border/80 text-sm font-medium shadow-sm focus-visible:ring-2 focus-visible:ring-ring";
@@ -30,6 +31,7 @@ interface Props {
 
 const NewProductDialog = ({ open, onOpenChange, orderDisplayId, onSaved }: Props) => {
   const [form, setForm] = useState(emptyForm);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!open) {
@@ -49,30 +51,37 @@ const NewProductDialog = ({ open, onOpenChange, orderDisplayId, onSaved }: Props
     !Number.isNaN(qtyNum) &&
     qtyNum > 0;
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!requiredOk) {
       toast.error("Completa los campos obligatorios con valores válidos.");
       return;
     }
-    const row: OrderProductRow = {
-      id: `p-${Date.now()}`,
-      code: form.code.trim(),
-      orderId: orderDisplayId,
-      name: form.name.trim(),
-      unitPrice: priceNum,
-      quantity: qtyNum,
-      customField: "—",
-      createdAt: new Intl.DateTimeFormat("es-PE", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }).format(new Date()),
-    };
-    onSaved(row);
-    toast.success(`Producto ${row.code} añadido a la orden.`);
-    onOpenChange(false);
+    setSaving(true);
+    try {
+      const row = await ordersApi.createProductLine(orderDisplayId, {
+        code: form.code.trim(),
+        name: form.name.trim(),
+        unitPrice: priceNum,
+        quantity: qtyNum,
+      });
+      const mapped: OrderProductRow = {
+        id: row.id,
+        code: row.code,
+        orderId: row.orderId,
+        name: row.name,
+        unitPrice: row.unitPrice,
+        quantity: row.quantity,
+        customField: row.customField,
+        createdAt: row.createdAt,
+      };
+      onSaved(mapped);
+      toast.success(`Producto ${mapped.code} añadido a la orden.`);
+      onOpenChange(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo guardar el producto.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -198,10 +207,10 @@ const NewProductDialog = ({ open, onOpenChange, orderDisplayId, onSaved }: Props
                 type="button"
                 size="sm"
                 className="h-9 w-full bg-primary text-primary-foreground hover:bg-primary-hover sm:w-auto sm:min-w-[140px]"
-                onClick={handleSave}
-                disabled={!requiredOk}
+                onClick={() => void handleSave()}
+                disabled={!requiredOk || saving}
               >
-                Guardar
+                {saving ? "Guardando…" : "Guardar"}
               </Button>
             </div>
           </footer>

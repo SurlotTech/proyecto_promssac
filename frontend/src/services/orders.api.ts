@@ -1,10 +1,11 @@
 import type { Order } from "@/domain/orders";
+import { normalizeFechaRutaForApi } from "@/lib/fechaRutaApi";
 import { apiGet, apiPost, apiPostNoContent } from "@/lib/api";
 import { endpoints } from "./endpoints";
 
 export interface OrderCreateInput {
   numeroOrden: string;
-  /** yyyy-MM-dd */
+  /** ISO `yyyy-MM-dd` o fecha de ruta en UI `dd/MM/yyyy` (se normaliza al enviar). */
   fechaRuta: string;
   rutaId?: string;
   vehiculoId?: string;
@@ -21,10 +22,59 @@ export interface OrderAssignBulkInput {
   numerosOrden: string[];
 }
 
+/** Respuesta GET/POST `/ordenes/{numero}/productos`. */
+export interface OrderProductLineDto {
+  id: string;
+  code: string;
+  orderId: string;
+  name: string;
+  unitPrice: number;
+  quantity: number;
+  customField: string;
+  createdAt: string;
+}
+
+export interface OrderProductLineCreateInput {
+  code: string;
+  name: string;
+  unitPrice: number;
+  quantity: number;
+  customField?: string;
+}
+
+function orderProductosPath(numeroOrden: string): string {
+  return `${endpoints.orders}/${encodeURIComponent(numeroOrden.trim())}/productos`;
+}
+
+/** Payload para POST /ordenes/completar-datos (asistente Completar orden). */
+export interface OrderCompleteInput {
+  numeroOrden: string;
+  contactoNombre?: string;
+  contactoIdentificador?: string;
+  contactoTelefono?: string;
+  contactoEmail?: string;
+  direccionLinea?: string;
+  direccionNormalizada?: string;
+  latitud?: number;
+  longitud?: number;
+  tiempoServicioMinutos?: number;
+  referenciaDireccion?: string;
+  ventanaEntregaDesde?: string;
+  ventanaEntregaHasta?: string;
+  modoEntrega?: string;
+  prioridadEntrega?: string;
+  contraEntrega?: boolean;
+  camposPersonalizados?: Record<string, string>;
+  /** UUID del vehículo a asignar (mutuamente excluyente con quitarVehiculo en práctica). */
+  vehiculoId?: string;
+  /** Quitar vehículo y placa de la orden. */
+  quitarVehiculo?: boolean;
+}
+
 function buildOrderCreateJson(input: OrderCreateInput): Record<string, unknown> {
   const body: Record<string, unknown> = {
     numeroOrden: input.numeroOrden.trim(),
-    fechaRuta: input.fechaRuta,
+    fechaRuta: normalizeFechaRutaForApi(input.fechaRuta),
   };
   if (input.rutaId?.trim()) body.rutaId = input.rutaId.trim();
   if (input.vehiculoId?.trim()) body.vehiculoId = input.vehiculoId.trim();
@@ -44,6 +94,12 @@ export const ordersApi = {
     return apiGet<Order[]>(endpoints.orders);
   },
 
+  /** Una orden por número (para rellenar el asistente al editar). */
+  getByNumero(numeroOrden: string): Promise<Order> {
+    const q = encodeURIComponent(numeroOrden.trim());
+    return apiGet<Order>(`${endpoints.orders}/${q}`);
+  },
+
   create(input: OrderCreateInput): Promise<Order> {
     return apiPost<Order, Record<string, unknown>>(endpoints.orders, buildOrderCreateJson(input));
   },
@@ -53,5 +109,30 @@ export const ordersApi = {
       rutaId: input.rutaId,
       numerosOrden: input.numerosOrden.map((n) => n.trim()).filter(Boolean),
     });
+  },
+
+  completarDatos(input: OrderCompleteInput): Promise<Order> {
+    return apiPost<Order, OrderCompleteInput>(`${endpoints.orders}/completar-datos`, input);
+  },
+
+  listProductLines(numeroOrden: string): Promise<OrderProductLineDto[]> {
+    return apiGet<OrderProductLineDto[]>(orderProductosPath(numeroOrden));
+  },
+
+  createProductLine(
+    numeroOrden: string,
+    input: OrderProductLineCreateInput,
+  ): Promise<OrderProductLineDto> {
+    const body: Record<string, unknown> = {
+      code: input.code.trim(),
+      name: input.name.trim(),
+      unitPrice: input.unitPrice,
+      quantity: input.quantity,
+    };
+    if (input.customField?.trim()) body.customField = input.customField.trim();
+    return apiPost<OrderProductLineDto, Record<string, unknown>>(
+      orderProductosPath(numeroOrden),
+      body,
+    );
   },
 };

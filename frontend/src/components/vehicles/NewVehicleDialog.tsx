@@ -20,6 +20,7 @@ import {
 import { toast } from "sonner";
 import { statusMeta, type VehicleStatus } from "@/domain/vehicles";
 import { vehiclesApi } from "@/services";
+import { VehicleDriverSelect } from "@/components/vehicles/VehicleDriverSelect";
 
 interface Props {
   open: boolean;
@@ -33,14 +34,14 @@ const DEFAULT_VEHICLE_GROUP = "General";
 const NewVehicleDialog = ({ open, onOpenChange, onCreated }: Props) => {
   const [plate, setPlate] = useState("");
   const [type, setType] = useState("");
-  const [driver, setDriver] = useState("");
+  const [driverId, setDriverId] = useState("");
   const [status, setStatus] = useState<VehicleStatus>("active");
   const [saving, setSaving] = useState(false);
 
   const reset = () => {
     setPlate("");
     setType("");
-    setDriver("");
+    setDriverId("");
     setStatus("active");
   };
 
@@ -52,7 +53,8 @@ const NewVehicleDialog = ({ open, onOpenChange, onCreated }: Props) => {
         plate: plate.trim().toUpperCase(),
         type,
         group: DEFAULT_VEHICLE_GROUP,
-        driver: driver.trim() === "" ? null : driver.trim(),
+        driver: null,
+        ...(driverId.trim() ? { driverId: driverId.trim() } : {}),
         status,
         capacityKg: 1200,
         loadPct: 0,
@@ -119,17 +121,7 @@ const NewVehicleDialog = ({ open, onOpenChange, onCreated }: Props) => {
 
           <div className="grid gap-2">
             <Label>Conductor asociado</Label>
-            <Select value={driver || undefined} onValueChange={setDriver}>
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccionar conductor (opcional)" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Carlos Mendoza">Carlos Mendoza</SelectItem>
-                <SelectItem value="Emerson Tineo">Emerson Tineo</SelectItem>
-                <SelectItem value="Jorge Ilizarbe">Jorge Ilizarbe</SelectItem>
-                <SelectItem value="María Sánchez">María Sánchez</SelectItem>
-              </SelectContent>
-            </Select>
+            <VehicleDriverSelect value={driverId} onChange={setDriverId} />
           </div>
 
           <div className="grid gap-2">

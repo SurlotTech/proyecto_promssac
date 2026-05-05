@@ -77,7 +77,12 @@ public class VehiculoServiceImpl implements VehiculoService {
         copyWriteRequestOntoEntity(vehiculo, request);
         Vehiculo guardado = vehiculoRepository.save(vehiculo);
         log.info("Vehículo creado id={} placa={}", guardado.getId(), guardado.getPlaca());
-        return toVehicleResponse(guardado, null);
+        if (request.getDriverId() != null) {
+            asignarUsuarioMovilAVehiculo(guardado.getId(), request.getDriverId());
+            guardado = vehiculoRepository.findById(guardado.getId()).orElseThrow();
+        }
+        UsuarioMovil asignado = resolveAssignedDriver(guardado.getId());
+        return toVehicleResponse(guardado, asignado);
     }
 
     @Override
@@ -92,6 +97,10 @@ public class VehiculoServiceImpl implements VehiculoService {
         copyWriteRequestOntoEntity(vehiculo, request);
         Vehiculo actualizado = vehiculoRepository.save(vehiculo);
         log.info("Vehículo actualizado id={}", actualizado.getId());
+        if (request.getDriverId() != null) {
+            asignarUsuarioMovilAVehiculo(actualizado.getId(), request.getDriverId());
+            actualizado = vehiculoRepository.findById(actualizado.getId()).orElseThrow();
+        }
         UsuarioMovil asignado = resolveAssignedDriver(actualizado.getId());
         return toVehicleResponse(actualizado, asignado);
     }
@@ -107,6 +116,18 @@ public class VehiculoServiceImpl implements VehiculoService {
     private Vehiculo findOrThrow(UUID id) {
         return vehiculoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Vehículo", id));
+    }
+
+    /** Enlaza el usuario móvil al vehículo y sincroniza el nombre en columna {@code conductor}. */
+    private void asignarUsuarioMovilAVehiculo(UUID vehiculoId, UUID usuarioMovilId) {
+        Vehiculo v = vehiculoRepository.findById(vehiculoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Vehículo", vehiculoId));
+        UsuarioMovil u = usuarioMovilRepository.findById(usuarioMovilId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario móvil", usuarioMovilId));
+        u.setVehiculo(v);
+        usuarioMovilRepository.save(u);
+        v.setConductor(u.getNombreCompleto());
+        vehiculoRepository.save(v);
     }
 
     private static void copyWriteRequestOntoEntity(Vehiculo entity, VehicleWriteRequest w) {

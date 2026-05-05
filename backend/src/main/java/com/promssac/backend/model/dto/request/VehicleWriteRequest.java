@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -28,6 +29,9 @@ public class VehicleWriteRequest {
 
     @Size(max = 120)
     private String driver;
+
+    /** Si se envía, el usuario móvil queda asignado a este vehículo (además del texto opcional en {@code driver}). */
+    private UUID driverId;
 
     @NotBlank
     private String status;

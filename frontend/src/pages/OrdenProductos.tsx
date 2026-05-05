@@ -17,6 +17,7 @@ import {
   readOrderDraft,
   type OrderProductsLocationState,
 } from "@/lib/orderCreationDraft";
+import { ordersApi } from "@/services/orders.api";
 
 const OrdenProductos = () => {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ const OrdenProductos = () => {
 
   const [displayOrderId, setDisplayOrderId] = useState<string | null>(null);
   const [products, setProducts] = useState<OrderProductRow[]>([]);
+  const [productsLoading, setProductsLoading] = useState(false);
   const [newProductOpen, setNewProductOpen] = useState(false);
 
   useEffect(() => {
@@ -38,6 +40,41 @@ const OrdenProductos = () => {
     }
     setDisplayOrderId(id);
   }, [location.state, navigate]);
+
+  useEffect(() => {
+    if (!displayOrderId) return;
+    let cancelled = false;
+    setProductsLoading(true);
+    ordersApi
+      .listProductLines(displayOrderId)
+      .then((rows) => {
+        if (!cancelled) {
+          setProducts(
+            rows.map((r) => ({
+              id: r.id,
+              code: r.code,
+              orderId: r.orderId,
+              name: r.name,
+              unitPrice: r.unitPrice,
+              quantity: r.quantity,
+              customField: r.customField,
+              createdAt: r.createdAt,
+            })),
+          );
+        }
+      })
+      .catch((e) => {
+        if (!cancelled) {
+          toast.error(e instanceof Error ? e.message : "No se pudieron cargar los productos.");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setProductsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [displayOrderId]);
 
   const subtitle = useMemo(
     () => (displayOrderId ? `Líneas de la orden ${displayOrderId}` : ""),
@@ -117,7 +154,13 @@ const OrdenProductos = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {products.length === 0 ? (
+                  {productsLoading ? (
+                    <tr>
+                      <td colSpan={7} className="px-4 py-12 text-center text-sm text-muted-foreground sm:px-5">
+                        Cargando productos…
+                      </td>
+                    </tr>
+                  ) : products.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="px-4 py-16 sm:px-5 sm:py-20">
                         <div className="mx-auto flex max-w-md flex-col items-center text-center">

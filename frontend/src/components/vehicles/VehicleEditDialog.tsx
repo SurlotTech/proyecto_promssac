@@ -21,6 +21,8 @@ import { toast } from "sonner";
 import { type Vehicle, type VehicleStatus } from "@/domain/vehicles";
 import { vehiclesApi } from "@/services";
 import { User } from "lucide-react";
+import { VehicleDriverSelect } from "@/components/vehicles/VehicleDriverSelect";
+import { useMobileUserRouteOptionsQuery } from "@/hooks/useOperationsQueries";
 
 interface Props {
   vehicle: Vehicle | null;
@@ -34,7 +36,8 @@ const DEFAULT_VEHICLE_GROUP = "General";
 const VehicleEditDialog = ({ vehicle, open, onOpenChange, onUpdated }: Props) => {
   const [plate, setPlate] = useState("");
   const [type, setType] = useState("");
-  const [driver, setDriver] = useState("");
+  const [driverId, setDriverId] = useState("");
+  const { data: routeOptions = [] } = useMobileUserRouteOptionsQuery();
   const [status, setStatus] = useState<VehicleStatus>("active");
   const [capacityKg, setCapacityKg] = useState("1200");
   const [saving, setSaving] = useState(false);
@@ -43,11 +46,26 @@ const VehicleEditDialog = ({ vehicle, open, onOpenChange, onUpdated }: Props) =>
     if (vehicle) {
       setPlate(vehicle.plate);
       setType(vehicle.type);
-      setDriver(vehicle.driver || "");
       setStatus(vehicle.status);
       setCapacityKg(vehicle.capacityKg.toString());
     }
   }, [vehicle, open]);
+
+  useEffect(() => {
+    if (!vehicle || !open) return;
+    const id = vehicle.driverId?.trim();
+    if (id) {
+      setDriverId(id);
+      return;
+    }
+    const name = vehicle.driver?.trim();
+    if (!name) {
+      setDriverId("");
+      return;
+    }
+    const match = routeOptions.find((o) => o.nombreCompleto.trim() === name);
+    setDriverId(match?.id ?? "");
+  }, [vehicle, open, routeOptions]);
 
   const handleSave = async () => {
     if (!vehicle || !plate || !type) return;
@@ -57,7 +75,8 @@ const VehicleEditDialog = ({ vehicle, open, onOpenChange, onUpdated }: Props) =>
         plate: plate.trim().toUpperCase(),
         type,
         group: DEFAULT_VEHICLE_GROUP,
-        driver: driver.trim() === "" ? null : driver.trim(),
+        driver: null,
+        ...(driverId.trim() ? { driverId: driverId.trim() } : {}),
         status,
         capacityKg: parseInt(capacityKg) || 0,
         loadPct: vehicle.loadPct,
@@ -122,20 +141,15 @@ const VehicleEditDialog = ({ vehicle, open, onOpenChange, onUpdated }: Props) =>
               <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Conductor asignado
               </Label>
-              <Select value={driver || undefined} onValueChange={setDriver}>
-                <SelectTrigger className="h-10 border-border/80">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <SelectValue placeholder="Sin asignar" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Carlos Mendoza">Carlos Mendoza</SelectItem>
-                  <SelectItem value="Emerson Tineo">Emerson Tineo</SelectItem>
-                  <SelectItem value="Jorge Ilizarbe">Jorge Ilizarbe</SelectItem>
-                  <SelectItem value="María Sánchez">María Sánchez</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex items-start gap-2">
+                <User className="mt-2.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+                <VehicleDriverSelect
+                  value={driverId}
+                  onChange={setDriverId}
+                  triggerClassName="border-border/80"
+                  placeholder="Sin asignar"
+                />
+              </div>
             </div>
           </div>
 
