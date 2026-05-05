@@ -5,8 +5,6 @@ import type { OrderCompleteInput } from "@/services/orders.api";
 
 export type OrderCompleteFormSnapshot = {
   draft: OrderCreationDraft;
-  /** UUID o vacío (= quitar vehículo). */
-  vehicleId: string;
   contactName: string;
   contactIdentifier: string;
   contactPhone: string;
@@ -34,13 +32,9 @@ function compactCustomFields(fields: Record<CustomFieldKey, string>): Record<str
 
 export function buildOrderCompletePayload(s: OrderCompleteFormSnapshot): OrderCompleteInput {
   const minsParsed = parseInt(s.serviceMinutes, 10);
-  const vid = s.vehicleId.trim();
-  const vehiclePayload: Pick<OrderCompleteInput, "vehiculoId" | "quitarVehiculo"> = vid
-    ? { vehiculoId: vid }
-    : { quitarVehiculo: true };
   return {
     numeroOrden: s.draft.displayOrderId.trim(),
-    ...vehiclePayload,
+    quitarVehiculo: true,
     contactoNombre: s.contactName.trim(),
     contactoIdentificador: s.contactIdentifier.trim(),
     contactoTelefono: s.contactPhone.trim(),

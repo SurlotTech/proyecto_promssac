@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { PackageOpen, Plus } from "lucide-react";
+import { ArrowLeft, Check, PackageOpen, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Breadcrumb,
@@ -207,6 +207,21 @@ const OrdenProductos = () => {
                 </tbody>
               </table>
             </div>
+          </div>
+
+          <div className="mt-4 flex justify-end">
+            <Button
+              type="button"
+              size="sm"
+              className="h-10 gap-2 bg-primary text-primary-foreground hover:bg-primary-hover sm:min-w-[200px]"
+              onClick={() => {
+                toast.success(`Orden ${displayOrderId} guardada con ${products.length} producto${products.length !== 1 ? "s" : ""}.`);
+                navigate("/ordenes", { replace: true });
+              }}
+            >
+              <Check className="h-4 w-4" />
+              Guardar y volver a órdenes
+            </Button>
           </div>
         </div>
       </div>

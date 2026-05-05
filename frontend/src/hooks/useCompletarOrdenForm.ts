@@ -36,6 +36,50 @@ function emptyCustomFields(): Record<CustomFieldKey, string> {
   return Object.fromEntries(customFieldKeys.map((k) => [k, ""])) as Record<CustomFieldKey, string>;
 }
 
+const FORM_CACHE_KEY = "completar_orden_form_cache";
+
+type FormCache = {
+  orderId: string;
+  deliveryFrom: string;
+  deliveryTo: string;
+  mode: string;
+  priority: string;
+  cod: boolean;
+  contactName: string;
+  contactPhone: string;
+  contactIdentifier: string;
+  contactEmail: string;
+  idType: string;
+  addressLine: string;
+  normalizedAddress: string;
+  serviceMinutes: string;
+  addressReference: string;
+  lat: string;
+  lng: string;
+  customFields: Record<string, string>;
+};
+
+function saveFormCache(orderId: string, data: Omit<FormCache, "orderId">) {
+  try {
+    sessionStorage.setItem(FORM_CACHE_KEY, JSON.stringify({ orderId, ...data }));
+  } catch {/* ignore */}
+}
+
+function readFormCache(orderId: string): FormCache | null {
+  try {
+    const raw = sessionStorage.getItem(FORM_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as FormCache;
+    return parsed.orderId === orderId ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function clearFormCache() {
+  try { sessionStorage.removeItem(FORM_CACHE_KEY); } catch {/* ignore */}
+}
+
 export function useCompletarOrdenForm() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -45,7 +89,6 @@ export function useCompletarOrdenForm() {
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [draft, setDraft] = useState<OrderCreationDraft | null>(null);
 
-  const [vehicleId, setVehicleId] = useState("");
   const [deliveryFrom, setDeliveryFrom] = useState("");
   const [deliveryTo, setDeliveryTo] = useState("");
   const [mode, setMode] = useState("default");
@@ -89,6 +132,32 @@ export function useCompletarOrdenForm() {
   useEffect(() => {
     const id = draft?.displayOrderId?.trim();
     if (!id) return;
+
+    // Si hay datos en caché (p.ej. al volver de OrdenProductos), restaurar sin llamar al API
+    const cached = readFormCache(id);
+    if (cached) {
+      setDeliveryFrom(cached.deliveryFrom);
+      setDeliveryTo(cached.deliveryTo);
+      setMode(cached.mode);
+      setPriority(cached.priority as RoutePriority);
+      setCod(cached.cod);
+      setContactName(cached.contactName);
+      setContactPhone(cached.contactPhone);
+      setContactIdentifier(cached.contactIdentifier);
+      setContactEmail(cached.contactEmail);
+      setIdType(cached.idType);
+      setAddressLine(cached.addressLine);
+      setNormalizedAddress(cached.normalizedAddress);
+      setServiceMinutes(cached.serviceMinutes);
+      setAddressReference(cached.addressReference);
+      setCustomFields(cached.customFields as Record<CustomFieldKey, string>);
+      if (cached.lat.trim() && cached.lng.trim()) {
+        setLat(cached.lat);
+        setLng(cached.lng);
+      }
+      return; // No llamar al API
+    }
+
     let cancelled = false;
     setHydratingOrder(true);
     ordersApi
@@ -96,7 +165,6 @@ export function useCompletarOrdenForm() {
       .then((order) => {
         if (cancelled) return;
         const snap = completarFormSnapshotFromOrder(order);
-        setVehicleId(snap.vehicleId);
         setDeliveryFrom(snap.deliveryFrom);
         setDeliveryTo(snap.deliveryTo);
         setMode(snap.mode);
@@ -293,7 +361,6 @@ export function useCompletarOrdenForm() {
       await ordersApi.completarDatos(
         buildOrderCompletePayload({
           draft,
-          vehicleId,
           contactName,
           contactIdentifier,
           contactPhone,
@@ -314,6 +381,7 @@ export function useCompletarOrdenForm() {
       );
       await queryClient.invalidateQueries({ queryKey: ["ordenes"] });
       clearOrderDraft();
+      clearFormCache();
       toast.success(`Orden ${draft.displayOrderId} guardada correctamente.`);
       navigate("/ordenes", { replace: true });
     } catch (e) {
@@ -332,7 +400,6 @@ export function useCompletarOrdenForm() {
     deliveryFrom,
     deliveryTo,
     draft,
-    vehicleId,
     lat,
     lng,
     mode,
@@ -347,9 +414,16 @@ export function useCompletarOrdenForm() {
 
   const goToProductos = useCallback(() => {
     if (!draft) return;
+    // Guardar el estado actual en caché antes de navegar a productos
+    saveFormCache(draft.displayOrderId, {
+      deliveryFrom, deliveryTo, mode, priority, cod,
+      contactName, contactPhone, contactIdentifier, contactEmail, idType,
+      addressLine, normalizedAddress, serviceMinutes, addressReference,
+      lat, lng, customFields,
+    });
     const state: OrderProductsLocationState = { displayOrderId: draft.displayOrderId };
     navigate("/ordenes/productos", { state });
-  }, [draft, navigate]);
+  }, [draft, navigate, deliveryFrom, deliveryTo, mode, priority, cod, contactName, contactPhone, contactIdentifier, contactEmail, idType, addressLine, normalizedAddress, serviceMinutes, addressReference, lat, lng, customFields]);
 
   const onDeliveryRangeChange = useCallback((from: string, to: string) => {
     setDeliveryFrom(from);
@@ -367,8 +441,6 @@ export function useCompletarOrdenForm() {
     deliveryFrom,
     deliveryTo,
     onDeliveryRangeChange,
-    vehicleId,
-    setVehicleId,
     mode,
     setMode,
     priority,

@@ -35,8 +35,6 @@ const CompletarOrden = () => {
         return (
           <StepDatosOrden
             draft={f.draft}
-            vehicleId={f.vehicleId}
-            onVehicleChange={f.setVehicleId}
             deliveryFrom={f.deliveryFrom}
             deliveryTo={f.deliveryTo}
             onDeliveryRangeChange={f.onDeliveryRangeChange}
