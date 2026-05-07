@@ -195,7 +195,7 @@ const OrderFilters = ({
                 <SelectItem value="preparing">En preparación</SelectItem>
                 <SelectItem value="in_route">En ruta</SelectItem>
                 <SelectItem value="delivered">Entregado</SelectItem>
-                <SelectItem value="cancelled">Cancelado</SelectItem>
+                <SelectItem value="cancelled">Devolución</SelectItem>
               </SelectContent>
             </Select>
           </div>

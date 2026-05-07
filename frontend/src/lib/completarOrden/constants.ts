@@ -8,9 +8,8 @@ export const fieldInputClass =
 
 export const customFieldKeys = [
   "director",
-  "cajaM",
-  "cajaS",
-  "cajaAc",
+  "telefono_director",
+  "paquetes",
   "actaEntrega",
   "guiaRemision",
   "guiaTransportista",
@@ -20,9 +19,8 @@ export type CustomFieldKey = (typeof customFieldKeys)[number];
 
 export const customFieldLabels: Record<CustomFieldKey, string> = {
   director: "Director",
-  cajaM: "Caja M",
-  cajaS: "Caja S",
-  cajaAc: "Caja AC",
+  telefono_director: "Teléfono Director",
+  paquetes: "Paquetes",
   actaEntrega: "Acta de entrega",
   guiaRemision: "Guía de remisión",
   guiaTransportista: "Guía de transportista",

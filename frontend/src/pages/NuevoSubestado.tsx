@@ -182,35 +182,7 @@ const NuevoSubestado = () => {
                     </SelectContent>
                   </Select>
                 </div>
-
-                <div>
-                  <LabelWithHint
-                    htmlFor="ns-grupos"
-                    hint="Restringe el subestado a grupos operativos concretos; vacío equivale a todos los grupos."
-                  >
-                    Grupos
-                  </LabelWithHint>
-                  <Select value={grupo} onValueChange={setGrupo}>
-                    <SelectTrigger id="ns-grupos" className="h-10 w-full bg-background">
-                      <SelectValue placeholder="Todos los grupos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos los grupos</SelectItem>
-                      <SelectItem value="lima">Lima Norte</SelectItem>
-                      <SelectItem value="sur">Lima Sur</SelectItem>
-                      <SelectItem value="callao">Callao</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-muted/20 px-4 py-3">
-                <Checkbox id="ns-privado" checked={privado} onCheckedChange={(v) => setPrivado(v === true)} />
-                <Label htmlFor="ns-privado" className="cursor-pointer text-sm font-medium leading-snug text-foreground">
-                  Marcar subestado como privado
-                </Label>
-                <Hint text="Los subestados privados solo son visibles para roles con permiso de configuración avanzada." />
-              </div>
+              </div>  
             </div>
 
             <div className="flex flex-col-reverse gap-2 border-t border-border bg-muted/15 px-5 py-4 sm:flex-row sm:justify-end sm:px-6">

@@ -32,7 +32,6 @@ type SubestadoRow = {
   tipo: string;
   fechaCreacion: string;
   privado: boolean;
-  grupos: string;
 };
 
 const mockRows: SubestadoRow[] = [
@@ -45,7 +44,6 @@ const mockRows: SubestadoRow[] = [
     tipo: "Móvil",
     fechaCreacion: "06/11/2025 11:02",
     privado: false,
-    grupos: "",
   },
   {
     id: "2",
@@ -56,7 +54,6 @@ const mockRows: SubestadoRow[] = [
     tipo: "Móvil",
     fechaCreacion: "06/11/2025 11:05",
     privado: false,
-    grupos: "",
   },
   {
     id: "3",
@@ -67,7 +64,6 @@ const mockRows: SubestadoRow[] = [
     tipo: "Móvil",
     fechaCreacion: "07/11/2025 09:12",
     privado: false,
-    grupos: "",
   },
   {
     id: "4",
@@ -78,7 +74,6 @@ const mockRows: SubestadoRow[] = [
     tipo: "Móvil",
     fechaCreacion: "08/11/2025 14:30",
     privado: false,
-    grupos: "",
   },
 ];
 
@@ -148,10 +143,6 @@ const Subestados = () => {
               </TabsTrigger>
             </TabsList>
             <div className="flex flex-wrap items-center gap-2">
-              <Button variant="outline" size="sm" className="h-9 gap-2 border-primary/40 font-medium text-primary hover:bg-primary/5">
-                <ScrollText className="size-4" />
-                Bitácora
-              </Button>
               <Button
                 size="sm"
                 className="h-9 gap-1.5 font-medium shadow-glow"
@@ -217,7 +208,6 @@ const Subestados = () => {
                   <TableHead className="font-semibold text-foreground">Tipo</TableHead>
                   <TableHead className="font-semibold text-foreground">Fecha de creación</TableHead>
                   <TableHead className="font-semibold text-foreground">Privado</TableHead>
-                  <TableHead className="font-semibold text-foreground">Grupos</TableHead>
                   <TableHead className="w-12" />
                 </TableRow>
               </TableHeader>
@@ -242,7 +232,6 @@ const Subestados = () => {
                         {row.privado ? "Sí" : "No"}
                       </span>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{row.grupos || "—"}</TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

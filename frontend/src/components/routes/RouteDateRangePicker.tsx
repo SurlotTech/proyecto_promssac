@@ -62,8 +62,7 @@ const RouteDateRangePicker = ({ dateFrom, dateTo, onRangeChange, className }: Pr
       {hasValue ? (
         <div
           className={cn(
-            "flex !w-fit max-w-full items-stretch overflow-hidden rounded-lg border border-border/70 bg-white text-sm shadow-none transition-colors focus-within:ring-2 focus-within:ring-info/40 focus-within:ring-offset-2",
-            open && "ring-2 ring-info/30 ring-offset-2",
+            "flex !w-fit max-w-full items-center overflow-hidden border-none bg-transparent text-sm shadow-none transition-colors focus-within:ring-0 focus-within:ring-offset-0",
             className,
           )}
         >
@@ -72,7 +71,7 @@ const RouteDateRangePicker = ({ dateFrom, dateTo, onRangeChange, className }: Pr
               type="button"
               aria-label={displayText ? `Rango de fechas: ${displayText}` : "Abrir calendario"}
               className={cn(
-                "inline-flex h-9 w-max min-w-0 max-w-full shrink-0 items-center gap-2 border-0 bg-transparent py-0 pl-3 pr-1.5 text-left outline-none transition-colors hover:bg-zinc-50/90 focus-visible:bg-zinc-50",
+                "inline-flex h-9 w-max min-w-0 max-w-full shrink-0 items-center gap-2 border-0 bg-transparent py-0 px-2 text-left outline-none transition-colors hover:text-foreground/80",
               )}
             >
               <CalendarIcon
@@ -80,7 +79,7 @@ const RouteDateRangePicker = ({ dateFrom, dateTo, onRangeChange, className }: Pr
                 strokeWidth={1.75}
                 aria-hidden
               />
-              <span className="min-w-0 max-w-[min(100vw-3rem,24rem)] shrink-0 truncate whitespace-nowrap text-sm tabular-nums text-foreground">
+              <span className="min-w-0 max-w-[min(100vw-3rem,24rem)] shrink-0 truncate whitespace-nowrap text-sm font-semibold tabular-nums text-foreground">
                 {displayText}
               </span>
             </button>
@@ -92,7 +91,7 @@ const RouteDateRangePicker = ({ dateFrom, dateTo, onRangeChange, className }: Pr
               e.stopPropagation();
               clear();
             }}
-            className="flex h-9 shrink-0 items-center border-l border-border/70 px-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="flex h-9 shrink-0 items-center px-1.5 text-muted-foreground transition-colors hover:text-foreground"
             aria-label="Limpiar fechas"
           >
             <X className="h-3.5 w-3.5" />
@@ -104,9 +103,8 @@ const RouteDateRangePicker = ({ dateFrom, dateTo, onRangeChange, className }: Pr
             <button
               type="button"
               className={cn(
-                "flex h-9 w-full min-w-0 max-w-full items-center gap-2 rounded-lg border border-border/70 bg-white py-0 pl-3 pr-2 text-sm shadow-none transition-colors sm:max-w-[min(100%,17rem)]",
-                "hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-info/40 focus-visible:ring-offset-2",
-                open && "ring-2 ring-info/30 ring-offset-2",
+                "flex h-9 w-full min-w-0 max-w-full items-center gap-2 border-none bg-transparent py-0 px-2 shadow-none transition-colors sm:max-w-[min(100%,17rem)]",
+                "hover:bg-transparent focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0",
               )}
             >
               <CalendarIcon
@@ -114,7 +112,7 @@ const RouteDateRangePicker = ({ dateFrom, dateTo, onRangeChange, className }: Pr
                 strokeWidth={1.75}
                 aria-hidden
               />
-              <span className="min-w-0 flex-1 truncate text-left text-sm text-muted-foreground">
+              <span className="min-w-0 flex-1 truncate text-left text-sm font-semibold text-foreground hover:text-foreground/80">
                 Seleccionar fecha
               </span>
               <ChevronDown className="ml-auto h-4 w-4 shrink-0 opacity-50" aria-hidden />

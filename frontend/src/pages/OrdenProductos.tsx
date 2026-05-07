@@ -57,6 +57,7 @@ const OrdenProductos = () => {
               name: r.name,
               unitPrice: r.unitPrice,
               quantity: r.quantity,
+              weight: r.weight,
               customField: r.customField,
               createdAt: r.createdAt,
             })),
@@ -149,6 +150,7 @@ const OrdenProductos = () => {
                     <th className="px-4 py-3.5 sm:px-5">Producto</th>
                     <th className="px-4 py-3.5 sm:px-5 text-right">Precio unitario</th>
                     <th className="px-4 py-3.5 sm:px-5 text-right">Cantidad</th>
+                    <th className="px-4 py-3.5 sm:px-5 text-right">Peso</th>
                     <th className="px-4 py-3.5 sm:px-5">Campo personalizado</th>
                     <th className="px-4 py-3.5 sm:px-5">Fecha de creación</th>
                   </tr>
@@ -156,13 +158,13 @@ const OrdenProductos = () => {
                 <tbody className="divide-y divide-border">
                   {productsLoading ? (
                     <tr>
-                      <td colSpan={7} className="px-4 py-12 text-center text-sm text-muted-foreground sm:px-5">
+                      <td colSpan={8} className="px-4 py-12 text-center text-sm text-muted-foreground sm:px-5">
                         Cargando productos…
                       </td>
                     </tr>
                   ) : products.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-4 py-16 sm:px-5 sm:py-20">
+                      <td colSpan={8} className="px-4 py-16 sm:px-5 sm:py-20">
                         <div className="mx-auto flex max-w-md flex-col items-center text-center">
                           <div className="flex size-16 items-center justify-center rounded-full border-2 border-dashed border-primary/35 bg-primary-soft/60 text-primary shadow-inner">
                             <PackageOpen className="size-8 stroke-[1.35]" aria-hidden />
@@ -199,6 +201,9 @@ const OrdenProductos = () => {
                           S/ {p.unitPrice.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
                         <td className="px-4 py-3.5 text-right tabular-nums text-foreground sm:px-5">{p.quantity}</td>
+                        <td className="px-4 py-3.5 text-right tabular-nums text-muted-foreground sm:px-5">
+                          {p.weight != null ? `${p.weight} kg` : <span className="text-muted-foreground/40">—</span>}
+                        </td>
                         <td className="px-4 py-3.5 text-muted-foreground sm:px-5">{p.customField}</td>
                         <td className="px-4 py-3.5 text-muted-foreground sm:px-5">{p.createdAt}</td>
                       </tr>

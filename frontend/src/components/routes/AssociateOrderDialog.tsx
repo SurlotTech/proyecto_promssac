@@ -28,21 +28,21 @@ const AssociateOrderDialog = ({ open, onOpenChange, rutaId, fechaRuta, onCreated
   const navigate = useNavigate();
 
   const createMut = useMutation({
-    mutationFn: (toDetails: boolean) => 
+    mutationFn: ({ toDetails, orderNum }: { toDetails: boolean; orderNum: string }) => 
       ordersApi.create({
-        numeroOrden: orderNumber,
+        numeroOrden: orderNum,
         rutaId,
         fechaRuta,
         estado: "pending"
-      }).then(order => ({ order, toDetails })),
-    onSuccess: ({ order, toDetails }) => {
-      toast.success(`Orden ${orderNumber} creada.`);
+      }).then(order => ({ order, toDetails, orderNum })),
+    onSuccess: ({ order, toDetails, orderNum }) => {
+      toast.success(`Orden ${orderNum} creada.`);
       onCreated?.();
       onOpenChange(false);
       setOrderNumber("");
       if (toDetails) {
         // Redirigir a completar orden con los datos necesarios
-        navigate("/ordenes/completar", { state: { orderId: order.id, orderNumber: order.numeroOrden } });
+        navigate("/ordenes/completar", { state: { orderId: order.id, orderNumber: orderNum } });
       }
     },
     onError: (e: Error) => toast.error(e.message),
@@ -53,7 +53,7 @@ const AssociateOrderDialog = ({ open, onOpenChange, rutaId, fechaRuta, onCreated
       toast.error("El número de orden es obligatorio.");
       return;
     }
-    createMut.mutate(toDetails);
+    createMut.mutate({ toDetails, orderNum: orderNumber });
   };
 
   return (

@@ -19,6 +19,7 @@ function emptyForm() {
     name: "",
     price: "",
     quantity: "",
+    weight: "",
   };
 }
 
@@ -41,6 +42,8 @@ const NewProductDialog = ({ open, onOpenChange, orderDisplayId, onSaved }: Props
 
   const priceNum = parseFloat(form.price.replace(",", "."));
   const qtyNum = parseInt(form.quantity, 10);
+  const weightNum = form.weight.trim() ? parseFloat(form.weight.replace(",", ".")) : undefined;
+  const weightValid = !form.weight.trim() || (!Number.isNaN(weightNum!) && weightNum! >= 0);
   const requiredOk =
     form.code.trim() &&
     form.name.trim() &&
@@ -49,7 +52,8 @@ const NewProductDialog = ({ open, onOpenChange, orderDisplayId, onSaved }: Props
     priceNum >= 0 &&
     form.quantity.trim() &&
     !Number.isNaN(qtyNum) &&
-    qtyNum > 0;
+    qtyNum > 0 &&
+    weightValid;
 
   const handleSave = async () => {
     if (!requiredOk) {
@@ -63,6 +67,7 @@ const NewProductDialog = ({ open, onOpenChange, orderDisplayId, onSaved }: Props
         name: form.name.trim(),
         unitPrice: priceNum,
         quantity: qtyNum,
+        ...(weightNum !== undefined && { weight: weightNum }),
       });
       const mapped: OrderProductRow = {
         id: row.id,
@@ -71,6 +76,7 @@ const NewProductDialog = ({ open, onOpenChange, orderDisplayId, onSaved }: Props
         name: row.name,
         unitPrice: row.unitPrice,
         quantity: row.quantity,
+        weight: row.weight,
         customField: row.customField,
         createdAt: row.createdAt,
       };
@@ -185,6 +191,31 @@ const NewProductDialog = ({ open, onOpenChange, orderDisplayId, onSaved }: Props
                     }
                     placeholder="1"
                     className={cn(inputClass, "tabular-nums")}
+                    autoComplete="off"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="np-weight" className="text-xs text-muted-foreground">
+                    Peso
+                  </Label>
+                  <Input
+                    id="np-weight"
+                    type="text"
+                    inputMode="decimal"
+                    value={form.weight}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      // Solo permite dígitos, coma y punto (número decimal positivo)
+                      if (/^[\d]*[.,]?[\d]*$/.test(val)) {
+                        setForm((f) => ({ ...f, weight: val }));
+                      }
+                    }}
+                    placeholder="kg"
+                    className={cn(
+                      inputClass,
+                      "tabular-nums",
+                      form.weight && !weightValid && "border-destructive focus-visible:ring-destructive",
+                    )}
                     autoComplete="off"
                   />
                 </div>

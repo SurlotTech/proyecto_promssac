@@ -3,10 +3,9 @@ export type OrderRouteOption = { id: string; label: string };
 
 export type OrderStatus =
   | "pending"
-  | "preparing"
-  | "in_route"
   | "delivered"
-  | "cancelled";
+  | "no_delivered"
+  | "partially_delivered"
 
 export interface Order {
   id: string;
@@ -52,24 +51,19 @@ export const orderStatusMeta: Record<
     className: "bg-muted text-muted-foreground",
     dot: "bg-muted-foreground",
   },
-  preparing: {
-    label: "En preparación",
-    className: "bg-info-soft text-info",
-    dot: "bg-info",
-  },
-  in_route: {
-    label: "En ruta",
-    className: "bg-primary-soft text-primary",
-    dot: "bg-primary",
-  },
   delivered: {
     label: "Entregado",
     className: "bg-success-soft text-success",
     dot: "bg-success",
   },
-  cancelled: {
-    label: "Cancelado",
-    className: "bg-warning-soft text-warning",
-    dot: "bg-warning",
+  no_delivered: {
+    label: "No Entregado",
+    className: "bg-info-soft text-info",
+    dot: "bg-info",
+  },
+  partially_delivered: {
+    label: "Entrega Parcial",
+    className: "bg-primary-soft text-primary",
+    dot: "bg-primary",
   },
 };

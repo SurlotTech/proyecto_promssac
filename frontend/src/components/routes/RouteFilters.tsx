@@ -31,7 +31,7 @@ interface Props {
 }
 
 const pillTrigger =
-  "h-9 w-full min-w-0 shrink rounded-lg border-border/70 bg-white px-4 py-0 shadow-none transition-colors hover:bg-zinc-50 focus:ring-2 focus:ring-ring focus:ring-offset-2 data-[state=open]:bg-zinc-50 sm:w-fit sm:max-w-[min(100%,18rem)] [&>div]:mr-2";
+  "h-9 w-full min-w-0 shrink border-none bg-transparent px-2 py-0 shadow-none transition-colors hover:bg-transparent focus:ring-0 focus:ring-offset-0 data-[state=open]:bg-transparent sm:w-fit sm:max-w-[min(100%,18rem)] font-semibold text-foreground hover:text-foreground/80 [&>div]:mr-2";
 
 const RouteFilters = ({
   filters,

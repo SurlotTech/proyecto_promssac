@@ -23,6 +23,22 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { orderStatusMeta, type OrderStatus } from "@/domain/orders";
 import OrderStatusBadge from "@/components/orders/OrderStatusBadge";
 import { useOrdersQuery, useRoutesQuery } from "@/hooks/useOperationsQueries";
 import { persistOrderDraft, type OrderCreationDraft, type OrderCompletarLocationState } from "@/lib/orderCreationDraft";
@@ -53,6 +69,13 @@ const DetalleOrden = () => {
   const [resumenOpen, setResumenOpen] = useState(true);
   const [comentariosOpen, setComentariosOpen] = useState(true);
   const [comentarioPublico, setComentarioPublico] = useState(false);
+
+  const [modifyStatusOpen, setModifyStatusOpen] = useState(false);
+  const [modifyForm, setModifyForm] = useState({
+    dispatchCenter: "",
+    status: "",
+    substatus: "",
+  });
 
   const timeline = order ? ORDER_TIMELINE_PLACEHOLDER : [];
   const hasTimelineEvents = timeline.some((g) => g.events.length > 0);
@@ -146,20 +169,12 @@ const DetalleOrden = () => {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 gap-2 border-destructive/40 text-destructive hover:bg-destructive/10"
-              onClick={() => toast.message("Limpiar orden (demo)")}
-            >
-              <XCircle className="size-4" />
-              Limpiar orden
-            </Button>
+            
             <Button variant="outline" size="sm" className="h-9 gap-2 font-medium" onClick={goToCompletarDatos}>
               <FileEdit className="size-4" />
               Modificar datos
             </Button>
-            <Button size="sm" className="h-9 gap-2 shadow-glow" onClick={() => toast.message("Modificar estado (demo)")}>
+            <Button size="sm" className="h-9 gap-2 shadow-glow" onClick={() => setModifyStatusOpen(true)}>
               <GitBranch className="size-4" />
               Modificar estado
             </Button>
@@ -365,6 +380,100 @@ const DetalleOrden = () => {
           </div>
         </main>
       </div>
+
+      <Dialog open={modifyStatusOpen} onOpenChange={setModifyStatusOpen}>
+        <DialogContent className="p-0 sm:max-w-lg overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="p-6 border-b border-border bg-white">
+            <DialogTitle className="text-xl font-bold text-foreground">
+              Modificar estado
+            </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground leading-relaxed">
+              Actualiza el centro de despacho, estado y subestado de la orden.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="p-6 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="dispatch-center" className="text-sm font-semibold text-muted-foreground">
+                Centro de despacho
+              </Label>
+              <Select
+                value={modifyForm.dispatchCenter}
+                onValueChange={(v) => setModifyForm((f) => ({ ...f, dispatchCenter: v }))}
+              >
+                <SelectTrigger id="dispatch-center" className="h-10">
+                  <SelectValue placeholder="Seleccionar centro" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cd-principal">CD Principal</SelectItem>
+                  <SelectItem value="cd-norte">CD Norte</SelectItem>
+                  <SelectItem value="cd-sur">CD Sur</SelectItem>
+                  <SelectItem value="cd-centro">CD Centro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="status" className="text-sm font-semibold text-muted-foreground">
+                Estado
+              </Label>
+              <Select
+                value={modifyForm.status}
+                onValueChange={(v) => setModifyForm((f) => ({ ...f, status: v }))}
+              >
+                <SelectTrigger id="status" className="h-10">
+                  <SelectValue placeholder="Seleccionar estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(orderStatusMeta) as OrderStatus[]).map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {orderStatusMeta[s].label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="substatus" className="text-sm font-semibold text-muted-foreground">
+                Subestado
+              </Label>
+              <Select
+                value={modifyForm.substatus}
+                onValueChange={(v) => setModifyForm((f) => ({ ...f, substatus: v }))}
+              >
+                <SelectTrigger id="substatus" className="h-10">
+                  <SelectValue placeholder="Seleccionar subestado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="entrega-terceros">Entrega Terceros</SelectItem>
+                  <SelectItem value="entrega-cliente">Entrega Cliente</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter className="border-t border-border bg-zinc-50/50 p-6 sm:justify-end gap-3 shrink-0">
+            <Button
+              variant="outline"
+              onClick={() => setModifyStatusOpen(false)}
+              className="h-10 px-5 font-semibold border-zinc-300 text-zinc-600 hover:bg-white"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => {
+                toast.success("Estado modificado correctamente");
+                setModifyStatusOpen(false);
+                setModifyForm({ dispatchCenter: "", status: "", substatus: "" });
+              }}
+              className="h-10 px-5 font-semibold"
+            >
+              Guardar cambios
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

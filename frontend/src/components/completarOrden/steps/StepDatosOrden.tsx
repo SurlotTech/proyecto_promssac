@@ -110,27 +110,6 @@ const StepDatosOrden = ({
           </Select>
         </div>
       </div>
-
-      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/80 bg-muted/30 px-3 py-2.5 sm:gap-3">
-        <Checkbox id="co-cod" checked={cod} onCheckedChange={(c) => onCodChange(c === true)} />
-        <Label htmlFor="co-cod" className="cursor-pointer text-sm font-medium text-foreground">
-          Pago contra entrega
-        </Label>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-info hover:bg-info-soft"
-              aria-label="Información sobre pago contra entrega"
-            >
-              <Info className="size-4" strokeWidth={2} />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="top" className="max-w-[240px] text-xs leading-snug">
-            Indica si el receptor debe pagar el monto de la mercadería al momento de la entrega.
-          </TooltipContent>
-        </Tooltip>
-      </div>
     </div>
   );
 };

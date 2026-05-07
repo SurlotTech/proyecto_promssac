@@ -5,6 +5,7 @@ export interface OrderProductRow {
   name: string;
   unitPrice: number;
   quantity: number;
+  weight?: number;
   customField: string;
   createdAt: string;
 }
