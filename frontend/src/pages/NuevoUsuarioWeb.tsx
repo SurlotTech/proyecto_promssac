@@ -314,28 +314,15 @@ const NuevoUsuarioWeb = () => {
 
                 {permissionType === "personalizado" && (
                   <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2">
-                    <div className="space-y-6">
+                    {permissionGroups.map((group) => (
                       <PermissionGroupCard
-                        group={permissionGroups[0]}
+                        key={group.id}
+                        group={group}
                         activePermissions={activePermissions}
                         togglePermission={togglePermission}
                         toggleGroup={toggleGroup}
                       />
-                    </div>
-                    <div className="space-y-6">
-                      <PermissionGroupCard
-                        group={permissionGroups[1]}
-                        activePermissions={activePermissions}
-                        togglePermission={togglePermission}
-                        toggleGroup={toggleGroup}
-                      />
-                      <PermissionGroupCard
-                        group={permissionGroups[2]}
-                        activePermissions={activePermissions}
-                        togglePermission={togglePermission}
-                        toggleGroup={toggleGroup}
-                      />
-                    </div>
+                    ))}
                   </div>
                 )}
               </div>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Bell,
   Search,
@@ -11,6 +12,9 @@ import {
   Truck,
   Package,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { useOrdersQuery } from "@/hooks/useOperationsQueries";
+import { orderStatusMeta } from "@/domain/orders";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,59 +25,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-
-const alertTypes = [
-  { id: "alertas", label: "Alertas", count: 12 },
-  { id: "reseñas", label: "Alertas de reseñas", count: 5 },
-  { id: "gps", label: "Alertas GPS", count: 8 },
-  { id: "tiempo", label: "Alertas por exceso de tiempo", count: 3 },
-  { id: "retraso", label: "Alertas por retraso en la entrega", count: 15 },
-];
-
-const mockAlerts = [
-  {
-    id: "10969",
-    vehicle: "V-2024-001",
-    date: "2026-04-09",
-    time: "15:34:17",
-    statusFrom: "Recepcionado Conforme",
-    statusTo: "Recepcionado Conforme",
-    type: "retraso",
-  },
-  {
-    id: "10955",
-    vehicle: "V-2024-005",
-    date: "2026-04-08",
-    time: "11:27:12",
-    statusFrom: "Recepcionado Conforme",
-    statusTo: "Recepcionado Conforme",
-    type: "tiempo",
-  },
-  {
-    id: "10954",
-    vehicle: "V-2024-002",
-    date: "2026-04-08",
-    time: "09:41:07",
-    statusFrom: "Recepcionado Conforme",
-    statusTo: "Recepcionado Conforme",
-    type: "gps",
-  },
-  {
-    id: "10967",
-    vehicle: "V-2024-008",
-    date: "2026-04-07",
-    time: "16:01:21",
-    statusFrom: "Recepcionado Conforme",
-    statusTo: "Recepcionado Conforme",
-    type: "alertas",
-  },
-];
-
 const Alertas = () => {
   const [activeTab, setActiveTab] = useState("alertas");
+  const { data: orders = [], isLoading } = useOrdersQuery();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const totalItems = orders.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentOrders = orders.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="flex h-full flex-col animate-fade-in">
@@ -87,14 +50,16 @@ const Alertas = () => {
         }
       />
 
-      <div className="flex flex-1 overflow-hidden p-4 sm:p-6 lg:p-8">
+      <div className="flex flex-1 p-4 sm:p-6 lg:p-8">
         <div className="flex w-full flex-col gap-6 lg:flex-row">
           {/* Sidebar Filters */}
           <aside className="w-full shrink-0 space-y-6 lg:w-80">
             <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
               <div className="mb-4 flex items-center gap-2 border-b border-border pb-4">
                 <Filter className="size-4 text-primary" />
-                <h3 className="text-sm font-semibold uppercase tracking-wider">Filtros</h3>
+                <h3 className="text-sm font-semibold uppercase tracking-wider">
+                  Filtros
+                </h3>
               </div>
 
               <div className="space-y-4">
@@ -137,8 +102,31 @@ const Alertas = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="todos">Todos</SelectItem>
-                      <SelectItem value="ok">Ok</SelectItem>
-                      <SelectItem value="error">Error</SelectItem>
+                      <SelectItem value="pending">Pendiente</SelectItem>
+                      <SelectItem value="preparing">En preparación</SelectItem>
+                      <SelectItem value="in_route">En ruta</SelectItem>
+                      <SelectItem value="delivered">Entregado</SelectItem>
+                      <SelectItem value="cancelled">Devolución</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Subestado actual
+                  </label>
+                  <Select defaultValue="todos">
+                    <SelectTrigger className="bg-background/50">
+                      <SelectValue placeholder="Seleccionar" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos</SelectItem>
+                      <SelectItem value="entrega-terceros">
+                        Entrega Terceros
+                      </SelectItem>
+                      <SelectItem value="entrega-cliente">
+                        Entrega Cliente
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -149,7 +137,10 @@ const Alertas = () => {
                   </label>
                   <div className="relative">
                     <Truck className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input placeholder="Ej: V-2024" className="pl-10 bg-background/50" />
+                    <Input
+                      placeholder="Ej: V-2024"
+                      className="pl-10 bg-background/50"
+                    />
                   </div>
                 </div>
 
@@ -159,7 +150,10 @@ const Alertas = () => {
                   </label>
                   <div className="relative">
                     <Package className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input placeholder="Ej: 10969" className="pl-10 bg-background/50" />
+                    <Input
+                      placeholder="Ej: 10969"
+                      className="pl-10 bg-background/50"
+                    />
                   </div>
                 </div>
 
@@ -172,92 +166,144 @@ const Alertas = () => {
           </aside>
 
           {/* Main Content Area */}
-          <main className="flex-1 space-y-6 overflow-hidden">
-            <Tabs defaultValue="alertas" value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="w-full justify-start overflow-x-auto bg-transparent p-0 h-auto border-b border-border rounded-none gap-2 pb-px mb-6">
-                {alertTypes.map((tab) => (
-                  <TabsTrigger
-                    key={tab.id}
-                    value={tab.id}
-                    className={cn(
-                      "relative h-12 rounded-none border-b-2 border-transparent px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent",
-                    )}
-                  >
-                    {tab.label}
-                    {tab.count > 0 && (
-                      <Badge variant="secondary" className="ml-2 bg-primary/10 text-primary border-none text-[10px]">
-                        {tab.count}
-                      </Badge>
-                    )}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-
-              <TabsContent value={activeTab} className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+          <main className="flex-1 space-y-6">
+            <Tabs
+              defaultValue="alertas"
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="w-full"
+            >
+              <TabsContent
+                value={activeTab}
+                className="mt-0 focus-visible:outline-none focus-visible:ring-0"
+              >
                 <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                       <thead>
                         <tr className="border-b border-border bg-muted/30">
-                          <th className="px-4 py-4 font-semibold text-muted-foreground">Orden</th>
-                          <th className="px-4 py-4 font-semibold text-muted-foreground">Vehículo</th>
-                          <th className="px-4 py-4 font-semibold text-muted-foreground">Fecha / Hora</th>
-                          <th className="px-4 py-4 font-semibold text-muted-foreground">Transición de Estado</th>
-                          <th className="px-4 py-4 font-semibold text-muted-foreground text-right">Acciones</th>
+                          <th className="px-4 py-4 font-semibold text-muted-foreground">
+                            Orden
+                          </th>
+                          <th className="px-4 py-4 font-semibold text-muted-foreground">
+                            Vehículo
+                          </th>
+                          <th className="px-4 py-4 font-semibold text-muted-foreground">
+                            Fecha / Hora
+                          </th>
+                          <th className="px-4 py-4 font-semibold text-muted-foreground text-center">
+                            Transición de Estado
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border">
-                        {mockAlerts.map((alert) => (
-                          <tr key={alert.id} className="group hover:bg-muted/20 transition-colors">
-                            <td className="px-4 py-4">
-                              <span className="font-mono font-bold text-primary">#{alert.id}</span>
-                            </td>
-                            <td className="px-4 py-4 font-medium">{alert.vehicle}</td>
-                            <td className="px-4 py-4">
-                              <div className="flex flex-col">
-                                <span className="flex items-center gap-1.5 text-foreground">
-                                  <Calendar className="size-3 text-muted-foreground" />
-                                  {alert.date}
-                                </span>
-                                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                  <Clock className="size-3" />
-                                  {alert.time}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="px-4 py-4">
-                              <div className="flex items-center gap-3">
-                                <div className="flex items-center gap-1.5 rounded-full bg-success/10 px-2.5 py-1 text-[11px] font-medium text-success border border-success/20">
-                                  <CheckCircle2 className="size-3" />
-                                  {alert.statusFrom}
-                                </div>
-                                <div className="flex flex-1 min-w-[60px] items-center">
-                                  <div className="h-px flex-1 bg-gradient-to-r from-success/50 to-success" />
-                                  <ChevronRight className="size-3 text-success -ml-1" />
-                                </div>
-                                <div className="flex items-center gap-1.5 rounded-full bg-success px-2.5 py-1 text-[11px] font-medium text-success-foreground shadow-sm">
-                                  <CheckCircle2 className="size-3" />
-                                  {alert.statusTo}
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-4 py-4 text-right">
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <AlertCircle className="size-4 text-muted-foreground" />
-                              </Button>
+                        {isLoading ? (
+                          <tr>
+                            <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                              Cargando órdenes...
                             </td>
                           </tr>
-                        ))}
+                        ) : currentOrders.length === 0 ? (
+                          <tr>
+                            <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                              No hay órdenes registradas.
+                            </td>
+                          </tr>
+                        ) : (
+                          currentOrders.map((order) => {
+                            const statusInfo = orderStatusMeta[order.status] || {
+                              label: order.status,
+                              className: "bg-muted text-muted-foreground",
+                            };
+                            return (
+                              <tr
+                                key={order.id}
+                                className="group hover:bg-muted/20 transition-colors"
+                              >
+                                <td className="px-4 py-4">
+                                  <Link
+                                    to={`/ordenes/detalle/${order.id}`}
+                                    className="font-mono font-bold text-primary hover:underline"
+                                  >
+                                    #{order.id}
+                                  </Link>
+                                </td>
+                                <td className="px-4 py-4 font-medium">
+                                  {order.vehiclePlate || "Sin vehículo"}
+                                </td>
+                                <td className="px-4 py-4">
+                                  <div className="flex flex-col">
+                                    <span className="flex items-center gap-1.5 text-foreground">
+                                      <Calendar className="size-3 text-muted-foreground" />
+                                      {order.routeDate}
+                                    </span>
+                                    {order.createdAtIso && (
+                                      <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                        <Clock className="size-3" />
+                                        {new Date(order.createdAtIso).toLocaleTimeString([], {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })}
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="px-4 py-4">
+                                  <div className="flex items-center justify-center gap-3">
+                                    <div className="flex items-center gap-1.5 rounded-full bg-muted/20 px-2.5 py-1 text-[11px] font-medium text-muted-foreground border border-border/50">
+                                      Pendiente
+                                    </div>
+                                    <div className="flex w-16 items-center">
+                                      <div className="h-px flex-1 bg-gradient-to-r from-muted-foreground/30 to-primary/50" />
+                                      <ChevronRight className="size-3 text-primary/50 -ml-1" />
+                                    </div>
+                                    <div
+                                      className={cn(
+                                        "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium shadow-sm",
+                                        statusInfo.className,
+                                      )}
+                                    >
+                                      <CheckCircle2 className="size-3" />
+                                      {statusInfo.label}
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
                       </tbody>
                     </table>
                   </div>
                   <div className="flex items-center justify-between border-t border-border p-4 bg-muted/10">
                     <p className="text-xs text-muted-foreground">
-                      Mostrando <span className="font-semibold text-foreground">4</span> alertas de <span className="font-semibold text-foreground">12</span>
+                      Mostrando{" "}
+                      <span className="font-semibold text-foreground">
+                        {totalItems > 0 ? startIndex + 1 : 0} - {Math.min(startIndex + itemsPerPage, totalItems)}
+                      </span>{" "}
+                      de{" "}
+                      <span className="font-semibold text-foreground">
+                        {totalItems}
+                      </span>{" "}
+                      órdenes
                     </p>
                     <div className="flex gap-1">
-                      <Button variant="outline" size="sm" disabled>Anterior</Button>
-                      <Button variant="outline" size="sm">Siguiente</Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={currentPage === 1 || isLoading}
+                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      >
+                        Anterior
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={currentPage === totalPages || totalPages === 0 || isLoading}
+                        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                      >
+                        Siguiente
+                      </Button>
                     </div>
                   </div>
                 </div>

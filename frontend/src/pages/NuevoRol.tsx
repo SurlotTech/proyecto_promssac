@@ -28,54 +28,31 @@ export const permissionGroups: PermissionGroup[] = [
   {
     id: "general",
     title: "General",
-    total: 15,
+    total: 10,
     permissions: [
-      { id: "g1", label: "Actividad" },
-      { id: "g2", label: "Rutas" },
-      { id: "g3", label: "Ordenes" },
-      { id: "g3-1", label: "Crear órdenes", isSub: true },
-      { id: "g3-2", label: "Editar órdenes", isSub: true },
-      { id: "g3-3", label: "Editar gestión de una orden", isSub: true },
-      { id: "g3-4", label: "Eliminar órdenes", isSub: true },
-      { id: "g4", label: "Flota" },
-      { id: "g5", label: "Clientes" },
-      { id: "g6", label: "Importación" },
-      { id: "g7", label: "Retiro en tienda" },
-      { id: "g8", label: "Alertas" },
-      { id: "g9", label: "Estadísticas" },
-      { id: "g10", label: "Documentos" },
-      { id: "g11", label: "Costos" },
+      { id: "g1", label: "Rutas" },
+      { id: "g2", label: "Ordenes" },
+      { id: "g2-1", label: "Crear órdenes", isSub: true },
+      { id: "g2-2", label: "Editar órdenes", isSub: true },
+      { id: "g2-3", label: "Editar gestión de una orden", isSub: true },
+      { id: "g2-4", label: "Eliminar órdenes", isSub: true },
+      { id: "g3", label: "Flota" },
+      { id: "g4", label: "Clientes" },
+      { id: "g5", label: "Importación" },
+      { id: "g6", label: "Alertas" },
     ],
   },
   {
     id: "ajustes",
     title: "Ajustes",
-    total: 8,
+    total: 6,
     permissions: [
       { id: "a1", label: "Cuenta" },
       { id: "a2", label: "Usuarios" },
       { id: "a2-1", label: "Crear usuarios web", isSub: true },
       { id: "a2-2", label: "Crear usuarios móviles", isSub: true },
-      { id: "a3", label: "Gestionar" },
-      { id: "a4", label: "Vehículos" },
-      { id: "a5", label: "Configuración avanzada" },
-      { id: "a6", label: "Widget" },
-    ],
-  },
-  {
-    id: "quickcommerce",
-    title: "Quickcommerce",
-    total: 9,
-    permissions: [
-      { id: "q1", label: "Módulo Visualizador" },
-      { id: "q2", label: "Módulo Auto-asignador" },
-      { id: "q3", label: "Asignador" },
-      { id: "q4", label: "Módulo Torre de control" },
-      { id: "q5", label: "Permisos de revisión" },
-      { id: "q6", label: "Módulo Mapa de conductores" },
-      { id: "q7", label: "Módulo Bitácora de operación" },
-      { id: "q8", label: "Ajustes" },
-      { id: "q8-1", label: "Cambiar disponibilidad de conductores", isSub: true },
+      { id: "a3", label: "Vehículos" },
+      { id: "a4", label: "Configuración avanzada" },
     ],
   },
 ];
@@ -324,28 +301,15 @@ const NuevoRol = () => {
           </div>
 
           <div className="mt-6 grid grid-cols-1 items-start gap-6 md:grid-cols-2">
-            <div className="space-y-6">
+            {permissionGroups.map((group) => (
               <PermissionGroupCard
-                group={permissionGroups[0]}
+                key={group.id}
+                group={group}
                 activePermissions={activePermissions}
                 togglePermission={togglePermission}
                 toggleGroup={toggleGroup}
               />
-            </div>
-            <div className="space-y-6">
-              <PermissionGroupCard
-                group={permissionGroups[1]}
-                activePermissions={activePermissions}
-                togglePermission={togglePermission}
-                toggleGroup={toggleGroup}
-              />
-              <PermissionGroupCard
-                group={permissionGroups[2]}
-                activePermissions={activePermissions}
-                togglePermission={togglePermission}
-                toggleGroup={toggleGroup}
-              />
-            </div>
+            ))}
           </div>
         </div>
       </div>

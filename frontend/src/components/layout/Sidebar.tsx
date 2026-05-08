@@ -8,6 +8,7 @@ import {
   MapPin,
   X,
   Users,
+  UserSquare2,
   Settings,
   ChevronDown,
   ChevronRight,
@@ -41,6 +42,7 @@ const operationsItems: NavItem[] = [
   { to: "/ordenes", label: "Órdenes", icon: Package },
   { to: "/flota", label: "Flota en vivo", icon: MapPin },
   { to: "/vehiculos", label: "Vehículos", icon: Truck },
+  { to: "/clientes", label: "Clientes", icon: UserSquare2 },
 ];
 
 const usersGroup: NavItem = {
@@ -59,6 +61,7 @@ const systemGroup: NavItem = {
     { to: "/configuracion/subestados", label: "Subestados" },
     { to: "/configuracion/alertas", label: "Alertas", end: true },
     { to: "/configuracion/alertas/parametros", label: "Configuración de alertas" },
+    { to: "/configuracion/notificaciones", label: "Notificaciones" },
   ],
 };
 

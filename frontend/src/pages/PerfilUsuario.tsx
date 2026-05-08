@@ -86,28 +86,15 @@ const PerfilUsuario = () => {
                 </div>
 
                 <div className="pointer-events-none grid grid-cols-1 items-start gap-6 opacity-90 md:grid-cols-2">
-                  <div className="space-y-6">
+                  {permissionGroups.map((group) => (
                     <PermissionGroupCard
-                      group={permissionGroups[0]}
+                      key={group.id}
+                      group={group}
                       activePermissions={activePermissions}
                       togglePermission={noop}
                       toggleGroup={noop}
                     />
-                  </div>
-                  <div className="space-y-6">
-                    <PermissionGroupCard
-                      group={permissionGroups[1]}
-                      activePermissions={activePermissions}
-                      togglePermission={noop}
-                      toggleGroup={noop}
-                    />
-                    <PermissionGroupCard
-                      group={permissionGroups[2]}
-                      activePermissions={activePermissions}
-                      togglePermission={noop}
-                      toggleGroup={noop}
-                    />
-                  </div>
+                  ))}
                 </div>
               </div>
             )}
