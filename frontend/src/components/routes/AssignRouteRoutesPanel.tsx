@@ -35,8 +35,8 @@ const AssignRouteRoutesPanel = ({
   selectedRouteId,
   onSelectRoute,
 }: Props) => (
-  <div className="flex flex-col bg-muted/10">
-    <div className="border-b border-border bg-background/50 px-4 py-4 sm:px-6">
+  <div className="flex h-full min-h-0 flex-col bg-[#f8f9fc]">
+    <div className="border-b border-border bg-white px-5 py-5 shadow-sm z-10">
       <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Rutas del día</h3>
       <p className="mt-1 text-[11px] text-muted-foreground">
         Entrega programada el {dayIso}. Filtro por estado y búsqueda libre.
@@ -79,7 +79,7 @@ const AssignRouteRoutesPanel = ({
       </div>
     </div>
 
-    <div className="flex-1 space-y-3 overflow-y-auto p-4">
+    <div className="flex-1 space-y-3 overflow-y-auto p-5 scrollbar-thin">
       {routes.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center py-12 text-center text-muted-foreground">
           <p className="text-sm">No hay rutas con los filtros elegidos.</p>
@@ -91,7 +91,7 @@ const AssignRouteRoutesPanel = ({
             key={r.id}
             role="button"
             tabIndex={0}
-            className="flex cursor-pointer flex-col rounded-lg border border-border bg-card p-4 shadow-sm transition-colors hover:border-primary/50"
+            className="group flex cursor-pointer flex-col rounded-xl border border-border bg-white p-4 shadow-sm transition-all hover:border-primary/40 hover:shadow-md"
             onClick={() => onSelectRoute(r.id)}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
@@ -102,11 +102,12 @@ const AssignRouteRoutesPanel = ({
           >
             <div className="mb-2 flex items-start justify-between gap-2">
               <div className="flex min-w-0 items-center gap-3">
-                <Checkbox
-                  checked={selectedRouteId === r.id}
-                  onCheckedChange={() => onSelectRoute(r.id)}
-                  onClick={(e) => e.stopPropagation()}
-                />
+                  <Checkbox
+                    checked={selectedRouteId === r.id}
+                    onCheckedChange={() => onSelectRoute(r.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="rounded-full data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                  />
                 <div className="min-w-0">
                   <span className="font-semibold text-foreground">{r.code}</span>
                   <p className="truncate text-xs text-muted-foreground">{r.name}</p>
@@ -114,7 +115,7 @@ const AssignRouteRoutesPanel = ({
               </div>
               <span
                 className={cn(
-                  "shrink-0 rounded-full border border-border px-2 py-0.5 text-[10px] font-medium",
+                  "shrink-0 rounded-md border border-border px-2.5 py-1 text-[11px] font-semibold tracking-wide shadow-sm",
                   routeStatusMeta[r.status].className,
                 )}
               >
@@ -122,8 +123,8 @@ const AssignRouteRoutesPanel = ({
               </span>
             </div>
             <div className="flex flex-col gap-1 pl-7 text-sm text-muted-foreground">
-              <p className="text-xs font-medium text-foreground">{r.vehiclePlate}</p>
-              <p className="flex items-center gap-1.5 text-xs">
+              <p className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md tabular-nums self-start">{r.vehiclePlate}</p>
+              <p className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
                 <Clock className="h-3.5 w-3.5 shrink-0" />
                 {r.startTime} – {r.endTime}
               </p>

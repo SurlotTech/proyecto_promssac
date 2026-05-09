@@ -41,8 +41,8 @@ const AssignRouteOrdersPanel = ({
   onNuevaOrden,
 }: Props) => {
   return (
-    <div className="flex flex-col border-r border-border bg-muted/10">
-      <div className="border-b border-border bg-background/50 px-4 py-4 sm:px-6">
+    <div className="flex h-full min-h-0 flex-col border-r border-border bg-[#f8f9fc]">
+      <div className="border-b border-border bg-white px-5 py-5 shadow-sm z-10">
         <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Órdenes candidatas</h3>
         <p className="mt-1 text-[11px] text-muted-foreground">
           Misma fecha de ruta ({dayIso}). Usa el filtro y la búsqueda para acotar.
@@ -82,7 +82,7 @@ const AssignRouteOrdersPanel = ({
         </div>
       </div>
 
-      <div className="flex-1 space-y-3 overflow-y-auto p-4">
+      <div className="flex-1 space-y-3 overflow-y-auto p-5 scrollbar-thin">
         {loadingOrders ? (
           <p className="text-center text-sm text-muted-foreground">Cargando órdenes…</p>
         ) : orders.length === 0 ? (
@@ -95,7 +95,7 @@ const AssignRouteOrdersPanel = ({
               key={order.id}
               role="button"
               tabIndex={0}
-              className="flex cursor-pointer flex-col rounded-lg border border-border bg-card p-4 shadow-sm transition-colors hover:border-primary/50"
+              className="group flex cursor-pointer flex-col rounded-xl border border-border bg-white p-4 shadow-sm transition-all hover:border-primary/40 hover:shadow-md"
               onClick={() => onToggleOrder(order.id)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
@@ -110,12 +110,13 @@ const AssignRouteOrdersPanel = ({
                     checked={selectedOrderIds.includes(order.id)}
                     onCheckedChange={() => onToggleOrder(order.id)}
                     onClick={(e) => e.stopPropagation()}
+                    className="rounded-full data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                   />
                   <span className="font-semibold text-foreground">{order.id}</span>
                 </div>
                 <span
                   className={cn(
-                    "rounded-full border border-border px-2.5 py-0.5 text-xs font-medium",
+                    "rounded-md border border-border px-2.5 py-1 text-[11px] font-semibold tracking-wide shadow-sm",
                     orderStatusMeta[order.status].className,
                   )}
                 >
@@ -125,8 +126,8 @@ const AssignRouteOrdersPanel = ({
               <div className="mt-2 flex flex-col gap-1.5 pl-7 text-sm text-muted-foreground">
                 <p className="text-xs text-foreground/90">{order.clientName || "—"}</p>
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-xs">{order.routeDate}</span>
-                  <span className="text-xs text-muted-foreground tabular-nums">{order.vehiclePlate}</span>
+                  <span className="text-xs font-medium text-slate-500">{order.routeDate}</span>
+                  <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md tabular-nums">{order.vehiclePlate}</span>
                 </div>
               </div>
             </div>
