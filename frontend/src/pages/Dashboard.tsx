@@ -278,22 +278,6 @@ const Dashboard = () => {
           </button>
         </div>
       </div>
-
-      {/* Footer mini */}
-      <div className="rounded-2xl border border-border bg-gradient-to-br from-card to-secondary/40 p-6 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="h-12 w-12 rounded-xl bg-gradient-primary flex items-center justify-center shadow-elevated">
-            <MapPin className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <div>
-            <div className="font-display font-semibold">Monitoreo en vivo activo</div>
-            <div className="text-sm text-muted-foreground">Visualiza la posición y estado de tu flota en el mapa.</div>
-          </div>
-        </div>
-        <a href="/flota" className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-elevated hover:opacity-90 transition">
-          Abrir Flota en vivo
-        </a>
-      </div>
     </div>
   );
 };

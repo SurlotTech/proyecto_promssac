@@ -1,18 +1,44 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
+  Calendar,
+  CheckCircle2,
   ChevronDown,
   ClipboardCopy,
   Clock,
   FileEdit,
   GitBranch,
+  Image as ImageIcon,
   Info,
+  Mail,
+  MapPin,
+  Package,
   Paperclip,
+  Phone,
   Plus,
+  Star,
+  Truck,
   User,
   XCircle,
 } from "lucide-react";
+import { motion, useAnimation, useInView } from "framer-motion";
+import { MapContainer, TileLayer, Marker } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+
+// Fix for leaflet marker icons
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
+
+// @ts-expect-error _getIconUrl is an internal property
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+});
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -59,14 +85,47 @@ const DetalleOrden = () => {
   const { orderId = "" } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
   const decodedId = decodeURIComponent(orderId);
-  const { data: allOrders = [], isLoading } = useOrdersQuery();
+  const { data: allOrdersFromQuery = [], isLoading } = useOrdersQuery();
   const { data: routeCatalog = [] } = useRoutesQuery();
+
+  const allOrders = useMemo(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const mockOrder: any = {
+      id: "11073 LLIPYARAQ MICAELA BASTIDAS",
+      clientName: "11073 LLIPYARAQ MICAELA BASTIDAS",
+      contactName: "Micaela Bastidas",
+      contactIdentifier: "DNI 12345678",
+      status: "delivered",
+      substatus: "Recepcionado Conforme",
+      routeDate: "12/12/2025",
+      routeDateIso: "2025-12-12",
+      createdAtIso: "2025-12-12T10:00:00Z",
+      vehiclePlate: "BHT-734",
+      routeId: "route-1",
+      isLastDispatch: true,
+      address: "SHANKAPAMPA",
+      email: "micaela@example.com",
+      phone: "968909932",
+      camposPersonalizados: {
+        "DIRECTOR": "CRONWEL CALDERON PURIHUAMAN",
+        "CAJA M": "9",
+        "CAJA S": "5",
+        "CAJA AC": "1",
+        "ACTA DE ENTREGA": "2769",
+        "GUIA DE REMISION": "0003-3681"
+      }
+    };
+    return [mockOrder, ...allOrdersFromQuery];
+  }, [allOrdersFromQuery]);
+
   const order = useMemo(
     () => allOrders.find((o) => o.id === decodedId),
     [allOrders, decodedId],
   );
 
   const [resumenOpen, setResumenOpen] = useState(true);
+  const [camposOpen, setCamposOpen] = useState(true);
+  const [itemsOpen, setItemsOpen] = useState(true);
   const [comentariosOpen, setComentariosOpen] = useState(true);
   const [comentarioPublico, setComentarioPublico] = useState(false);
 
@@ -77,8 +136,60 @@ const DetalleOrden = () => {
     substatus: "",
   });
 
-  const timeline = order ? ORDER_TIMELINE_PLACEHOLDER : [];
-  const hasTimelineEvents = timeline.some((g) => g.events.length > 0);
+  const timelineColor = "rgb(59, 130, 246)"; // Color azul estático profesional
+
+  const timelineEvents = [
+    {
+      id: "1",
+      date: "viernes 12 de diciembre de 2025",
+      type: "gestion",
+      title: "Gestión de orden",
+      time: "20:01",
+      location: "SHANKAPAMPA",
+      driver: "EMERSON JEAN TINEO DURAN",
+      vehicle: "BHT-734",
+      status: "delivered",
+      substatus: "Recepcionado Conforme",
+      metrics: "Tiempo de entrega: 288 minutos",
+      milestones: [
+        { label: "Llegué 19:58, 80009 mts", color: "blue" },
+        { label: "Gestionado 20:01, 80006 mts", color: "blue" }
+      ],
+      items: [
+        { name: "CAJAS", current: 15, total: 15 }
+      ],
+      photos: [
+        { title: "Foto del frontis de la IE", src: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=300&h=200&fit=crop" },
+      ],
+      receptionist: "Cronwel Purihuaman Calderón"
+    },
+    {
+      id: "2",
+      type: "status",
+      title: "Llegué",
+      time: "19:37",
+      driver: "EMERSON JEAN TINEO DURAN",
+      vehicle: "BHT-734",
+      status: "pending"
+    },
+    {
+      id: "3",
+      type: "status",
+      title: "En ruta a destino",
+      time: "15:12",
+      vehicle: "BHT-734",
+      status: "pending"
+    },
+    {
+      id: "4",
+      type: "status",
+      title: "Asignado en vehículo",
+      time: "15:07",
+      driver: "JESUS FELICITA VELASQUEZ VASQUEZ",
+      vehicle: "BHT-734",
+      status: "pending"
+    }
+  ];
 
   const goToCompletarDatos = useCallback(() => {
     if (!order) return;
@@ -113,8 +224,6 @@ const DetalleOrden = () => {
     );
   }
 
-  const showGeoWarning = order.vehiclePlate === "—";
-
   const copyId = async () => {
     try {
       await navigator.clipboard.writeText(order.id);
@@ -127,45 +236,17 @@ const DetalleOrden = () => {
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-background animate-fade-in">
       {/* Cabecera */}
-      <header className="sticky top-0 z-10 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/85">
+      <header className="sticky top-0 z-10">
         <div className="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 shrink-0 self-start text-muted-foreground hover:text-foreground sm:self-center"
-              onClick={() => navigate("/ordenes")}
-              aria-label="Volver a órdenes"
-            >
-              <ArrowLeft className="size-5" />
-            </Button>
             <div className="min-w-0">
-              <nav className="flex flex-wrap items-center gap-x-1 text-sm text-muted-foreground">
+              <nav className="flex flex-wrap items-center gap-x-1 text-m text-muted-foreground">
                 <Link to="/ordenes" className="hover:text-foreground">
                   Órdenes
                 </Link>
                 <span aria-hidden>/</span>
                 <span className="font-semibold text-foreground">{order.id}</span>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-primary hover:bg-primary/10"
-                      onClick={copyId}
-                      aria-label="Copiar ID de orden"
-                    >
-                      <ClipboardCopy className="size-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Copiar ID</TooltipContent>
-                </Tooltip>
               </nav>
-              <div className="mt-1 flex flex-wrap items-center gap-2">
-                <OrderStatusBadge status={order.status} />
-                <span className="text-xs text-muted-foreground">Ruta {order.routeDate}</span>
-              </div>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -182,131 +263,144 @@ const DetalleOrden = () => {
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        {/* Columna izquierda */}
-        <aside className="w-full shrink-0 border-b border-border bg-muted/20 lg:w-[min(100%,30rem)] xl:w-[min(100%,34rem)] lg:border-b-0 lg:border-r">
-          <div className="space-y-4 p-4 sm:p-5">
+      <div className="flex flex-1 flex-col lg:flex-row overflow-y-auto custom-scrollbar bg-background">
+        {/* Columna izquierda (Sidebar) */}
+        <aside className="w-full shrink-0 border-b border-border bg-background lg:w-96 xl:w-[400px] lg:border-b-0">
+          <div className="space-y-4 p-4">
+            {/* Resumen */}
             <Collapsible open={resumenOpen} onOpenChange={setResumenOpen}>
-              <section className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-                <CollapsibleTrigger asChild>
-                  <button
-                    type="button"
-                    className="flex w-full items-center justify-between gap-2 border-b border-border bg-muted/30 px-4 py-3 text-left transition-colors hover:bg-muted/45"
-                  >
-                    <span className="text-sm font-semibold text-foreground">Resumen</span>
-                    <ChevronDown
-                      className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-200", resumenOpen && "rotate-180")}
-                    />
-                  </button>
-                </CollapsibleTrigger>
+              <section className="overflow-hidden rounded-l border border-border bg-card shadow-sm">
+                <div className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Resumen</h3>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-slate-100 transition-colors">
+                      <ChevronDown className={cn("size-4 text-slate-500 transition-transform duration-200", resumenOpen && "rotate-180")} />
+                    </Button>
+                  </CollapsibleTrigger>
+                </div>
+                <div className="h-px bg-slate-100 mx-4" />
                 <CollapsibleContent>
-                  <div className="space-y-4 p-4">
-                    <dl className="space-y-3 text-sm">
+                  <div className="p-4 space-y-4">
+                    <div>
+                      <p className="text-xs font-medium text-foreground">Nombre</p>
+                      <p className="text-sm text-primary underline underline-offset-4 decoration-primary/30">{order.clientName}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-foreground">Teléfono</p>
+                      <p className="text-sm text-muted-foreground">{order.phone || "968909932"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-foreground">Dirección</p>
+                      <p className="text-sm text-muted-foreground">{order.address || "SHANKAPAMPA"}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Nombre</dt>
-                        <dd className="mt-1 font-medium text-primary">
-                          {order.clientName?.trim() ? order.clientName : "Sin información"}
-                        </dd>
+                        <p className="text-xs font-medium text-foreground">Núm. Intentos</p>
+                        <p className="text-sm text-muted-foreground">1</p>
                       </div>
-                    </dl>
-
-                    {showGeoWarning && (
-                      <div className="rounded-lg border border-destructive/25 bg-destructive/5 px-3 py-2.5 text-xs leading-relaxed text-destructive">
-                        <p>
-                          No se pudo geolocalizar esta dirección. Puedes contactar al cliente para que corrija su dirección.{" "}
-                          <button
-                            type="button"
-                            className="font-semibold text-primary underline-offset-2 hover:underline"
-                            onClick={() => toast.message("Notificación enviada (demo)")}
-                          >
-                            Enviar notificación
-                          </button>
-                        </p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-foreground">Último estado</p>
+                      <div className="mt-1 flex flex-wrap items-center gap-2">
+                        <OrderStatusBadge status={order.status} />
+                        <span className="text-[10px] text-slate-500 uppercase tracking-wider">{order.substatus}</span>
                       </div>
-                    )}
-
-                    <dl className="grid gap-3 text-sm sm:grid-cols-2">
-                      <div>
-                        <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Núm. intentos</dt>
-                        <dd className="mt-1 font-semibold tabular-nums text-foreground">0</dd>
-                      </div>
-                      <div>
-                        <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Último estado</dt>
-                        <dd className="mt-1">
-                          <OrderStatusBadge status={order.status} />
-                        </dd>
-                      </div>
-                      <div className="sm:col-span-2">
-                        <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Subestado</dt>
-                        <dd className="mt-1 text-foreground">{order.substatus}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Vehículo</dt>
-                        <dd className={cn("mt-1 font-medium tabular-nums", order.vehiclePlate === "—" && "text-muted-foreground")}>
-                          {order.vehiclePlate}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Contacto</dt>
-                        <dd className="mt-1 text-foreground">{order.contactName}</dd>
-                      </div>
-                      <div className="sm:col-span-2">
-                        <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Fecha de ruta</dt>
-                        <dd className="mt-1 tabular-nums text-foreground">{order.routeDate}</dd>
-                      </div>
-                    </dl>
+                    </div>
                   </div>
                 </CollapsibleContent>
               </section>
             </Collapsible>
 
-            <Collapsible open={comentariosOpen} onOpenChange={setComentariosOpen}>
-              <section className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-                <CollapsibleTrigger asChild>
-                  <button
-                    type="button"
-                    className="flex w-full items-center justify-between gap-2 border-b border-border bg-muted/30 px-4 py-3 text-left transition-colors hover:bg-muted/45"
-                  >
-                    <span className="text-sm font-semibold text-foreground">Comentarios (0)</span>
-                    <ChevronDown
-                      className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-200", comentariosOpen && "rotate-180")}
-                    />
-                  </button>
-                </CollapsibleTrigger>
+            {/* Campos personalizados */}
+            <Collapsible open={camposOpen} onOpenChange={setCamposOpen}>
+              <section className="overflow-hidden rounded-l border border-border bg-card shadow-sm">
+                <div className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Campos personalizados</h3>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-slate-100 transition-colors">
+                      <ChevronDown className={cn("size-4 text-slate-500 transition-transform duration-200", camposOpen && "rotate-180")} />
+                    </Button>
+                  </CollapsibleTrigger>
+                </div>
+                <div className="h-px bg-slate-100 mx-4" />
                 <CollapsibleContent>
-                  <div className="space-y-3 p-4">
-                    <Textarea placeholder="Tu comentario…" className="min-h-[100px] resize-y bg-background text-sm" rows={4} />
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        id="com-publico"
-                        checked={comentarioPublico}
-                        onCheckedChange={(v) => setComentarioPublico(v === true)}
-                      />
-                      <Label htmlFor="com-publico" className="cursor-pointer text-sm font-normal text-foreground">
-                        Comentario público
-                      </Label>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button type="button" className="text-primary hover:text-primary/80" aria-label="Información">
-                            <Info className="size-4" />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-xs">
-                          Los comentarios públicos pueden ser visibles para el cliente o el conductor según la configuración.
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      <Button type="button" variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
-                        <Paperclip className="size-3.5" />
-                        Agregar archivo
+                  <div className="p-4 space-y-4">
+                    {order.camposPersonalizados && Object.entries(order.camposPersonalizados).map(([key, val]) => (
+                      <div key={key}>
+                        <p className="text-xs font-medium text-foreground">{key}</p>
+                        <p className="text-sm text-muted-foreground">{val as React.ReactNode}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </section>
+            </Collapsible>
+
+            {/* Ítems */}
+            <Collapsible open={itemsOpen} onOpenChange={setItemsOpen}>
+              <section className="overflow-hidden rounded-l border border-border bg-card shadow-sm">
+                <div className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Ítems</h3>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-slate-100 transition-colors">
+                      <ChevronDown className={cn("size-4 text-slate-500 transition-transform duration-200", itemsOpen && "rotate-180")} />
+                    </Button>
+                  </CollapsibleTrigger>
+                </div>
+                <div className="h-px bg-slate-100 mx-4" />
+                <CollapsibleContent>
+                  <div className="p-4 space-y-4">
+
+                      <div>
+                        <p className="text-xs font-medium text-foreground">Nombre</p>
+                        <p className="text-sm text-muted-foreground">CAJAS</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-foreground">Total unidades</p>
+                        <p className="text-sm text-muted-foreground">15</p>
+                      </div>
+
+
+                      <div>
+                        <p className="text-xs font-medium text-foreground">Código</p>
+                        <p className="text-sm text-muted-foreground">-</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-foreground">Precio</p>
+                        <p className="text-sm text-muted-foreground">0.0</p>
+                      </div>
+
+                  </div>
+                </CollapsibleContent>
+              </section>
+            </Collapsible>
+
+            {/* Comentarios */}
+            <Collapsible open={comentariosOpen} onOpenChange={setComentariosOpen}>
+              <section className="overflow-hidden rounded-l border border-border bg-card shadow-sm">
+                <div className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Comentarios (0)</h3>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-slate-100 transition-colors">
+                      <ChevronDown className={cn("size-4 text-slate-500 transition-transform duration-200", comentariosOpen && "rotate-180")} />
+                    </Button>
+                  </CollapsibleTrigger>
+                </div>
+                <div className="h-px bg-slate-100 mx-4" />
+                <CollapsibleContent>
+                  <div className="p-4 space-y-4">
+                    <Textarea 
+                      placeholder="Tu comentario ..." 
+                      className="min-h-[120px] resize-none bg-white border-slate-200 text-sm focus-visible:ring-1 focus-visible:ring-blue-500 rounded-xl placeholder:text-slate-400" 
+                    />
+                    <div className="flex gap-2 pt-1">
+                      <Button variant="outline" size="sm" className="flex-1 justify-center gap-1.5 h-10 border-slate-200 text-slate-500 font-bold text-[10px] rounded-xl hover:bg-slate-50 uppercase px-2 bg-transparent">
+                        Adjuntar
                       </Button>
-                      <Button type="button" variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={() => toast.message("Comentario guardado (demo)")}>
-                        <Plus className="size-3.5" />
-                        Nuevo comentario
+                      <Button variant="outline" size="sm" className="flex-[1.5] gap-1.5 h-10 border-red-200 text-red-600 font-bold text-[10px] rounded-xl hover:bg-red-50 uppercase px-2 bg-transparent shadow-none">
+                        Guardar comentario
                       </Button>
                     </div>
-                    <p className="text-[11px] text-muted-foreground">Máx. 5 MB por archivo</p>
                   </div>
                 </CollapsibleContent>
               </section>
@@ -314,69 +408,25 @@ const DetalleOrden = () => {
           </div>
         </aside>
 
-        {/* Línea de tiempo */}
-        <main className="min-h-0 min-w-0 flex-1 overflow-y-auto p-4 sm:p-6 lg:px-8 lg:py-6">
-          <div className="w-full min-w-0">
-            <h2 className="mb-5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Historial</h2>
-            {!hasTimelineEvents ? (
-              <div className="rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
-                <p className="text-center text-sm leading-relaxed text-muted-foreground">
-                  No hay eventos en el historial todavía. Aquí verás cambios de estado, asignaciones y
-                  otras acciones cuando el registro de actividad esté disponible desde el servidor.
-                </p>
-              </div>
-            ) : (
-              timeline.map((group) => (
-                <div key={group.dateLabel} className="w-full min-w-0">
-                  <p className="mb-4 text-sm font-medium capitalize tracking-tight text-muted-foreground">{group.dateLabel}</p>
-                  <div className="relative w-full min-w-0">
-                    <div
-                      className="pointer-events-none absolute left-[1.125rem] top-3 bottom-3 z-0 w-0.5 -translate-x-1/2 rounded-full bg-gradient-to-b from-primary via-primary/35 to-border sm:left-[1.375rem]"
-                      aria-hidden
-                    />
-                    <ul className="relative z-[1] w-full min-w-0 space-y-4">
-                      {group.events.map((ev, idx) => (
-                        <li
-                          key={ev.id}
-                          className="grid grid-cols-[2.25rem_minmax(0,1fr)] items-start gap-x-3 sm:grid-cols-[2.75rem_minmax(0,1fr)] sm:gap-x-4"
-                        >
-                          <div className="flex justify-center pt-3.5">
-                            <span
-                              className={cn(
-                                "relative z-[2] flex size-7 shrink-0 items-center justify-center rounded-full border-2 bg-background shadow-sm ring-2 ring-background sm:size-[30px]",
-                                idx === 0 ? "border-primary bg-primary/10" : "border-border",
-                              )}
-                            >
-                              <span
-                                className={cn(
-                                  "size-2 rounded-full sm:size-2.5",
-                                  idx === 0 ? "bg-primary" : "bg-muted-foreground/45",
-                                )}
-                              />
-                            </span>
-                          </div>
-                          <article className="min-w-0 rounded-xl border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md sm:p-5">
-                            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-                              <h3 className="min-w-0 text-sm font-semibold leading-snug text-foreground sm:text-base">{ev.title}</h3>
-                              <div className="flex shrink-0 flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-muted-foreground sm:justify-end">
-                                <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-                                  <Clock className="size-3.5 shrink-0" />
-                                  Registrado: {ev.time}
-                                </span>
-                                <span className="inline-flex min-w-0 items-center gap-1.5">
-                                  <User className="size-3.5 shrink-0" />
-                                  <span className="truncate">{ev.user}</span>
-                                </span>
-                              </div>
-                            </div>
-                          </article>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              ))
-            )}
+        {/* Cuerpo Principal (Timeline Estilo Zig-Zag) */}
+        <main className="flex-1 p-0 md:p-4 lg:p-6">
+          <div className="w-full relative py-10">
+            {/* Línea central dinámica */}
+            <div 
+              className="absolute left-1/2 transform -translate-x-1/2 w-1 top-0 bottom-0 transition-colors duration-1000 ease-in-out z-0 hidden md:block" 
+              style={{ backgroundColor: timelineColor }}
+            />
+
+            <div className="space-y-12 relative z-10">
+              {timelineEvents.map((event, index) => (
+                <TimelineCard
+                  key={event.id}
+                  event={event}
+                  index={index}
+                  timelineColor={timelineColor}
+                />
+              ))}
+            </div>
           </div>
         </main>
       </div>
@@ -475,6 +525,139 @@ const DetalleOrden = () => {
         </DialogContent>
       </Dialog>
     </div>
+  );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const TimelineCard = ({ event, index, timelineColor }: { event: any, index: number, timelineColor: string }) => {
+  const cardRef = useRef(null);
+  const isInView = useInView(cardRef, { once: true, margin: "-100px" });
+  const controls = useAnimation();
+
+  useEffect(() => {
+    if (isInView) {
+      controls.start("visible");
+    }
+  }, [isInView, controls]);
+
+  const cardVariants: import("framer-motion").Variants = {
+    hidden: { 
+      opacity: 0,
+      x: index % 2 === 0 ? -50 : 50,
+      y: 20
+    },
+    visible: {
+      opacity: 1,
+      x: 0,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut"
+      }
+    }
+  };
+
+  const isGestion = event.type === "gestion";
+
+  return (
+    <motion.div
+      ref={cardRef}
+      variants={cardVariants}
+      initial="hidden"
+      animate={controls}
+      className={cn(
+        "flex flex-col md:flex-row items-center w-full mb-8",
+        index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
+      )}
+    >
+      {/* Contenido del Card */}
+      <div className="w-full md:w-1/2 px-4">
+        {isGestion ? (
+          <section className="bg-white rounded-l border border-slate-200 overflow-hidden transition-all duration-300">
+            <div className="p-5">
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+                <h3 className="text-xl font-medium text-slate-800">Gestión de orden</h3>
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-black border border-emerald-200 uppercase">Entregado</span>
+                  <span className="text-[10px] font-black text-slate-500 uppercase">Recepcionado Conforme</span>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-[11px] font-bold text-slate-500 mb-4 uppercase tracking-tight">
+                <span className="flex items-center gap-1.5"><Clock className="size-3.5 text-blue-500" /> {event.metrics}</span>
+                <span className="flex items-center gap-1.5"><User className="size-3.5 text-blue-500" /> {event.driver}</span>
+                <span className="flex items-center gap-1.5"><Truck className="size-3.5 text-blue-500" /> {event.vehicle}</span>
+              </div>
+
+              {/* Mapa */}
+              <div className="h-[220px] w-full rounded-l overflow-hidden border border-slate-100 mb-6 relative">
+                <MapContainer center={[-8.1118, -79.0287]} zoom={12} style={{ height: "100%", width: "100%" }} zoomControl={false}>
+                  <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
+                  <Marker position={[-8.1118, -79.0287]} />
+                </MapContainer>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <h4 className="text-[11px] font-black text-slate-600 uppercase tracking-widest mb-3">Cumplimiento</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {(event.items as { name: string; current: number; total: number }[])?.map((item, i: number) => (
+                      <div key={i} className="px-3 py-1.5 rounded-full border border-emerald-100 bg-emerald-50/50 text-emerald-700 text-[10px] font-black uppercase">
+                        {item.name}: {item.current}/{item.total}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-slate-50">
+                  <h4 className="text-[11px] font-black text-slate-600 uppercase tracking-widest mb-3">Pruebas</h4>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-start">
+                      <p className="text-[10px] text-slate-400 font-bold uppercase">Persona receptora</p>
+                      <p className="text-xs font-black text-slate-700">{event.receptionist}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      {(event.photos as { title: string; src: string }[])?.map((photo, i: number) => (
+                        <div key={i} className="space-y-1.5">
+                          <p className="text-[9px] text-slate-400 font-bold uppercase truncate">{photo.title}</p>
+                          <div className="aspect-video rounded-l overflow-hidden border border-slate-100">
+                            <img src={photo.src} alt={photo.title} className="w-full h-full object-cover" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        ) : (
+          <section className="bg-white rounded-l border border-slate-200 p-5 transition-all duration-300">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium text-slate-800">{event.title}</h3>
+                <span className="px-2 py-0.5 rounded-full border border-slate-100 text-slate-400 text-[9px] font-medium uppercase tracking-widest">Pendiente</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] font-bold text-slate-500 uppercase tracking-tight">
+                <span className="flex items-center gap-1.5"><Clock className="size-3.5 text-blue-500" /> {event.time}</span>
+                {event.driver && <span className="flex items-center gap-1.5"><User className="size-3.5 text-blue-500" /> {event.driver}</span>}
+              </div>
+            </div>
+          </section>
+        )}
+      </div>
+
+      {/* Punto central del timeline */}
+      <div className="w-10 flex justify-center relative z-20 my-4 md:my-0">
+        <div 
+          className="w-5 h-5 rounded-full border-4 border-white shadow-lg transition-colors duration-1000 ease-in-out"
+          style={{ backgroundColor: timelineColor }}
+        />
+      </div>
+
+      {/* Espaciador para el zig-zag */}
+      <div className="hidden md:block md:w-1/2" />
+    </motion.div>
   );
 };
 

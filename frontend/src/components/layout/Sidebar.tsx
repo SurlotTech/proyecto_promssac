@@ -13,6 +13,8 @@ import {
   ChevronDown,
   ChevronRight,
   ChevronLeft,
+  Bell,
+  Upload,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -43,6 +45,8 @@ const operationsItems: NavItem[] = [
   { to: "/flota", label: "Flota en vivo", icon: MapPin },
   { to: "/vehiculos", label: "Vehículos", icon: Truck },
   { to: "/clientes", label: "Clientes", icon: UserSquare2 },
+  { to: "/alertas", label: "Alertas", icon: Bell },
+  { to: "/importar", label: "Importar", icon: Upload },
 ];
 
 const usersGroup: NavItem = {
@@ -59,8 +63,7 @@ const systemGroup: NavItem = {
   icon: Settings,
   subItems: [
     { to: "/configuracion/subestados", label: "Subestados" },
-    { to: "/configuracion/alertas", label: "Alertas", end: true },
-    { to: "/configuracion/alertas/parametros", label: "Configuración de alertas" },
+    { to: "/configuracion/alertas/parametros", label: "Conf. Alertas" },
     { to: "/configuracion/notificaciones", label: "Notificaciones" },
   ],
 };
@@ -226,7 +229,7 @@ const Sidebar = ({ open, onClose, isCollapsed, onToggleCollapse }: SidebarProps)
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-50 flex flex-col bg-[#212121] text-sidebar-foreground transition-all duration-300 ease-smooth lg:static lg:translate-x-0",
-          isCollapsed ? "w-16" : "w-64",
+          isCollapsed ? "w-16" : "w-60",
           open ? "translate-x-0" : "-translate-x-full",
         )}
       >
@@ -299,7 +302,11 @@ const Sidebar = ({ open, onClose, isCollapsed, onToggleCollapse }: SidebarProps)
                       <ChevronLeft className="h-4 w-4" />
                     )}
                   </div>
-                  {!isCollapsed && <span className="text-sm font-medium">Contraer navegación</span>}
+                  {!isCollapsed && (
+                <TooltipContent side="right" className="bg-[#212121] border-zinc-800 text-white">
+                  Contraer navegación
+                </TooltipContent>
+              )}
                 </button>
               </TooltipTrigger>
               {isCollapsed && (

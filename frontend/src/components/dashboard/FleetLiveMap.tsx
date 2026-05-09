@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import L from "leaflet";
 
 // Fix default icon issue with vite/webpack
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+// @ts-expect-error _getIconUrl is an internal property
+delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
   iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",

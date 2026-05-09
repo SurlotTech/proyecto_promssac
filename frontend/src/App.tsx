@@ -30,6 +30,9 @@ import DetalleCliente from "./pages/DetalleCliente.tsx";
 import ConfiguracionAlertas from "./pages/ConfiguracionAlertas.tsx";
 import Notificaciones from "./pages/Notificaciones.tsx";
 import NuevaNotificacion from "./pages/NuevaNotificacion.tsx";
+import EnlaceCliente from "./pages/EnlaceCliente.tsx";
+import Importar from "./pages/Importar.tsx";
+import DetalleImportacion from "./pages/DetalleImportacion.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -52,6 +55,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/enlace-cliente/:orderId" element={<EnlaceCliente />} />
           <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/vehiculos" element={<Vehiculos />} />
@@ -65,6 +69,8 @@ const App = () => (
             <Route path="/flota" element={<Flota />} />
             <Route path="/clientes" element={<Clientes />} />
             <Route path="/clientes/detalle/:id" element={<DetalleCliente />} />
+            <Route path="/importar" element={<Importar />} />
+            <Route path="/importar/:id" element={<DetalleImportacion />} />
             <Route path="/usuarios" element={<Navigate to="/usuarios/web" replace />} />
             <Route path="/usuarios/web" element={<UsuariosWeb />} />
             <Route path="/usuarios/web/nuevo" element={<NuevoUsuarioWeb />} />

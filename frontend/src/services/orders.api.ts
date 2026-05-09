@@ -30,6 +30,7 @@ export interface OrderProductLineDto {
   name: string;
   unitPrice: number;
   quantity: number;
+  weight?: number;
   customField: string;
   createdAt: string;
 }
@@ -39,6 +40,7 @@ export interface OrderProductLineCreateInput {
   name: string;
   unitPrice: number;
   quantity: number;
+  weight?: number;
   customField?: string;
 }
 
@@ -128,6 +130,7 @@ export const ordersApi = {
       name: input.name.trim(),
       unitPrice: input.unitPrice,
       quantity: input.quantity,
+      weight: input.weight,
     };
     if (input.customField?.trim()) body.customField = input.customField.trim();
     return apiPost<OrderProductLineDto, Record<string, unknown>>(

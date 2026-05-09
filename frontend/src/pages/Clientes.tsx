@@ -89,10 +89,6 @@ const Clientes = () => {
               <FileDown className="size-4" />
               Importar
             </Button>
-            <Button className="bg-warning text-warning-foreground hover:bg-warning/90 gap-2">
-              <Star className="size-4" />
-              Reseñas
-            </Button>
           </div>
         }
       />

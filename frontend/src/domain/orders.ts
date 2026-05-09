@@ -3,6 +3,7 @@ export type OrderRouteOption = { id: string; label: string };
 
 export type OrderStatus =
   | "pending"
+  | "in_route"
   | "delivered"
   | "no_delivered"
   | "partially_delivered"
@@ -50,6 +51,11 @@ export const orderStatusMeta: Record<
     label: "Pendiente",
     className: "bg-muted text-muted-foreground",
     dot: "bg-muted-foreground",
+  },
+  in_route: {
+    label: "En ruta",
+    className: "bg-info-soft text-info",
+    dot: "bg-info",
   },
   delivered: {
     label: "Entregado",

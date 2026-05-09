@@ -58,8 +58,29 @@ function orderMatches(o: Order, f: OrderFiltersState): boolean {
 
 const Ordenes = () => {
   const navigate = useNavigate();
-  const { data: allOrders = [], isLoading, isError, error } = useOrdersQuery();
+  const { data: allOrdersFromQuery = [], isLoading, isError, error } = useOrdersQuery();
   const { data: routeCatalog = [] } = useRoutesQuery();
+
+  const allOrders = useMemo(() => {
+    const mockOrder: Order = {
+      id: "11073 LLIPYARAQ MICAELA BASTIDAS",
+      clientName: "11073 LLIPYARAQ MICAELA BASTIDAS",
+      contactName: "Micaela Bastidas",
+      contactIdentifier: "DNI 12345678",
+      status: "delivered",
+      substatus: "Recepcionado Conforme",
+      routeDate: "12/12/2025",
+      routeDateIso: "2025-12-12",
+      createdAtIso: "2025-12-12T10:00:00Z",
+      vehiclePlate: "BHT-734",
+      routeId: "route-1",
+      isLastDispatch: true,
+      addressLine: "SHANKAPAMPA",
+      contactEmail: "micaela@example.com",
+      contactPhone: "968909932"
+    };
+    return [mockOrder, ...allOrdersFromQuery];
+  }, [allOrdersFromQuery]);
 
   const orderSubstatusOptions = useMemo(
     () => Array.from(new Set(allOrders.map((o) => o.substatus))).sort(),

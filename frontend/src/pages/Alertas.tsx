@@ -78,22 +78,6 @@ const Alertas = () => {
 
                 <div className="space-y-2">
                   <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Gestión
-                  </label>
-                  <Select defaultValue="todos">
-                    <SelectTrigger className="bg-background/50">
-                      <SelectValue placeholder="Seleccionar" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="todos">Todos</SelectItem>
-                      <SelectItem value="gestion1">Gestión A</SelectItem>
-                      <SelectItem value="gestion2">Gestión B</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Estado actual
                   </label>
                   <Select defaultValue="todos">
@@ -157,7 +141,7 @@ const Alertas = () => {
                   </div>
                 </div>
 
-                <Button className="w-full bg-warning text-warning-foreground hover:bg-warning/90 shadow-sm mt-2">
+                <Button className="w-full bg-primary shadow-glow hover:bg-primary-hover mt-2">
                   <Search className="mr-2 size-4" />
                   Buscar
                 </Button>

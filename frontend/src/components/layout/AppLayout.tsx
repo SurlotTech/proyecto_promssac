@@ -17,7 +17,7 @@ const AppLayout = () => {
       />
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <Topbar onMenuClick={() => setSidebarOpen(true)} />
-        <main className="flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto bg-background rounded-tl-[30px] shadow-2xl transition-all duration-300 ease-smooth">
+        <main className="flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto bg-background rounded-tl-[20px] shadow-2xl transition-all duration-300 ease-smooth">
           <Outlet />
         </main>
       </div>
