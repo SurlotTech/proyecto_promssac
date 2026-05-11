@@ -31,8 +31,8 @@ public class OrderCreateRequest {
     @Size(max = 120)
     private String subestado;
 
-    @Size(max = 200)
-    private String clienteNombre;
+    /** Catálogo de clientes; el nombre en respuestas sale de {@link com.promssac.backend.model.entity.Cliente#getNombre()}. */
+    private UUID clienteId;
 
     @Size(max = 120)
     private String contactoNombre;

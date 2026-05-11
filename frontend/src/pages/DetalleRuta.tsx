@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useMemo, useState, useEffect, type ReactNode } from "react";
 import { useParams, Link } from "react-router-dom";
 import { 
   ChevronRight, 
@@ -7,9 +7,9 @@ import {
   MapPin, 
   Package, 
   User, 
-  Filter, 
   CreditCard,
-  RotateCcw
+  RotateCcw,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,11 +23,23 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import NewRouteDialog from "@/components/routes/NewRouteDialog";
 import AssociateOrderDialog from "@/components/routes/AssociateOrderDialog";
-import { useMobileUserRouteOptionsQuery, useVehicleOptionsQuery } from "@/hooks/useOperationsQueries";
+import OrderStatusBadge from "@/components/orders/OrderStatusBadge";
+import { useMobileUserRouteOptionsQuery, useRouteOrdersQuery, useVehicleOptionsQuery } from "@/hooks/useOperationsQueries";
 import { routesApi } from "@/services";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Route } from "@/domain/routes";
-import { MapContainer, TileLayer } from "react-leaflet";
+import type { Order } from "@/domain/orders";
+import { LIMA_CENTER } from "@/domain/fleet";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import {
+  MapContainer,
+  Marker,
+  Polyline,
+  Popup,
+  TileLayer,
+  useMap,
+} from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -44,6 +56,87 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
+type LatLng = [number, number];
+
+function ordenTieneUbicacionMapa(o: Order): boolean {
+  const { latitude: lat, longitude: lng } = o;
+  if (typeof lat !== "number" || typeof lng !== "number") return false;
+  return Number.isFinite(lat) && Number.isFinite(lng);
+}
+
+function ordenDestinoMapa(o: Order): LatLng | null {
+  if (!ordenTieneUbicacionMapa(o)) return null;
+  return [o.latitude!, o.longitude!];
+}
+
+/** Ajusta el mapa a origen→destino o centra Lima si no hay destino válido. */
+function FitRouteMapView({ origin, destination }: { origin: LatLng; destination: LatLng | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (destination) {
+      const bounds = L.latLngBounds([origin, destination]);
+      map.fitBounds(bounds, { padding: [52, 52], maxZoom: 15 });
+      return;
+    }
+    map.setView(origin, 12);
+  }, [map, origin[0], origin[1], destination?.[0], destination?.[1]]);
+  return null;
+}
+
+/** Contenido del mapa: capa base + enfoque y trazo solo cuando hay orden con GPS. */
+function RouteOrdersMapLayers({
+  origin,
+  destination,
+  selectedOrder,
+}: {
+  origin: LatLng;
+  destination: LatLng | null;
+  selectedOrder: Order | undefined;
+}) {
+  const marcadoresPopup: ReactNode =
+    destination && selectedOrder ? (
+      <>
+        <Marker position={origin}>
+          <Popup>
+            <span className="text-[13px] font-medium">Referencia origen</span>
+            <p className="text-xs text-muted-foreground mt-0.5 mb-0">Punto base (Lima). La ruta real puede variar según punto de despacho.</p>
+          </Popup>
+        </Marker>
+        <Marker position={destination}>
+          <Popup>
+            <span className="text-[13px] font-semibold">{selectedOrder.id}</span>
+            {selectedOrder.addressLine || selectedOrder.normalizedAddress ? (
+              <p className="text-xs mt-1 mb-0 max-w-[240px]">
+                {selectedOrder.addressLine ?? selectedOrder.normalizedAddress}
+              </p>
+            ) : null}
+          </Popup>
+        </Marker>
+      </>
+    ) : null;
+
+  return (
+    <>
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+      <FitRouteMapView origin={origin} destination={destination} />
+      {destination ? (
+        <Polyline
+          positions={[origin, destination]}
+          pathOptions={{
+            color: "hsl(var(--primary))",
+            weight: 4,
+            opacity: 0.8,
+          }}
+        />
+      ) : null}
+      {marcadoresPopup}
+    </>
+  );
+}
+
 const DetalleRuta = () => {
   const { id } = useParams<{ id: string }>();
   const [route, setRoute] = useState<Route | null>(null);
@@ -54,6 +147,51 @@ const DetalleRuta = () => {
   const qc = useQueryClient();
   const { data: vehicles = [] } = useVehicleOptionsQuery();
   const { data: mobileUsers = [] } = useMobileUserRouteOptionsQuery();
+  const {
+    data: routeOrdersRaw = [],
+    isLoading: routeOrdersLoading,
+    isError: routeOrdersError,
+  } = useRouteOrdersQuery(id);
+
+  const [orderSearch, setOrderSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [selectedMapOrderId, setSelectedMapOrderId] = useState<string | null>(null);
+
+  const routeOrdersFiltered = useMemo(() => {
+    let list = routeOrdersRaw;
+    const q = orderSearch.trim().toLowerCase();
+    if (q) {
+      list = list.filter(
+        (o) =>
+          o.id.toLowerCase().includes(q) ||
+          o.contactName.toLowerCase().includes(q) ||
+          o.contactIdentifier.toLowerCase().includes(q),
+      );
+    }
+    if (statusFilter !== "all") {
+      list = list.filter((o) => o.status === statusFilter);
+    }
+    return list;
+  }, [routeOrdersRaw, orderSearch, statusFilter]);
+
+  const selectedMapOrder = useMemo(
+    () =>
+      selectedMapOrderId
+        ? routeOrdersRaw.find((o) => o.id === selectedMapOrderId)
+        : undefined,
+    [routeOrdersRaw, selectedMapOrderId],
+  );
+
+  const mapDestination = useMemo(
+    (): LatLng | null => (selectedMapOrder ? ordenDestinoMapa(selectedMapOrder) : null),
+    [selectedMapOrder],
+  );
+
+  function invalidateRouteOrders() {
+    void qc.invalidateQueries({ queryKey: ["rutas", id, "ordenes"] });
+    void qc.invalidateQueries({ queryKey: ["rutas"] });
+    void qc.invalidateQueries({ queryKey: ["ordenes"] });
+  }
 
   useEffect(() => {
     if (id) {
@@ -62,6 +200,10 @@ const DetalleRuta = () => {
         .catch(console.error)
         .finally(() => setLoading(false));
     }
+  }, [id]);
+
+  useEffect(() => {
+    setSelectedMapOrderId(null);
   }, [id]);
 
   if (loading) return <div className="p-8 text-center text-muted-foreground animate-pulse">Cargando detalles de ruta...</div>;
@@ -139,7 +281,10 @@ const DetalleRuta = () => {
                 <span>Fin de ruta</span>
               </div>
               <div className="flex items-center gap-4">
-                <span>Pedidos: <span className="text-foreground font-semibold">{route.dispatchTotal}</span></span>
+                <span>
+                  Pedidos (asignados):{" "}
+                  <span className="text-foreground font-semibold">{routeOrdersRaw.length}</span>
+                </span>
                 <span>Gestionados: <span className="text-foreground font-semibold">{route.dispatchCompleted}</span></span>
               </div>
               <Button size="sm" variant="outline" className="h-8 text-[11px] font-bold uppercase tracking-wider border-zinc-200">
@@ -151,30 +296,39 @@ const DetalleRuta = () => {
 
         {/* Action/Filter Bar */}
         <div className="px-6 py-4 flex items-center gap-3 shrink-0 bg-[#f8f9fc]">
-           <Select defaultValue="all">
+           <Select value={statusFilter} onValueChange={setStatusFilter}>
              <SelectTrigger className="w-[180px] bg-white border border-border h-10 text-muted-foreground shadow-sm focus:ring-1 focus:ring-primary/20">
                <SelectValue placeholder="Estado" />
              </SelectTrigger>
              <SelectContent>
-               <SelectItem value="all">Estado</SelectItem>
-               <SelectItem value="delivered">Entregado</SelectItem>
+               <SelectItem value="all">Todos los estados</SelectItem>
                <SelectItem value="pending">Pendiente</SelectItem>
+               <SelectItem value="in_route">En ruta</SelectItem>
+               <SelectItem value="delivered">Entregado</SelectItem>
+               <SelectItem value="no_delivered">No entregado</SelectItem>
+               <SelectItem value="partially_delivered">Parcial</SelectItem>
              </SelectContent>
            </Select>
 
            <div className="relative flex-1 max-w-md">
              <Input 
-              placeholder="Número de pedido" 
+              placeholder="Número de pedido o contacto" 
               className="w-full bg-white border border-border h-10 pl-4 pr-10 shadow-sm focus-visible:ring-1 focus-visible:ring-primary/20"
+              value={orderSearch}
+              onChange={(e) => setOrderSearch(e.target.value)}
              />
            </div>
 
-           <Button variant="outline" className="bg-primary-soft border-none text-primary hover:bg-primary-soft/80 h-10 px-6 font-bold flex gap-2 shadow-sm">
-             <Filter className="size-4" /> Filtrar
-           </Button>
-
-           <Button variant="outline" className="bg-zinc-100 border-none text-zinc-500 hover:bg-zinc-200 h-10 w-10 p-0 shadow-sm">
-             <RotateCcw className="size-4" />
+           <Button
+             type="button"
+             variant="outline"
+             className="bg-primary-soft border-none text-primary hover:bg-primary-soft/80 h-10 px-6 font-bold flex gap-2 shadow-sm"
+             onClick={() => {
+               setOrderSearch("");
+               setStatusFilter("all");
+             }}
+           >
+             <RotateCcw className="size-4" /> Limpiar filtros
            </Button>
 
            <div className="flex-1" />
@@ -193,60 +347,166 @@ const DetalleRuta = () => {
                 <table className="w-full text-[13px] text-left border-collapse">
                   <thead className="bg-zinc-50 text-zinc-600 font-bold uppercase text-[11px] tracking-wider border-b border-zinc-200 sticky top-0 z-10">
                     <tr>
-                      <th className="px-6 py-4 w-10">
-                        <div className="size-4 rounded border border-zinc-300 bg-white" />
-                      </th>
                       <th className="px-4 py-4">Pedido</th>
                       <th className="px-4 py-4">Estado</th>
+                      <th className="px-4 py-4">Subestado</th>
                       <th className="px-4 py-4">Contacto</th>
-                      <th className="px-4 py-4">Hora estimada</th>
-                      <th className="px-4 py-4">Hora real</th>
-                      <th className="px-4 py-4">Dirección</th>
-                      <th className="px-4 py-4">Artículos</th>
-                      <th className="px-4 py-4 text-right pr-6">Cobro</th>
+                      <th className="px-4 py-4">Fecha ruta</th>
+                      <th className="px-4 py-4">Placa</th>
+                      <th className="px-4 py-4 max-w-[220px]">Dirección</th>
+                      <th className="px-4 py-4 text-right pr-6">Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td colSpan={9} className="py-24 text-center">
-                        <div className="flex flex-col items-center gap-5">
-                           <div className="size-20 rounded-full bg-primary-soft/20 flex items-center justify-center border border-primary-soft/50">
+                    {routeOrdersLoading ? (
+                      <tr>
+                        <td colSpan={8} className="py-16 text-center text-zinc-500">
+                          Cargando pedidos de la ruta…
+                        </td>
+                      </tr>
+                    ) : routeOrdersError ? (
+                      <tr>
+                        <td colSpan={8} className="py-16 text-center text-destructive">
+                          No se pudieron cargar los pedidos de esta ruta.
+                        </td>
+                      </tr>
+                    ) : routeOrdersFiltered.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="py-24 text-center">
+                          <div className="flex flex-col items-center gap-5">
+                            <div className="size-20 rounded-full bg-primary-soft/20 flex items-center justify-center border border-primary-soft/50">
                               <Package className="size-10 text-primary opacity-40" />
-                           </div>
-                           <p className="text-zinc-400 font-medium text-lg">No se han encontrado resultados</p>
-                        </div>
-                      </td>
-                    </tr>
+                            </div>
+                            <p className="text-zinc-400 font-medium text-lg">
+                              {routeOrdersRaw.length === 0
+                                ? "Ningún pedido está asignado a esta ruta"
+                                : "No hay pedidos que coincidan con el filtro"}
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      routeOrdersFiltered.map((o) => (
+                        <tr key={o.id} className="border-b border-zinc-100 hover:bg-zinc-50/80">
+                          <td className="px-4 py-3 font-semibold text-foreground tabular-nums">{o.id}</td>
+                          <td className="px-4 py-3">
+                            <OrderStatusBadge status={o.status} />
+                          </td>
+                          <td className="px-4 py-3 text-zinc-700 max-w-[140px] truncate" title={o.substatus}>
+                            {o.substatus || "—"}
+                          </td>
+                          <td className="px-4 py-3 text-zinc-700 max-w-[180px]">
+                            <span className="block truncate" title={[o.contactName, o.contactIdentifier].filter(Boolean).join(" · ")}>
+                              {o.contactName || o.contactIdentifier
+                                ? [o.contactName, o.contactIdentifier].filter(Boolean).join(" · ")
+                                : "—"}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-zinc-700">{o.routeDate}</td>
+                          <td className="px-4 py-3 tabular-nums text-zinc-700">{o.vehiclePlate}</td>
+                          <td className="px-4 py-3 text-zinc-600 max-w-[240px]">
+                            <span className="line-clamp-2" title={o.addressLine}>
+                              {o.addressLine ?? "—"}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-right pr-6">
+                            <Button variant="ghost" size="sm" className="h-8 gap-1.5 font-semibold" asChild>
+                              <Link to={`/ordenes/detalle/${encodeURIComponent(o.id)}`}>
+                                <Eye className="size-4" />
+                                Ver
+                              </Link>
+                            </Button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
           </TabsContent>
 
           <TabsContent value="mapa" className="m-0 p-0 outline-none flex-1 flex bg-white rounded-xl shadow-sm border border-zinc-200 overflow-hidden data-[state=inactive]:hidden">
-              <div className="w-[300px] border-r border-zinc-200 flex flex-col bg-zinc-50/50 shrink-0">
-                 <div className="bg-zinc-50 px-6 py-4 text-zinc-600 font-bold uppercase text-[11px] tracking-wider border-b border-zinc-200 flex items-center gap-2">
+              <div className="w-[300px] border-r border-zinc-200 flex flex-col bg-zinc-50/50 shrink-0 min-h-0">
+                 <div className="bg-zinc-50 px-6 py-4 text-zinc-600 font-bold uppercase text-[11px] tracking-wider border-b border-zinc-200 flex items-center gap-2 shrink-0">
                     <div className="size-4 rounded border border-zinc-300 bg-white" />
                     Pedido
                  </div>
-                 <div className="flex-1 flex flex-col items-center justify-center p-8 text-center gap-5">
-                    <div className="size-16 rounded-full bg-primary-soft/20 flex items-center justify-center border border-primary-soft/50">
-                      <Package className="size-8 text-primary opacity-40" />
-                    </div>
-                    <p className="text-zinc-400 font-medium text-sm">No se han encontrado resultados</p>
+                 <div className="flex-1 overflow-y-auto p-3 min-h-0">
+                    {routeOrdersLoading ? (
+                      <p className="py-8 text-center text-xs text-zinc-500">Cargando…</p>
+                    ) : routeOrdersFiltered.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center p-6 text-center gap-4">
+                        <Package className="size-8 text-primary opacity-30" />
+                        <p className="text-zinc-400 text-sm font-medium">Sin pedidos en esta vista</p>
+                      </div>
+                    ) : (
+                      <ul className="space-y-1">
+                        {routeOrdersFiltered.map((o) => (
+                          <li key={o.id}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedMapOrderId(o.id);
+                                if (!ordenTieneUbicacionMapa(o)) {
+                                  toast.message("Este pedido no tiene ubicación GPS. Complétalo en la ficha o el asistente.");
+                                }
+                              }}
+                              title={o.id}
+                              className={cn(
+                                "block w-full truncate rounded-lg px-3 py-2 text-left text-sm font-medium text-foreground hover:bg-white hover:shadow-sm border transition-colors",
+                                selectedMapOrderId === o.id
+                                  ? "bg-white shadow-sm border-primary/35 ring-1 ring-primary/20"
+                                  : "border-transparent hover:border-zinc-200",
+                              )}
+                            >
+                              {o.id}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                  </div>
+                 {selectedMapOrder && (
+                   <div className="border-t border-zinc-200 bg-white p-4 shrink-0 space-y-2">
+                     {(selectedMapOrder.addressLine ?? selectedMapOrder.normalizedAddress) ? (
+                       <p className="text-xs text-zinc-600 leading-snug line-clamp-3">
+                         {selectedMapOrder.addressLine ?? selectedMapOrder.normalizedAddress}
+                       </p>
+                     ) : (
+                       <p className="text-xs text-zinc-400">Sin dirección registrada.</p>
+                     )}
+                     <Button variant="link" className="h-auto p-0 text-xs font-semibold text-primary" asChild>
+                       <Link to={`/ordenes/detalle/${encodeURIComponent(selectedMapOrder.id)}`}>
+                         Abrir detalle completo →
+                       </Link>
+                     </Button>
+                   </div>
+                 )}
               </div>
-              <div className="flex-1 relative h-full">
-                 <MapContainer 
-                  center={[-12.046374, -77.042793]} 
-                  zoom={13} 
-                  className="h-full w-full z-0"
+              <div className="flex-1 relative h-full min-h-[320px]">
+                 <MapContainer
+                  center={LIMA_CENTER}
+                  zoom={12}
+                  className="h-full w-full z-0 [&_.leaflet-control-attribution]:text-[10px]"
                   scrollWheelZoom={false}
                 >
-                  <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  <RouteOrdersMapLayers
+                    origin={LIMA_CENTER}
+                    destination={mapDestination}
+                    selectedOrder={selectedMapOrder}
                   />
                 </MapContainer>
+                <div className="pointer-events-none absolute inset-x-0 bottom-3 z-[410] flex justify-center px-3">
+                  {!selectedMapOrderId ? (
+                    <p className="rounded-md bg-white/92 px-3 py-2 text-xs text-zinc-600 shadow-sm ring-1 ring-zinc-200/80 backdrop-blur-[2px] max-w-lg text-center">
+                      Selecciona un pedido para ver la línea origen → destino en el mapa.
+                    </p>
+                  ) : selectedMapOrder && !mapDestination ? (
+                    <p className="rounded-md bg-zinc-900/82 px-3 py-2 text-xs text-white shadow-sm max-w-md text-center">
+                      Este pedido no tiene coordenadas. Complétalo para ver la entrega aquí.
+                    </p>
+                  ) : null}
+                </div>
               </div>
           </TabsContent>
 
@@ -297,7 +557,7 @@ const DetalleRuta = () => {
         onOpenChange={setAssociateDialogOpen}
         rutaId={route.id}
         fechaRuta={route.deliveryDate}
-        onCreated={() => qc.invalidateQueries({ queryKey: ["routes"] })}
+        onCreated={() => invalidateRouteOrders()}
       />
     </div>
   );

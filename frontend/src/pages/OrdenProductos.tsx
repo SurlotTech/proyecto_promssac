@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, Check, PackageOpen, Plus } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
+import { Link } from "react-router-dom";
+import NewProductDialog from "@/components/orders/NewProductDialog";
+import OrderProductsTable from "@/components/orders/OrderProductsTable";
 import { Button } from "@/components/ui/button";
 import {
   Breadcrumb,
@@ -10,79 +11,18 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { toast } from "sonner";
-import NewProductDialog from "@/components/orders/NewProductDialog";
-import type { OrderProductRow } from "@/domain/orderProducts";
-import {
-  readOrderDraft,
-  type OrderProductsLocationState,
-} from "@/lib/orderCreationDraft";
-import { ordersApi } from "@/services/orders.api";
+import { useOrderProductosPage } from "@/hooks/useOrderProductosPage";
 
 const OrdenProductos = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const [displayOrderId, setDisplayOrderId] = useState<string | null>(null);
-  const [products, setProducts] = useState<OrderProductRow[]>([]);
-  const [productsLoading, setProductsLoading] = useState(false);
-  const [newProductOpen, setNewProductOpen] = useState(false);
-
-  useEffect(() => {
-    const state = location.state as OrderProductsLocationState | null;
-    const fromNav = state?.displayOrderId?.trim();
-    const fromDraft = readOrderDraft()?.displayOrderId?.trim();
-    const id = fromNav || fromDraft;
-    if (!id) {
-      toast.error("No hay una orden en contexto. Vuelve a completar la orden.");
-      navigate("/ordenes", { replace: true });
-      return;
-    }
-    setDisplayOrderId(id);
-  }, [location.state, navigate]);
-
-  useEffect(() => {
-    if (!displayOrderId) return;
-    let cancelled = false;
-    setProductsLoading(true);
-    ordersApi
-      .listProductLines(displayOrderId)
-      .then((rows) => {
-        if (!cancelled) {
-          setProducts(
-            rows.map((r) => ({
-              id: r.id,
-              code: r.code,
-              orderId: r.orderId,
-              name: r.name,
-              unitPrice: r.unitPrice,
-              quantity: r.quantity,
-              weight: r.weight,
-              customField: r.customField,
-              createdAt: r.createdAt,
-            })),
-          );
-        }
-      })
-      .catch((e) => {
-        if (!cancelled) {
-          toast.error(e instanceof Error ? e.message : "No se pudieron cargar los productos.");
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setProductsLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [displayOrderId]);
-
-  const subtitle = useMemo(
-    () => (displayOrderId ? `Líneas de la orden ${displayOrderId}` : ""),
-    [displayOrderId],
-  );
-
-  const handleNewProduct = () => setNewProductOpen(true);
+  const {
+    displayOrderId,
+    products,
+    productsLoading,
+    subtitle,
+    completarPersonalizadosState,
+    dialog,
+    actions,
+  } = useOrderProductosPage();
 
   if (!displayOrderId) {
     return (
@@ -94,7 +34,7 @@ const OrdenProductos = () => {
 
   return (
     <div className="animate-fade-in flex min-h-0 flex-1 flex-col bg-background">
-      <div className="border-b border-border px-4 py-4 sm:px-6 lg:px-8">
+      <header className="border-b border-border px-4 py-4 sm:px-6 lg:px-8">
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -107,7 +47,13 @@ const OrdenProductos = () => {
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link to="/ordenes/completar" className="font-medium">
+                <Link
+                  to="/ordenes/completar"
+                  className="font-medium"
+                  {...(completarPersonalizadosState
+                    ? { state: completarPersonalizadosState }
+                    : {})}
+                >
                   Completar orden
                 </Link>
               </BreadcrumbLink>
@@ -130,112 +76,46 @@ const OrdenProductos = () => {
             type="button"
             size="sm"
             className="h-9 w-full shrink-0 gap-2 bg-primary shadow-glow hover:bg-primary-hover sm:w-auto"
-            onClick={handleNewProduct}
+            onClick={actions.openCreateDialog}
           >
             <Plus className="size-4 shrink-0" strokeWidth={2.25} />
             Nuevo producto
           </Button>
         </div>
-      </div>
+      </header>
 
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
         <div className="mx-auto max-w-6xl">
-          <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-            <div className="overflow-x-auto scrollbar-thin">
-              <table className="w-full min-w-[720px] text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-surface-muted text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    <th className="px-4 py-3.5 sm:px-5">Código</th>
-                    <th className="px-4 py-3.5 sm:px-5">Orden</th>
-                    <th className="px-4 py-3.5 sm:px-5">Producto</th>
-                    <th className="px-4 py-3.5 sm:px-5 text-right">Precio unitario</th>
-                    <th className="px-4 py-3.5 sm:px-5 text-right">Cantidad</th>
-                    <th className="px-4 py-3.5 sm:px-5 text-right">Peso</th>
-                    <th className="px-4 py-3.5 sm:px-5">Campo personalizado</th>
-                    <th className="px-4 py-3.5 sm:px-5">Fecha de creación</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {productsLoading ? (
-                    <tr>
-                      <td colSpan={8} className="px-4 py-12 text-center text-sm text-muted-foreground sm:px-5">
-                        Cargando productos…
-                      </td>
-                    </tr>
-                  ) : products.length === 0 ? (
-                    <tr>
-                      <td colSpan={8} className="px-4 py-16 sm:px-5 sm:py-20">
-                        <div className="mx-auto flex max-w-md flex-col items-center text-center">
-                          <div className="flex size-16 items-center justify-center rounded-full border-2 border-dashed border-primary/35 bg-primary-soft/60 text-primary shadow-inner">
-                            <PackageOpen className="size-8 stroke-[1.35]" aria-hidden />
-                          </div>
-                          <p className="mt-5 text-base font-semibold text-foreground">
-                            No existen productos para visualizar
-                          </p>
-                          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                            Añade líneas a esta orden para ver el detalle de productos, precios y cantidades
-                            en esta vista.
-                          </p>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="mt-6 h-9 gap-2 border-primary/50 text-primary hover:bg-primary-soft"
-                            onClick={handleNewProduct}
-                          >
-                            <Plus className="size-4 shrink-0" strokeWidth={2.25} />
-                            Nuevo producto
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    products.map((p) => (
-                      <tr key={p.id} className="transition-colors hover:bg-surface-muted/80">
-                        <td className="px-4 py-3.5 font-medium tabular-nums text-foreground sm:px-5">
-                          {p.code}
-                        </td>
-                        <td className="px-4 py-3.5 tabular-nums text-muted-foreground sm:px-5">{p.orderId}</td>
-                        <td className="px-4 py-3.5 text-foreground sm:px-5">{p.name}</td>
-                        <td className="px-4 py-3.5 text-right font-medium tabular-nums text-foreground sm:px-5">
-                          S/ {p.unitPrice.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </td>
-                        <td className="px-4 py-3.5 text-right tabular-nums text-foreground sm:px-5">{p.quantity}</td>
-                        <td className="px-4 py-3.5 text-right tabular-nums text-muted-foreground sm:px-5">
-                          {p.weight != null ? `${p.weight} kg` : <span className="text-muted-foreground/40">—</span>}
-                        </td>
-                        <td className="px-4 py-3.5 text-muted-foreground sm:px-5">{p.customField}</td>
-                        <td className="px-4 py-3.5 text-muted-foreground sm:px-5">{p.createdAt}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <OrderProductsTable
+            loading={productsLoading}
+            rows={products}
+            onAddProduct={actions.openCreateDialog}
+            onEditProduct={actions.openEditDialog}
+            onDeleteProduct={actions.deleteProduct}
+          />
 
           <div className="mt-4 flex justify-end">
             <Button
               type="button"
+              variant="outline"
               size="sm"
-              className="h-10 gap-2 bg-primary text-primary-foreground hover:bg-primary-hover sm:min-w-[200px]"
-              onClick={() => {
-                toast.success(`Orden ${displayOrderId} guardada con ${products.length} producto${products.length !== 1 ? "s" : ""}.`);
-                navigate("/ordenes", { replace: true });
-              }}
+              className="h-10 gap-2 border-primary/55 text-primary hover:bg-primary-soft sm:min-w-[260px]"
+              onClick={actions.finishAndReturnToCompletar}
             >
-              <Check className="h-4 w-4" />
-              Guardar y volver a órdenes
+              <ArrowLeft className="h-4 w-4" strokeWidth={2.25} />
+              Volver a campos personalizados
             </Button>
           </div>
         </div>
       </div>
 
       <NewProductDialog
-        open={newProductOpen}
-        onOpenChange={setNewProductOpen}
-        orderDisplayId={displayOrderId}
-        onSaved={(row) => setProducts((prev) => [...prev, row])}
+        open={dialog.open}
+        onOpenChange={dialog.onOpenChange}
+        orderDisplayId={dialog.orderDisplayId}
+        editRow={dialog.editingProduct}
+        onSaved={dialog.onProductCreated}
+        onUpdated={dialog.onProductUpdated}
       />
     </div>
   );

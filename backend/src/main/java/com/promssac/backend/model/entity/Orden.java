@@ -48,8 +48,9 @@ public class Orden {
     @Column(length = 120)
     private String subestado;
 
-    @Column(name = "cliente_nombre", length = 200)
-    private String clienteNombre;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cliente_id")
+    private Cliente cliente;
 
     @Column(name = "contacto_nombre", length = 120)
     private String contactoNombre;

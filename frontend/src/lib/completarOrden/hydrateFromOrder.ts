@@ -1,6 +1,7 @@
 import type { Order } from "@/domain/orders";
 import type { RoutePriority } from "@/domain/routes";
 import { customFieldKeys, type CustomFieldKey } from "@/lib/completarOrden/constants";
+import { sanitizePeruNineDigitPhoneInput } from "@/lib/completarOrden/contactValidation";
 
 export type CompletarHydrationSnapshot = {
   /** UUID del vehículo o cadena vacía si no hay. */
@@ -52,7 +53,10 @@ export function completarFormSnapshotFromOrder(order: Order): CompletarHydration
     for (const k of customFieldKeys) {
       const v = order.customFields[k];
       if (v != null && String(v).trim()) {
-        customFields[k] = String(v).trim();
+        customFields[k] =
+          k === "telefono_director"
+            ? sanitizePeruNineDigitPhoneInput(String(v))
+            : String(v).trim();
       }
     }
   }

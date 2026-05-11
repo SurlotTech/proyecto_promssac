@@ -1,94 +1,89 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 import type { OrderProductRow } from "@/domain/orderProducts";
+import { mapOrderProductLineDtoToRow } from "@/lib/mapOrderProductLine";
+import {
+  createEmptyProductLineForm,
+  evaluateProductLineForm,
+  isDecimalInputFragmentValid,
+  normalizeQuantityInputDigits,
+  orderProductRowToFormValues,
+  weightFieldHasSyntaxError,
+  type OrderProductLineFormValues,
+} from "@/lib/orderProductLineForm";
+import { cn, errorMessageFromUnknown } from "@/lib/utils";
 import { ordersApi } from "@/services/orders.api";
+import { toast } from "sonner";
 
 const inputClass =
   "h-9 border-border/80 text-sm font-medium shadow-sm focus-visible:ring-2 focus-visible:ring-ring";
-
-function emptyForm() {
-  return {
-    code: "",
-    name: "",
-    price: "",
-    quantity: "",
-    weight: "",
-  };
-}
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   orderDisplayId: string;
   onSaved: (row: OrderProductRow) => void;
+  editRow?: OrderProductRow | null;
+  onUpdated?: (row: OrderProductRow) => void;
 }
 
-const NewProductDialog = ({ open, onOpenChange, orderDisplayId, onSaved }: Props) => {
-  const [form, setForm] = useState(emptyForm);
+export default function NewProductDialog({
+  open,
+  onOpenChange,
+  orderDisplayId,
+  onSaved,
+  editRow = null,
+  onUpdated,
+}: Props) {
+  const [form, setForm] = useState<OrderProductLineFormValues>(() => createEmptyProductLineForm());
   const [saving, setSaving] = useState(false);
 
+  const isEditing = editRow !== null;
+
   useEffect(() => {
-    if (!open) {
-      setForm(emptyForm());
-    }
-  }, [open]);
+    if (!open) return;
+    setForm(isEditing && editRow ? orderProductRowToFormValues(editRow) : createEmptyProductLineForm());
+  }, [open, isEditing, editRow?.id]);
 
-  const priceNum = parseFloat(form.price.replace(",", "."));
-  const qtyNum = parseInt(form.quantity, 10);
-  const weightNum = form.weight.trim() ? parseFloat(form.weight.replace(",", ".")) : undefined;
-  const weightValid = !form.weight.trim() || (!Number.isNaN(weightNum!) && weightNum! >= 0);
-  const requiredOk =
-    form.code.trim() &&
-    form.name.trim() &&
-    form.price.trim() &&
-    !Number.isNaN(priceNum) &&
-    priceNum >= 0 &&
-    form.quantity.trim() &&
-    !Number.isNaN(qtyNum) &&
-    qtyNum > 0 &&
-    weightValid;
+  const parsed = useMemo(() => evaluateProductLineForm(form), [form]);
 
-  const handleSave = async () => {
-    if (!requiredOk) {
+  const weightHasError = weightFieldHasSyntaxError(form.weight);
+
+  const submitDisabled = parsed.ok !== true || saving;
+
+  async function handleSave(): Promise<void> {
+    if (parsed.ok !== true) {
       toast.error("Completa los campos obligatorios con valores válidos.");
       return;
     }
+
     setSaving(true);
     try {
-      const row = await ordersApi.createProductLine(orderDisplayId, {
-        code: form.code.trim(),
-        name: form.name.trim(),
-        unitPrice: priceNum,
-        quantity: qtyNum,
-        ...(weightNum !== undefined && { weight: weightNum }),
-      });
-      const mapped: OrderProductRow = {
-        id: row.id,
-        code: row.code,
-        orderId: row.orderId,
-        name: row.name,
-        unitPrice: row.unitPrice,
-        quantity: row.quantity,
-        weight: row.weight,
-        customField: row.customField,
-        createdAt: row.createdAt,
-      };
-      onSaved(mapped);
-      toast.success(`Producto ${mapped.code} añadido a la orden.`);
+      const dto = isEditing && editRow
+        ? await ordersApi.updateProductLine(orderDisplayId, editRow.id, parsed.payload)
+        : await ordersApi.createProductLine(orderDisplayId, parsed.payload);
+
+      const mapped = mapOrderProductLineDtoToRow(dto);
+
+      if (isEditing) {
+        onUpdated?.(mapped);
+        toast.success(`Producto ${mapped.code} actualizado.`);
+      } else {
+        onSaved(mapped);
+        toast.success(`Producto ${mapped.code} añadido a la orden.`);
+      }
       onOpenChange(false);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "No se pudo guardar el producto.");
+    } catch (error: unknown) {
+      toast.error(errorMessageFromUnknown(error, "No se pudo guardar el producto."));
     } finally {
       setSaving(false);
     }
-  };
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -112,7 +107,7 @@ const NewProductDialog = ({ open, onOpenChange, orderDisplayId, onSaved }: Props
               <ArrowLeft className="h-4 w-4" strokeWidth={2} />
             </Button>
             <DialogTitle className="text-lg font-semibold tracking-tight text-foreground">
-              Nuevo producto
+              {isEditing ? "Editar producto" : "Nuevo producto"}
             </DialogTitle>
           </header>
 
@@ -140,7 +135,9 @@ const NewProductDialog = ({ open, onOpenChange, orderDisplayId, onSaved }: Props
                   <Input
                     id="np-code"
                     value={form.code}
-                    onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, code: e.target.value }))
+                    }
                     placeholder="Ej: SKU-88421"
                     className={cn(inputClass, "tabular-nums")}
                     autoComplete="off"
@@ -153,7 +150,9 @@ const NewProductDialog = ({ open, onOpenChange, orderDisplayId, onSaved }: Props
                   <Input
                     id="np-name"
                     value={form.name}
-                    onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, name: e.target.value }))
+                    }
                     placeholder="Nombre o descripción breve"
                     className={inputClass}
                     autoComplete="off"
@@ -168,7 +167,9 @@ const NewProductDialog = ({ open, onOpenChange, orderDisplayId, onSaved }: Props
                     type="text"
                     inputMode="decimal"
                     value={form.price}
-                    onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, price: e.target.value }))
+                    }
                     placeholder="0.00"
                     className={cn(inputClass, "tabular-nums")}
                     autoComplete="off"
@@ -186,7 +187,7 @@ const NewProductDialog = ({ open, onOpenChange, orderDisplayId, onSaved }: Props
                     onChange={(e) =>
                       setForm((f) => ({
                         ...f,
-                        quantity: e.target.value.replace(/\D/g, ""),
+                        quantity: normalizeQuantityInputDigits(e.target.value),
                       }))
                     }
                     placeholder="1"
@@ -205,8 +206,7 @@ const NewProductDialog = ({ open, onOpenChange, orderDisplayId, onSaved }: Props
                     value={form.weight}
                     onChange={(e) => {
                       const val = e.target.value;
-                      // Solo permite dígitos, coma y punto (número decimal positivo)
-                      if (/^[\d]*[.,]?[\d]*$/.test(val)) {
+                      if (isDecimalInputFragmentValid(val)) {
                         setForm((f) => ({ ...f, weight: val }));
                       }
                     }}
@@ -214,8 +214,23 @@ const NewProductDialog = ({ open, onOpenChange, orderDisplayId, onSaved }: Props
                     className={cn(
                       inputClass,
                       "tabular-nums",
-                      form.weight && !weightValid && "border-destructive focus-visible:ring-destructive",
+                      weightHasError && "border-destructive focus-visible:ring-destructive",
                     )}
+                    autoComplete="off"
+                  />
+                </div>
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label htmlFor="np-custom" className="text-xs text-muted-foreground">
+                    Campo personalizado
+                  </Label>
+                  <Input
+                    id="np-custom"
+                    value={form.customField}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, customField: e.target.value }))
+                    }
+                    placeholder="Opcional"
+                    className={inputClass}
                     autoComplete="off"
                   />
                 </div>
@@ -239,9 +254,9 @@ const NewProductDialog = ({ open, onOpenChange, orderDisplayId, onSaved }: Props
                 size="sm"
                 className="h-9 w-full bg-primary text-primary-foreground hover:bg-primary-hover sm:w-auto sm:min-w-[140px]"
                 onClick={() => void handleSave()}
-                disabled={!requiredOk || saving}
+                disabled={submitDisabled}
               >
-                {saving ? "Guardando…" : "Guardar"}
+                {saving ? "Guardando…" : isEditing ? "Actualizar" : "Guardar"}
               </Button>
             </div>
           </footer>
@@ -249,6 +264,4 @@ const NewProductDialog = ({ open, onOpenChange, orderDisplayId, onSaved }: Props
       </DialogContent>
     </Dialog>
   );
-};
-
-export default NewProductDialog;
+}

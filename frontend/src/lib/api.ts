@@ -94,6 +94,17 @@ export async function apiPatch<B>(path: string, body: B): Promise<void> {
   if (!res.ok) throw new Error(await parseError(res));
 }
 
+/** PATCH esperando respuesta JSON. */
+export async function apiPatchJson<T, B>(path: string, body: B): Promise<T> {
+  const res = await fetch(`${base}${path}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(await parseError(res));
+  return res.json() as Promise<T>;
+}
+
 export async function apiDelete(path: string): Promise<void> {
   const res = await fetch(`${base}${path}`, { method: "DELETE" });
   if (!res.ok) throw new Error(await parseError(res));

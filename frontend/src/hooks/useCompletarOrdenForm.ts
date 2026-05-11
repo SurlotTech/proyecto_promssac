@@ -10,11 +10,12 @@ import {
 import { buildOrderCompletePayload } from "@/lib/completarOrden/buildOrderCompletePayload";
 import { completarFormSnapshotFromOrder } from "@/lib/completarOrden/hydrateFromOrder";
 import {
-  canProceedWizardThroughAddress,
+  canFinalizeCompletarOrdenWizard,
   firstBlockingStepAmong012,
   isCompletarStepValid,
   messageForBlockingStepAmong012,
   messageWhenCurrentStepInvalid,
+  describePersonalizadosStepError,
   type CompletarStepContext,
 } from "@/lib/completarOrden/stepValidation";
 import { LIMA_CENTER } from "@/domain/fleet";
@@ -31,6 +32,7 @@ import {
 import { consultasApi } from "@/services/consultas.api";
 import { ordersApi } from "@/services/orders.api";
 import { toast } from "sonner";
+import { sanitizePeruNineDigitPhoneInput } from "@/lib/completarOrden/contactValidation";
 
 function emptyCustomFields(): Record<CustomFieldKey, string> {
   return Object.fromEntries(customFieldKeys.map((k) => [k, ""])) as Record<CustomFieldKey, string>;
@@ -129,6 +131,18 @@ export function useCompletarOrdenForm() {
     if (fromNav) persistOrderDraft(fromNav);
   }, [location, navigate]);
 
+  /** Vuelta desde Productos u otra ruta: posicionar el paso solicitado una sola vez. */
+  useEffect(() => {
+    const state = location.state as OrderCompletarLocationState | null;
+    const raw = state?.resumeStep;
+    if (typeof raw !== "number" || Number.isNaN(raw)) return;
+
+    const max = COMPLETAR_ORDEN_STEPS.length - 1;
+    const step = Math.max(0, Math.min(max, raw));
+    setCurrentStep(step);
+    setCompletedSteps(() => Array.from({ length: step }, (_, i) => i));
+  }, [location.key, location.pathname, location.state]);
+
   useEffect(() => {
     const id = draft?.displayOrderId?.trim();
     if (!id) return;
@@ -150,7 +164,12 @@ export function useCompletarOrdenForm() {
       setNormalizedAddress(cached.normalizedAddress);
       setServiceMinutes(cached.serviceMinutes);
       setAddressReference(cached.addressReference);
-      setCustomFields(cached.customFields as Record<CustomFieldKey, string>);
+      const cachedCf = cached.customFields as Record<CustomFieldKey, string>;
+      setCustomFields({
+        ...emptyCustomFields(),
+        ...cachedCf,
+        telefono_director: sanitizePeruNineDigitPhoneInput(cachedCf.telefono_director ?? ""),
+      });
       if (cached.lat.trim() && cached.lng.trim()) {
         setLat(cached.lat);
         setLng(cached.lng);
@@ -217,6 +236,7 @@ export function useCompletarOrdenForm() {
       addressLine,
       lat,
       lng,
+      customFields,
     }),
     [
       draft,
@@ -231,6 +251,7 @@ export function useCompletarOrdenForm() {
       addressLine,
       lat,
       lng,
+      customFields,
     ],
   );
 
@@ -348,6 +369,11 @@ export function useCompletarOrdenForm() {
       toast.error(messageForBlockingStepAmong012(blocked, stepCtx));
       return;
     }
+    const pfErr = describePersonalizadosStepError(customFields);
+    if (pfErr) {
+      toast.error(pfErr);
+      return;
+    }
     if (!draft) return;
     const latNum = parseFloat(lat);
     const lngNum = parseFloat(lng);
@@ -430,7 +456,7 @@ export function useCompletarOrdenForm() {
     setDeliveryTo(to);
   }, []);
 
-  const canSave = canProceedWizardThroughAddress(stepCtx);
+  const canSave = canFinalizeCompletarOrdenWizard(stepCtx);
 
   return {
     draft,

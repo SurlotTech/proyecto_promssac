@@ -5,6 +5,11 @@ export function isValidPeruMobileNineDigits(phone: string): boolean {
   return /^\d{9}$/.test(phone.trim());
 }
 
+/** Quita caracteres no numéricos y recorta a 9 — para `<input>` de celular PE. */
+export function sanitizePeruNineDigitPhoneInput(raw: string): string {
+  return raw.replace(/\D/g, "").slice(0, PERU_PHONE_DIGIT_COUNT);
+}
+
 /** Validación práctica de correo (no RFC exhaustivo). */
 export function isValidEmailLocalPartFormat(email: string): boolean {
   const t = email.trim();

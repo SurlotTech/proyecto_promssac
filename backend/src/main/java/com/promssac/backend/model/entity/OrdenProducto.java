@@ -43,6 +43,10 @@ public class OrdenProducto {
     @Column(nullable = false)
     private Integer cantidad;
 
+    /** Kilogramos por línea; opcional. */
+    @Column(name = "peso_kg", precision = 12, scale = 4)
+    private BigDecimal pesoKg;
+
     @Column(name = "campo_personalizado", length = 300)
     private String campoPersonalizado;
 

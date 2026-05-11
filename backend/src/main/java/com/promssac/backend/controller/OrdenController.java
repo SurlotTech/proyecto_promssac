@@ -14,9 +14,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import java.util.UUID;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -49,6 +52,21 @@ public class OrdenController {
     public ResponseEntity<OrderProductLineResponse> agregarProducto(
             @PathVariable String numeroOrden, @Valid @RequestBody OrderProductLineCreateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(ordenProductoService.agregar(numeroOrden, request));
+    }
+
+    @PutMapping("/{numeroOrden}/productos/{productoId}")
+    public ResponseEntity<OrderProductLineResponse> actualizarProducto(
+            @PathVariable String numeroOrden,
+            @PathVariable UUID productoId,
+            @Valid @RequestBody OrderProductLineCreateRequest request) {
+        return ResponseEntity.ok(ordenProductoService.actualizar(numeroOrden, productoId, request));
+    }
+
+    @DeleteMapping("/{numeroOrden}/productos/{productoId}")
+    public ResponseEntity<Void> eliminarProducto(
+            @PathVariable String numeroOrden, @PathVariable UUID productoId) {
+        ordenProductoService.eliminar(numeroOrden, productoId);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping

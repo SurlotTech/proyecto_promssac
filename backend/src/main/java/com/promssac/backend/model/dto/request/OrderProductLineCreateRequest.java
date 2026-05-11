@@ -31,6 +31,10 @@ public class OrderProductLineCreateRequest {
     @Min(1)
     private Integer quantity;
 
+    /** Opcional — kilogramos. */
+    @DecimalMin(value = "0.0", inclusive = true)
+    private BigDecimal weight;
+
     @Size(max = 300)
     private String customField;
 }

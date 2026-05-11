@@ -1,4 +1,5 @@
 import type { Route } from "@/domain/routes";
+import type { Order } from "@/domain/orders";
 import { apiDelete, apiGet, apiPost, apiPut } from "@/lib/api";
 import { endpoints } from "./endpoints";
 
@@ -27,6 +28,13 @@ export const routesApi = {
 
   get(id: string): Promise<Route> {
     return apiGet<Route>(`${endpoints.routes}/${encodeURIComponent(id)}`);
+  },
+
+  /** Órdenes con `routeId` igual a esta ruta (GET detalle operaciones). */
+  listOrdersForRoute(routeId: string): Promise<Order[]> {
+    return apiGet<Order[]>(
+      `${endpoints.routes}/${encodeURIComponent(routeId)}/ordenes`,
+    );
   },
 
   create(body: RouteWriteBody): Promise<Route> {

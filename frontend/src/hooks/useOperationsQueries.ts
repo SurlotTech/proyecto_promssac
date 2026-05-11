@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fleetApi, mobileUsersApi, ordersApi, routesApi, vehiclesApi, webRolesApi, webUsersApi } from "@/services";
+import { fleetApi, mobileUsersApi, ordersApi, routesApi, vehiclesApi, webRolesApi, webUsersApi, clientsApi } from "@/services";
 
 export function useVehiclesQuery() {
   return useQuery({
@@ -83,10 +83,38 @@ export function useRoutesQuery() {
   });
 }
 
+export function useRouteOrdersQuery(routeId: string | undefined) {
+  return useQuery({
+    queryKey: ["rutas", routeId, "ordenes"],
+    queryFn: () => routesApi.listOrdersForRoute(routeId!),
+    enabled: Boolean(routeId?.trim()),
+  });
+}
+
 export function useOrdersQuery() {
   return useQuery({
     queryKey: ["ordenes"],
     queryFn: () => ordersApi.list(),
+  });
+}
+
+/** Una orden por número (pantalla detalle sin depender de la lista cargada). */
+export function useOrderDetailQuery(numeroOrden: string | undefined) {
+  const trimmed = numeroOrden?.trim();
+  return useQuery({
+    queryKey: ["ordenes", "detalle", trimmed],
+    queryFn: () => ordersApi.getByNumero(trimmed!),
+    enabled: Boolean(trimmed),
+  });
+}
+
+/** Líneas de productos de una orden (GET `{numero}/productos`). */
+export function useOrderProductLinesQuery(numeroOrden: string | undefined) {
+  const trimmed = numeroOrden?.trim();
+  return useQuery({
+    queryKey: ["ordenes", trimmed, "productos"],
+    queryFn: () => ordersApi.listProductLines(trimmed!),
+    enabled: Boolean(trimmed),
   });
 }
 
@@ -97,3 +125,29 @@ export function useFleetDevicesQuery() {
     queryFn: () => fleetApi.listDevices(),
   });
 }
+
+export function useClientsQuery(incluirInactivos: boolean) {
+  return useQuery({
+    queryKey: ["clientes", "lista", incluirInactivos],
+    queryFn: () => clientsApi.list(incluirInactivos),
+  });
+}
+
+export function useClientDetailQuery(clientId: string | undefined) {
+  const trimmed = clientId?.trim();
+  return useQuery({
+    queryKey: ["clientes", "detalle", trimmed],
+    queryFn: () => clientsApi.get(trimmed!),
+    enabled: Boolean(trimmed),
+  });
+}
+
+export function useClientOrdersQuery(clientId: string | undefined) {
+  const trimmed = clientId?.trim();
+  return useQuery({
+    queryKey: ["clientes", trimmed, "ordenes"],
+    queryFn: () => clientsApi.ordersForClient(trimmed!),
+    enabled: Boolean(trimmed),
+  });
+}
+

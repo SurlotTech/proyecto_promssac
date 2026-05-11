@@ -34,7 +34,6 @@ export function buildOrderCompletePayload(s: OrderCompleteFormSnapshot): OrderCo
   const minsParsed = parseInt(s.serviceMinutes, 10);
   return {
     numeroOrden: s.draft.displayOrderId.trim(),
-    quitarVehiculo: true,
     contactoNombre: s.contactName.trim(),
     contactoIdentificador: s.contactIdentifier.trim(),
     contactoTelefono: s.contactPhone.trim(),

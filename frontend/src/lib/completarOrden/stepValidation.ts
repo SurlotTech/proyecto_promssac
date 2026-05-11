@@ -1,8 +1,10 @@
 import type { OrderCreationDraft } from "@/lib/orderCreationDraft";
 import { STEP_VALIDATION_LABELS } from "@/lib/completarOrden/constants";
+import type { CustomFieldKey } from "@/lib/completarOrden/constants";
 import {
   describeContactStepError,
   isContactStepValid,
+  isValidPeruMobileNineDigits,
 } from "@/lib/completarOrden/contactValidation";
 
 /** Estado necesario para validar cada paso del asistente Completar orden. */
@@ -19,7 +21,18 @@ export type CompletarStepContext = {
   addressLine: string;
   lat: string;
   lng: string;
+  customFields: Record<CustomFieldKey, string>;
 };
+
+/** Teléfono Director (campo personalizado): vacío válido; si hay texto → 9 dígitos. */
+export function describePersonalizadosStepError(fields: Record<CustomFieldKey, string>): string | null {
+  const raw = fields.telefono_director?.trim() ?? "";
+  if (!raw) return null;
+  if (!isValidPeruMobileNineDigits(raw)) {
+    return "El Teléfono Director debe tener exactamente 9 dígitos numéricos (sin letras).";
+  }
+  return null;
+}
 
 export function isCompletarStepValid(step: number, c: CompletarStepContext): boolean {
   switch (step) {
@@ -50,7 +63,7 @@ export function isCompletarStepValid(step: number, c: CompletarStepContext): boo
       );
     }
     case 3:
-      return true;
+      return describePersonalizadosStepError(c.customFields) === null;
     default:
       return false;
   }
@@ -98,6 +111,9 @@ export function messageWhenCurrentStepInvalid(currentStep: number, c: CompletarS
       }) ?? "Revisa los datos de contacto."
     );
   }
+  if (currentStep === 3) {
+    return describePersonalizadosStepError(c.customFields) ?? "Revisa los campos personalizados.";
+  }
   const label = STEP_VALIDATION_LABELS[currentStep];
   if (label) {
     return `Completa los campos obligatorios de ${label}.`;
@@ -107,4 +123,9 @@ export function messageWhenCurrentStepInvalid(currentStep: number, c: CompletarS
 
 export function canProceedWizardThroughAddress(c: CompletarStepContext): boolean {
   return firstBlockingStepAmong012(c) === null;
+}
+
+/** Incluye validación del paso «Personalizados» (Teléfono Director). */
+export function canFinalizeCompletarOrdenWizard(c: CompletarStepContext): boolean {
+  return canProceedWizardThroughAddress(c) && describePersonalizadosStepError(c.customFields) === null;
 }

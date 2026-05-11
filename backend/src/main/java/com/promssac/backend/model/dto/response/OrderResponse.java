@@ -18,6 +18,9 @@ public class OrderResponse {
     private String substatus;
     private String vehiclePlate;
     private String clientName;
+
+    /** UUID del cliente de catálogo vinculado, si la orden tiene {@code cliente_id}. */
+    private String clientId;
     private String routeDate;
     private String contactName;
     private String contactIdentifier;
@@ -32,6 +35,15 @@ public class OrderResponse {
 
     /** UUID del vehículo asignado a la orden, si existe. */
     private String vehicleId;
+
+    /**
+     * Nombre del conductor: preferentemente usuario móvil de la ruta ({@code conductor_movil}); si falta,
+     * nombre registrado en el vehículo.
+     */
+    private String driverName;
+
+    /** Teléfono del usuario móvil vinculado al vehículo de la ruta (u orden). */
+    private String driverPhone;
 
     /** Datos del asistente &quot;Completar orden&quot; (si ya se guardaron). */
     private String contactPhone;

@@ -1,7 +1,9 @@
 package com.promssac.backend.controller;
 
 import com.promssac.backend.model.dto.request.RouteWriteRequest;
+import com.promssac.backend.model.dto.response.OrderResponse;
 import com.promssac.backend.model.dto.response.RouteResponse;
+import com.promssac.backend.service.OrdenService;
 import com.promssac.backend.service.RutaService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class RutaController {
 
     private final RutaService rutaService;
+    private final OrdenService ordenService;
 
     @GetMapping
     public ResponseEntity<List<RouteResponse>> listar() {
@@ -35,6 +38,11 @@ public class RutaController {
     @GetMapping("/{id}")
     public ResponseEntity<RouteResponse> obtener(@PathVariable UUID id) {
         return ResponseEntity.ok(rutaService.obtener(id));
+    }
+
+    @GetMapping("/{id}/ordenes")
+    public ResponseEntity<List<OrderResponse>> listarOrdenesDeRuta(@PathVariable UUID id) {
+        return ResponseEntity.ok(ordenService.listarPorRutaId(id));
     }
 
     @PostMapping

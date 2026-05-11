@@ -7,6 +7,8 @@ export interface OrderCreationDraft {
 
 export interface OrderCompletarLocationState {
   orderDraft: OrderCreationDraft;
+  /** Ej.: al volver desde `/ordenes/productos`; abrir este paso del asistente. */
+  resumeStep?: number;
 }
 
 export interface OrderProductsLocationState {

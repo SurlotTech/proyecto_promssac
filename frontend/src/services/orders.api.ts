@@ -1,6 +1,6 @@
 import type { Order } from "@/domain/orders";
 import { normalizeFechaRutaForApi } from "@/lib/fechaRutaApi";
-import { apiGet, apiPost, apiPostNoContent } from "@/lib/api";
+import { apiDelete, apiGet, apiPost, apiPostNoContent, apiPut } from "@/lib/api";
 import { endpoints } from "./endpoints";
 
 export interface OrderCreateInput {
@@ -11,7 +11,7 @@ export interface OrderCreateInput {
   vehiculoId?: string;
   estado?: string;
   subestado?: string;
-  clienteNombre?: string;
+  clienteId?: string;
   contactoNombre?: string;
   contactoIdentificador?: string;
   esUltimoDespacho?: boolean;
@@ -48,6 +48,19 @@ function orderProductosPath(numeroOrden: string): string {
   return `${endpoints.orders}/${encodeURIComponent(numeroOrden.trim())}/productos`;
 }
 
+function buildProductLineBody(input: OrderProductLineCreateInput): Record<string, unknown> {
+  const body: Record<string, unknown> = {
+    code: input.code.trim(),
+    name: input.name.trim(),
+    unitPrice: input.unitPrice,
+    quantity: input.quantity,
+    /** Siempre enviamos `weight`: número o null para que el backend limpie `peso_kg`. */
+    weight: input.weight ?? null,
+  };
+  if (input.customField?.trim()) body.customField = input.customField.trim();
+  return body;
+}
+
 /** Payload para POST /ordenes/completar-datos (asistente Completar orden). */
 export interface OrderCompleteInput {
   numeroOrden: string;
@@ -82,7 +95,7 @@ function buildOrderCreateJson(input: OrderCreateInput): Record<string, unknown> 
   if (input.vehiculoId?.trim()) body.vehiculoId = input.vehiculoId.trim();
   if (input.estado?.trim()) body.estado = input.estado.trim();
   if (input.subestado?.trim()) body.subestado = input.subestado.trim();
-  if (input.clienteNombre?.trim()) body.clienteNombre = input.clienteNombre.trim();
+  if (input.clienteId?.trim()) body.clienteId = input.clienteId.trim();
   if (input.contactoNombre?.trim()) body.contactoNombre = input.contactoNombre.trim();
   if (input.contactoIdentificador?.trim()) {
     body.contactoIdentificador = input.contactoIdentificador.trim();
@@ -125,17 +138,23 @@ export const ordersApi = {
     numeroOrden: string,
     input: OrderProductLineCreateInput,
   ): Promise<OrderProductLineDto> {
-    const body: Record<string, unknown> = {
-      code: input.code.trim(),
-      name: input.name.trim(),
-      unitPrice: input.unitPrice,
-      quantity: input.quantity,
-      weight: input.weight,
-    };
-    if (input.customField?.trim()) body.customField = input.customField.trim();
     return apiPost<OrderProductLineDto, Record<string, unknown>>(
       orderProductosPath(numeroOrden),
-      body,
+      buildProductLineBody(input),
     );
+  },
+
+  updateProductLine(
+    numeroOrden: string,
+    productId: string,
+    input: OrderProductLineCreateInput,
+  ): Promise<OrderProductLineDto> {
+    const path = `${orderProductosPath(numeroOrden)}/${encodeURIComponent(productId.trim())}`;
+    return apiPut<OrderProductLineDto, Record<string, unknown>>(path, buildProductLineBody(input));
+  },
+
+  deleteProductLine(numeroOrden: string, productId: string): Promise<void> {
+    const path = `${orderProductosPath(numeroOrden)}/${encodeURIComponent(productId.trim())}`;
+    return apiDelete(path);
   },
 };

@@ -33,4 +33,12 @@ export const COMPLETAR_ORDEN_STEPS: Step[] = [
   { id: "custom", title: "Personalizados", description: "Campos extra" },
 ];
 
-export const STEP_VALIDATION_LABELS = ["Datos de orden", "Datos de contacto", "Dirección"] as const;
+/** Paso donde están director, paquetes, guías, etc. (último del asistente). */
+export const COMPLETAR_STEP_PERSONALIZADOS_INDEX = COMPLETAR_ORDEN_STEPS.length - 1;
+
+export const STEP_VALIDATION_LABELS = [
+  "Datos de orden",
+  "Datos de contacto",
+  "Dirección",
+  "Campos extra",
+] as const;

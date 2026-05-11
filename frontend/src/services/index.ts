@@ -26,3 +26,4 @@ export type {
 export { routesApi, type RouteWriteBody } from "./routes.api";
 export { ordersApi } from "./orders.api";
 export { fleetApi } from "./fleet.api";
+export { clientsApi } from "./clients.api";

@@ -14,6 +14,8 @@ export interface Order {
   substatus: string;
   vehiclePlate: string;
   clientName: string;
+  /** UUID del cliente de catálogo si la orden tiene `cliente_id`. */
+  clientId?: string;
   routeDate: string;
   contactName: string;
   contactIdentifier: string;
@@ -25,6 +27,12 @@ export interface Order {
 
   /** UUID del vehículo asignado (lista/detalle backend). */
   vehicleId?: string;
+
+  /** Conductor operativo (usuario móvil de la ruta o nombre en vehículo). */
+  driverName?: string;
+
+  /** Teléfono del usuario móvil del vehículo de la ruta/orden (si existe en BD). */
+  driverPhone?: string;
 
   /** Presentes cuando la orden tiene datos del flujo Completar (GET detalle / lista enriquecida). */
   contactPhone?: string;
