@@ -21,7 +21,7 @@ export default function DetalleImportacion() {
   return (
     <div className="flex h-full flex-col animate-fade-in bg-muted/20">
       {/* Breadcrumbs */}
-      <div className="flex items-center gap-2 px-6 py-4 text-sm font-medium text-muted-foreground bg-card border-b border-border/50">
+      <div className="flex items-center gap-2 px-6 py-4 text-sm font-medium text-muted-foreground bg-card/40 backdrop-blur-md border-b border-border/50">
         <Link to="/importar" className="hover:text-primary transition-colors">
           Últimas Importaciones
         </Link>
@@ -32,7 +32,7 @@ export default function DetalleImportacion() {
       <div className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
         <div className="w-full space-y-6">
           {/* Summary Card */}
-          <div className="bg-card border border-border shadow-sm rounded-xl p-8 relative">
+          <div className="bg-card/40 backdrop-blur-md border border-border shadow-sm rounded-xl p-8 relative">
             <div className="absolute right-8 top-8">
               <Button variant="link" className="text-warning text-sm h-auto p-0 font-bold hover:text-warning/80 hover:no-underline">
                 <Download className="mr-1.5 h-4 w-4" />
@@ -62,7 +62,7 @@ export default function DetalleImportacion() {
           </div>
 
           {/* Table Card */}
-          <div className="bg-card border border-border shadow-sm rounded-xl overflow-hidden">
+          <div className="bg-card/40 backdrop-blur-md border border-border shadow-sm rounded-xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>

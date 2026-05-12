@@ -8,7 +8,7 @@ const VehicleCard = ({ v, onClick }: { v: Vehicle; onClick: () => void }) => {
   return (
     <button
       onClick={onClick}
-      className="group w-full rounded-xl border border-border bg-card p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+      className="group w-full rounded-xl border border-border bg-card/40 backdrop-blur-md p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">

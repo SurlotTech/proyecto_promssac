@@ -244,7 +244,7 @@ const NuevoUsuarioMovil = () => {
   const pageTitle = isEdit ? "Editar usuario móvil" : "Nuevo usuario móvil";
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-background animate-fade-in">
+    <div className="flex min-h-0 flex-1 flex-col bg-transparent animate-fade-in">
       <header className="sticky top-0 z-10 flex flex-col gap-4 border-b border-border bg-card/95 px-4 py-4 backdrop-blur supports-[backdrop-filter]:bg-card/80 sm:flex-row sm:items-start sm:justify-between sm:px-6">
         <div className="min-w-0 flex-1">
           <nav className="mb-2 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-sm text-muted-foreground">
@@ -281,7 +281,7 @@ const NuevoUsuarioMovil = () => {
 
       <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
         <div className="mx-auto max-w-6xl space-y-6 pb-28">
-          <section className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+          <section className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
             <FormSectionTitle>Usuario</FormSectionTitle>
             <div className="grid grid-cols-1 gap-6 p-5 lg:grid-cols-[1fr_280px] lg:items-start">
               <div className="space-y-4">
@@ -291,7 +291,7 @@ const NuevoUsuarioMovil = () => {
                   </Label>
                   <Input
                     id="nm-name"
-                    className="h-10 bg-background"
+                    className="h-10 bg-transparent"
                     placeholder="Nombre completo"
                     autoComplete="name"
                     value={fullName}
@@ -305,7 +305,7 @@ const NuevoUsuarioMovil = () => {
                   </Label>
                   <Input
                     id="nm-user"
-                    className="h-10 bg-background"
+                    className="h-10 bg-transparent"
                     placeholder="sin_espacios"
                     autoComplete="username"
                     value={username}
@@ -327,7 +327,7 @@ const NuevoUsuarioMovil = () => {
                     id="nm-pass"
                     inputMode="numeric"
                     maxLength={4}
-                    className="h-10 bg-background font-mono tracking-widest"
+                    className="h-10 bg-transparent font-mono tracking-widest"
                     placeholder="••••"
                     autoComplete="new-password"
                     value={password}
@@ -347,7 +347,7 @@ const NuevoUsuarioMovil = () => {
                   <Input
                     id="nm-phone"
                     type="tel"
-                    className="h-10 bg-background"
+                    className="h-10 bg-transparent"
                     placeholder="+51 999 999 999"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
@@ -364,7 +364,7 @@ const NuevoUsuarioMovil = () => {
                   onChange={onFotoChange}
                 />
                 <div className="flex flex-col items-center text-center">
-                  <div className="relative flex size-28 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-border bg-background text-muted-foreground">
+                  <div className="relative flex size-28 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-border bg-transparent text-muted-foreground">
                     {displayPhotoSrc ? (
                       <img src={displayPhotoSrc} alt="" className="size-full object-cover" />
                     ) : (
@@ -373,7 +373,7 @@ const NuevoUsuarioMovil = () => {
                   </div>
                   <button
                     type="button"
-                    className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/60"
+                    className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-transparent px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/60"
                     onClick={() => fotoInputRef.current?.click()}
                   >
                     <Upload className="size-4 shrink-0" aria-hidden />
@@ -413,7 +413,7 @@ const NuevoUsuarioMovil = () => {
             </div>
           </section>
 
-          <section className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+          <section className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
             <FormSectionTitle>Identificador de vehículo</FormSectionTitle>
             <div className="p-5">
               <RadioGroup
@@ -434,7 +434,7 @@ const NuevoUsuarioMovil = () => {
                     "flex cursor-pointer flex-col gap-4 rounded-xl border p-4 transition-colors",
                     vehicleMode === "list"
                       ? "border-primary bg-primary/5 ring-1 ring-primary/20"
-                      : "border-border bg-card hover:bg-muted/20",
+                      : "border-border bg-card/40 backdrop-blur-md hover:bg-muted/20",
                   )}
                 >
                   <div className="flex items-start gap-3">
@@ -449,7 +449,7 @@ const NuevoUsuarioMovil = () => {
                       value={selectedVehicleId || undefined}
                       onValueChange={setSelectedVehicleId}
                     >
-                      <SelectTrigger className="h-10 bg-background">
+                      <SelectTrigger className="h-10 bg-transparent">
                         <SelectValue placeholder={vehiclesLoading ? "Cargando…" : "Seleccionar vehículo"} />
                       </SelectTrigger>
                       <SelectContent>
@@ -477,7 +477,7 @@ const NuevoUsuarioMovil = () => {
                     "flex cursor-pointer flex-col gap-4 rounded-xl border p-4 transition-colors",
                     vehicleMode === "create"
                       ? "border-primary bg-primary/5 ring-1 ring-primary/20"
-                      : "border-border bg-card hover:bg-muted/20",
+                      : "border-border bg-card/40 backdrop-blur-md hover:bg-muted/20",
                   )}
                 >
                   <div className="flex items-start gap-3">
@@ -499,7 +499,7 @@ const NuevoUsuarioMovil = () => {
                         value={createVehicleType || undefined}
                         onValueChange={setCreateVehicleType}
                       >
-                        <SelectTrigger className="h-10 bg-background">
+                        <SelectTrigger className="h-10 bg-transparent">
                           <SelectValue placeholder="Tipo" />
                         </SelectTrigger>
                         <SelectContent>
@@ -518,7 +518,7 @@ const NuevoUsuarioMovil = () => {
                       <Input
                         id="nm-v-name"
                         disabled={vehicleMode !== "create"}
-                        className="h-10 bg-background"
+                        className="h-10 bg-transparent"
                         placeholder="Ej. Unidad 12"
                         value={createVehicleName}
                         onChange={(e) => setCreateVehicleName(e.target.value)}
@@ -530,7 +530,7 @@ const NuevoUsuarioMovil = () => {
             </div>
           </section>
 
-          <section className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+          <section className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
             <FormSectionTitle>Permisos</FormSectionTitle>
             <div className="space-y-4 p-5">
               <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/25 px-3 py-2.5">

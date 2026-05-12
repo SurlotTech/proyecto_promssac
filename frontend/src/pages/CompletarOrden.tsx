@@ -95,7 +95,7 @@ const CompletarOrden = () => {
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-background">
+    <div className="flex min-h-0 flex-1 flex-col bg-transparent">
       <header className="sticky top-0 z-10 border-b border-border bg-card/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-card/80 sm:px-6">
         <div className="mx-auto flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-start gap-3 sm:items-center">
@@ -136,7 +136,7 @@ const CompletarOrden = () => {
 
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-4xl space-y-8 px-4 py-6 sm:px-6 sm:py-8">
-          <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
+          <div className="rounded-xl border border-border bg-card/40 backdrop-blur-md p-4 shadow-sm sm:p-6">
             <div className="mb-4 flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-soft text-primary">
                 <CompletarOrdenStepIcon step={f.currentStep} />

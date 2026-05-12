@@ -82,7 +82,7 @@ export const PermissionGroupCard = ({
   const isAllActive = activeCount === group.permissions.length;
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+    <div className="flex flex-col overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
       <div
         className="flex cursor-pointer select-none items-center justify-between border-b border-border bg-muted/30 p-4"
         onClick={() => setExpanded(!expanded)}
@@ -212,7 +212,7 @@ const NuevoRol = () => {
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-background animate-fade-in">
+    <div className="flex min-h-0 flex-1 flex-col bg-transparent animate-fade-in">
       <header className="sticky top-0 z-10 flex flex-col gap-4 border-b border-border bg-card/95 px-4 py-4 backdrop-blur supports-[backdrop-filter]:bg-card/80 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div className="flex flex-col">
           <div className="mb-1 flex items-center gap-2 text-sm text-muted-foreground">
@@ -268,7 +268,7 @@ const NuevoRol = () => {
                 id="rol-clave"
                 value={clave}
                 onChange={(e) => setClave(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
-                className="border-border/80 bg-background font-mono text-sm"
+                className="border-border/80 bg-transparent font-mono text-sm"
                 placeholder="ej. logistica_norte"
                 autoComplete="off"
               />
@@ -282,7 +282,7 @@ const NuevoRol = () => {
                 id="rol-nombre"
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
-                className="border-border/80 bg-background"
+                className="border-border/80 bg-transparent"
                 placeholder="Ej. Operador logístico"
               />
             </div>
@@ -294,7 +294,7 @@ const NuevoRol = () => {
                 id="rol-desc"
                 value={descripcion}
                 onChange={(e) => setDescripcion(e.target.value)}
-                className="min-h-[80px] border-border/80 bg-background"
+                className="min-h-[80px] border-border/80 bg-transparent"
                 placeholder="Opcional"
               />
             </div>

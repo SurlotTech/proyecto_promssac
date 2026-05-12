@@ -15,7 +15,7 @@ export default function ClienteFiltersSidebar({ filtros, totalConFiltros }: Prop
 
   return (
     <aside className="flex w-full shrink-0 flex-col lg:h-full lg:max-h-full lg:w-[min(100%,20rem)] lg:min-w-[18rem]">
-      <div className="flex max-h-[min(72vh,520px)] flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm lg:max-h-none lg:flex-1 lg:min-h-0">
+      <div className="flex max-h-[min(72vh,520px)] flex-col overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm lg:max-h-none lg:flex-1 lg:min-h-0">
         <div className="shrink-0 space-y-3 border-b border-border p-4">
           <div className="flex items-center gap-2">
             <Filter className="size-4 shrink-0 text-primary" aria-hidden />

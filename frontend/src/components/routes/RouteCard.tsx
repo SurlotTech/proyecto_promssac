@@ -34,7 +34,7 @@ const RouteCard = ({ route: r, onSelect, onEdit, onDelete, vehicleTypeByPlate = 
           onSelect(r);
         }
       }}
-      className="group w-full cursor-pointer rounded-xl border border-border bg-card p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
+      className="group w-full cursor-pointer rounded-xl border border-border bg-card/40 backdrop-blur-md p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex min-w-0 flex-1 items-start gap-3">
@@ -42,8 +42,7 @@ const RouteCard = ({ route: r, onSelect, onEdit, onDelete, vehicleTypeByPlate = 
             <RouteIcon className="h-5 w-5" strokeWidth={1.75} />
           </div>
           <div className="min-w-0">
-            <p className="font-semibold leading-tight text-foreground">{r.code}</p>
-            <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{r.name}</p>
+            <p className="font-semibold leading-tight text-foreground line-clamp-2">{r.name}</p>
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1.5" onClick={(e) => e.stopPropagation()}>

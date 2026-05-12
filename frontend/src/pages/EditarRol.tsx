@@ -112,7 +112,7 @@ const EditarRol = () => {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-background animate-fade-in">
+    <div className="flex min-h-0 flex-1 flex-col bg-transparent animate-fade-in">
       <header className="sticky top-0 z-10 flex flex-col gap-4 border-b border-border bg-card/95 px-4 py-4 backdrop-blur supports-[backdrop-filter]:bg-card/80 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div className="flex flex-col">
           <div className="mb-1 flex items-center gap-2 text-sm text-muted-foreground">
@@ -178,7 +178,7 @@ const EditarRol = () => {
                 id="er-nombre"
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
-                className="border-border/80 bg-background"
+                className="border-border/80 bg-transparent"
               />
             </div>
             <div className="space-y-1.5">
@@ -189,7 +189,7 @@ const EditarRol = () => {
                 id="er-desc"
                 value={descripcion}
                 onChange={(e) => setDescripcion(e.target.value)}
-                className="min-h-[80px] border-border/80 bg-background"
+                className="min-h-[80px] border-border/80 bg-transparent"
               />
             </div>
           </div>

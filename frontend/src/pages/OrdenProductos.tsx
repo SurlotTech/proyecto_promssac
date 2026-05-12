@@ -33,7 +33,7 @@ const OrdenProductos = () => {
   }
 
   return (
-    <div className="animate-fade-in flex min-h-0 flex-1 flex-col bg-background">
+    <div className="animate-fade-in flex min-h-0 flex-1 flex-col bg-transparent">
       <header className="border-b border-border px-4 py-4 sm:px-6 lg:px-8">
         <Breadcrumb>
           <BreadcrumbList>

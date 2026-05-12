@@ -56,7 +56,7 @@ const Flota = () => {
   };
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden bg-background">
+    <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden bg-transparent">
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row lg:items-stretch">
         <aside className="flex min-h-0 w-full flex-1 flex-col overflow-hidden border-b border-border/80 lg:w-[min(100%,400px)] lg:max-w-[40vw] lg:flex-none lg:border-b-0 lg:border-r">
           {isLoading && (

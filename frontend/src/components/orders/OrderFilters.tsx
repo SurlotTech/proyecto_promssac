@@ -46,7 +46,7 @@ export const defaultOrderFilters: OrderFiltersState = {
 };
 
 const pillSelect =
-  "h-9 w-full min-w-0 rounded-lg border-border/80 bg-card text-sm shadow-sm transition-colors hover:bg-muted/40 focus:ring-2 focus:ring-ring";
+  "h-9 w-full min-w-0 rounded-lg border-border/80 bg-card/40 backdrop-blur-md text-sm shadow-sm transition-colors hover:bg-muted/40 focus:ring-2 focus:ring-ring";
 
 /** Ancho cómodo para selects de la primera fila (el rango de fechas va aparte, sin este tope) */
 const filterFieldMax = "xl:max-w-[min(100%,17rem)]";
@@ -129,7 +129,7 @@ const OrderFilters = ({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-border/80 bg-card p-4 shadow-sm">
+      <div className="rounded-xl border border-border/80 bg-card/40 backdrop-blur-md p-4 shadow-sm">
         {/* Flex en lugar de grid en xl: evita huecos enormes cuando el rango de fechas es estrecho pero ocupaba 2/6 del ancho */}
         <div className="flex flex-col gap-4 xl:flex-row xl:flex-wrap xl:items-end xl:gap-x-4 xl:gap-y-4">
           <div className={cn("min-w-0 space-y-1.5 xl:w-auto", filterFieldMax)}>

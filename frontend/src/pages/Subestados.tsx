@@ -123,21 +123,21 @@ const Subestados = () => {
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-background animate-fade-in">
+    <div className="flex min-h-0 flex-1 flex-col bg-transparent animate-fade-in">
       <Tabs value={tab} onValueChange={setTab} className="flex min-h-0 flex-1 flex-col">
         {/* Pestañas + acciones (misma fila que en la referencia) */}
-        <div className="sticky top-0 z-10 border-b border-border bg-card">
+        <div className="sticky top-0 z-10 border-b border-border bg-card/40 backdrop-blur-md">
           <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <TabsList className="h-auto w-full justify-start gap-1 rounded-lg bg-muted/60 p-1 sm:w-auto">
               <TabsTrigger
                 value="subestados"
-                className="rounded-md px-4 py-2 text-sm data-[state=active]:bg-background data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                className="rounded-md px-4 py-2 text-sm data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-sm"
               >
                 Subestados
               </TabsTrigger>
               <TabsTrigger
                 value="items"
-                className="rounded-md px-4 py-2 text-sm data-[state=active]:bg-background data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                className="rounded-md px-4 py-2 text-sm data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-sm"
               >
                 Subestados de ítems
               </TabsTrigger>
@@ -165,7 +165,7 @@ const Subestados = () => {
               value={nombreFilter}
               onChange={(e) => setNombreFilter(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && applyFilter()}
-              className="h-9 w-full bg-background sm:max-w-xs"
+              className="h-9 w-full bg-transparent sm:max-w-xs"
             />
             <div className="flex flex-wrap items-center gap-2">
               <Button
@@ -191,7 +191,7 @@ const Subestados = () => {
           </div>
 
           {/* Tabla */}
-          <div className="overflow-x-auto bg-card">
+          <div className="overflow-x-auto bg-card/40 backdrop-blur-md">
             <Table>
               <TableHeader className="bg-muted/40">
                 <TableRow className="hover:bg-transparent">
@@ -239,7 +239,7 @@ const Subestados = () => {
                             <MoreVertical className="size-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40 border-border bg-card shadow-md">
+                        <DropdownMenuContent align="end" className="w-40 border-border bg-card/40 backdrop-blur-md shadow-md">
                           <DropdownMenuItem className="cursor-pointer">Editar</DropdownMenuItem>
                           <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive">Eliminar</DropdownMenuItem>
                         </DropdownMenuContent>

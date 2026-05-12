@@ -159,7 +159,7 @@ const UsuariosWeb = () => {
   );
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-background animate-fade-in">
+    <div className="flex min-h-0 flex-1 flex-col bg-transparent animate-fade-in">
       <header className="sticky top-0 z-10 flex flex-col gap-4 border-b border-border bg-card/95 px-4 py-4 backdrop-blur supports-[backdrop-filter]:bg-card/80 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div className="flex flex-col">
           <h1 className="text-xl font-bold tracking-tight text-foreground">Usuarios web</h1>
@@ -185,17 +185,17 @@ const UsuariosWeb = () => {
       </header>
 
       <div className="flex-1 overflow-auto p-4 sm:p-6">
-        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
           <div className="flex flex-wrap items-center gap-3 border-b border-border bg-muted/20 p-4">
             <Input
               placeholder="Nombre"
-              className="h-9 w-full bg-background sm:w-[200px]"
+              className="h-9 w-full bg-transparent sm:w-[200px]"
               value={draftFilters.nombre}
               onChange={(e) => setDraftFilters((d) => ({ ...d, nombre: e.target.value }))}
             />
             <Input
               placeholder="Usuario"
-              className="h-9 w-full bg-background sm:w-[200px]"
+              className="h-9 w-full bg-transparent sm:w-[200px]"
               value={draftFilters.usuario}
               onChange={(e) => setDraftFilters((d) => ({ ...d, usuario: e.target.value }))}
             />
@@ -203,7 +203,7 @@ const UsuariosWeb = () => {
               value={draftFilters.estado || undefined}
               onValueChange={(v) => setDraftFilters((d) => ({ ...d, estado: v as FilterDraft["estado"] }))}
             >
-              <SelectTrigger className="h-9 w-full bg-background sm:w-[160px]">
+              <SelectTrigger className="h-9 w-full bg-transparent sm:w-[160px]">
                 <SelectValue placeholder="Estado" />
               </SelectTrigger>
               <SelectContent>
@@ -215,7 +215,7 @@ const UsuariosWeb = () => {
               value={draftFilters.rol || undefined}
               onValueChange={(v) => setDraftFilters((d) => ({ ...d, rol: v }))}
             >
-              <SelectTrigger className="h-9 w-full bg-background sm:w-[180px]">
+              <SelectTrigger className="h-9 w-full bg-transparent sm:w-[180px]">
                 <SelectValue placeholder="Rol" />
               </SelectTrigger>
               <SelectContent>
@@ -319,7 +319,7 @@ const UsuariosWeb = () => {
                               <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48 border-border bg-card shadow-md">
+                          <DropdownMenuContent align="end" className="w-48 border-border bg-card/40 backdrop-blur-md shadow-md">
                             <DropdownMenuItem
                               className="cursor-pointer"
                               onClick={() => navigate(`/usuarios/web/${user.id}/editar`)}
@@ -375,7 +375,7 @@ const UsuariosWeb = () => {
       </div>
 
       <Dialog open={rolModalUserId != null} onOpenChange={(open) => !open && closeRolModal()}>
-        <DialogContent className="sm:max-w-[550px] border-border bg-card">
+        <DialogContent className="sm:max-w-[550px] border-border bg-card/40 backdrop-blur-md">
           <DialogHeader>
             <DialogTitle className="text-foreground">Cambiar rol de usuario</DialogTitle>
             <DialogDescription className="text-muted-foreground">
@@ -399,7 +399,7 @@ const UsuariosWeb = () => {
                   <span className="font-normal text-muted-foreground">{rolActualLabel(rolDetail, roleOptions)}</span>
                 </p>
                 <Select value={newRoleKey || undefined} onValueChange={setNewRoleKey}>
-                  <SelectTrigger className="w-full border-border bg-background text-foreground">
+                  <SelectTrigger className="w-full border-border bg-transparent text-foreground">
                     <SelectValue placeholder="Seleccionar nuevo rol" />
                   </SelectTrigger>
                   <SelectContent className="max-h-[min(50vh,280px)]">

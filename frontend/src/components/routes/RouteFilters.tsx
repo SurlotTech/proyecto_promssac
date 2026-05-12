@@ -31,7 +31,7 @@ interface Props {
 }
 
 const pillTrigger =
-  "h-9 w-full min-w-0 shrink border-none bg-transparent px-2 py-0 shadow-none transition-colors hover:bg-transparent focus:ring-0 focus:ring-offset-0 data-[state=open]:bg-transparent sm:w-fit sm:max-w-[min(100%,18rem)] font-semibold text-foreground hover:text-foreground/80 [&>div]:mr-2";
+  "h-12 w-full min-w-0 shrink rounded-full border-border/100 bg-transparent px-4 py-0 shadow-none transition-colors hover:bg-zinc-50 focus:ring-2 focus:ring-ring focus:ring-offset-2 data-[state=open]:bg-zinc-50 sm:w-fit sm:max-w-[min(100%,18rem)] [&>div]:mr-2";
 
 const RouteFilters = ({
   filters,
@@ -56,10 +56,10 @@ const RouteFilters = ({
         <div className="relative min-w-0 flex-1 lg:max-w-lg">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Buscar por ID, nombre de ruta..."
+            placeholder="Buscar por nombre de ruta..."
             value={filters.search}
             onChange={(e) => onChange({ ...filters, search: e.target.value })}
-            className="h-9 rounded-lg border-border/70 bg-white pl-10 shadow-none transition-colors hover:bg-zinc-50 focus-visible:ring-offset-0"
+            className="h-12 rounded-full border-border/100 bg-transparent pl-10 shadow-none transition-colors hover:bg-zinc-50 focus-visible:ring-offset-0"
           />
         </div>
 
@@ -71,13 +71,13 @@ const RouteFilters = ({
             <SelectTrigger className={pillTrigger}>
               <div className="flex items-center gap-2">
                 <Truck className="size-4 shrink-0 text-foreground/80" aria-hidden strokeWidth={1.75} />
-                <span className="min-w-0 truncate text-left leading-none">
-                  <SelectValue placeholder="Vehículo" />
+                <span className="min-w-0 truncate text-left text-sm">
+                  <SelectValue placeholder="Vehículos" />
                 </span>
               </div>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Vehículos</SelectItem>
+              <SelectItem value="all" >Vehículos</SelectItem>
               {vehicles.map((v) => (
                 <SelectItem key={v.id} value={v.id}>
                   {v.plate}
@@ -93,7 +93,7 @@ const RouteFilters = ({
             <SelectTrigger className={pillTrigger}>
               <div className="flex items-center gap-2">
                 <MapPin className="size-4 shrink-0 text-foreground/80" aria-hidden strokeWidth={1.75} />
-                <span className="min-w-0 truncate text-left leading-none">
+                <span className="min-w-0 truncate text-left text-sm">
                   <SelectValue placeholder="Lugar" />
                 </span>
               </div>
@@ -115,7 +115,7 @@ const RouteFilters = ({
             <SelectTrigger className={pillTrigger}>
               <div className="flex items-center gap-2">
                 <User className="size-4 shrink-0 text-foreground/80" aria-hidden strokeWidth={1.75} />
-                <span className="min-w-0 truncate text-left leading-none">
+                <span className="min-w-0 truncate text-left text-sm">
                   <SelectValue placeholder="Conductor" />
                 </span>
               </div>

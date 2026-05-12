@@ -133,7 +133,7 @@ const NewRouteDialog = ({ open, onOpenChange, vehicles, mobileUsers, editingRout
               
               <div className="space-y-2">
                 <Label htmlFor="route-name" className="text-xs font-semibold text-muted-foreground">
-                  Nombre de la ruta / ID de ruta <span className="text-primary">*</span>
+                  Nombre de la ruta <span className="text-primary">*</span>
                 </Label>
                 <Input
                   id="route-name"

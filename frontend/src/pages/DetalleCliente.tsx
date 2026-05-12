@@ -122,7 +122,7 @@ const DetalleCliente = () => {
       />
 
       <div className="flex flex-col gap-5 p-4 sm:p-6">
-        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-border/70 bg-muted/30 px-3 py-2 sm:px-4">
             <div className="flex min-w-0 flex-wrap items-center gap-1.5">
               <div
@@ -140,7 +140,7 @@ const DetalleCliente = () => {
                 )}
                 {cliente.activo ? "Activo" : "Desactivado"}
               </div>
-              <div className="inline-flex items-center gap-1 rounded-md border border-border/70 bg-background px-2 py-0.5 text-xs">
+              <div className="inline-flex items-center gap-1 rounded-md border border-border/70 bg-transparent px-2 py-0.5 text-xs">
                 <Package className="size-3 shrink-0 text-muted-foreground" aria-hidden />
                 <span className="tabular-nums font-semibold text-foreground">{cliente.ordenesTotalesRelacionadas}</span>
                 <span className="text-muted-foreground">órdenes</span>
@@ -256,7 +256,7 @@ const DetalleCliente = () => {
         </div>
 
         {tieneUbicacionMapa ? (
-          <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+          <div className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
             <div className="border-b border-border/70 bg-muted/30 px-4 py-3 sm:px-6">
               <p className="text-sm font-semibold text-foreground">Ubicación en mapa</p>
               <p className="text-xs text-muted-foreground">Coordenadas guardadas con el cliente (solo lectura)</p>
@@ -272,7 +272,7 @@ const DetalleCliente = () => {
           </div>
         ) : null}
 
-        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
           <div className="flex flex-col gap-1 border-b border-border/70 bg-gradient-to-r from-muted/50 to-muted/20 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <div className="flex items-center gap-3">
               <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-inner">

@@ -21,12 +21,12 @@ interface Props {
 
 const RouteTable = ({ routes, onSelect, onEdit, onDelete, vehicleTypeByPlate = {} }: Props) => {
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+    <div className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
       <div className="overflow-x-auto scrollbar-thin">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border bg-surface-muted text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              <th className="px-4 py-3.5">ID / Nombre</th>
+              <th className="px-4 py-3.5">Nombre de la ruta</th>
               <th className="px-4 py-3.5">Vehículo</th>
               <th className="px-4 py-3.5">Conductor</th>
               <th className="px-4 py-3.5">Despachos</th>
@@ -56,10 +56,7 @@ const RouteTable = ({ routes, onSelect, onEdit, onDelete, vehicleTypeByPlate = {
                         <MapPin className="h-4 w-4" />
                       </div>
                       <div>
-                        <p className="font-semibold text-foreground">{r.code}</p>
-                        <p className="text-xs text-muted-foreground truncate max-w-[150px]">
-                          {r.name}
-                        </p>
+                        <p className="font-semibold text-foreground truncate max-w-[200px]">{r.name}</p>
                       </div>
                     </div>
                   </td>

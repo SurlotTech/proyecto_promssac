@@ -16,7 +16,7 @@ interface Props {
 
 const VehicleTable = ({ vehicles, onSelect }: Props) => {
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+    <div className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
       <div className="overflow-x-auto scrollbar-thin">
         <table className="w-full text-sm">
           <thead>

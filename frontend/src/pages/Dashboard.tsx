@@ -87,7 +87,7 @@ function KpiCard({
   }[tone];
   const TrendIcon = trend === "up" ? TrendingUp : TrendingDown;
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-card hover:shadow-elevated transition-shadow">
+    <div className="rounded-2xl border border-border bg-card/40 backdrop-blur-md p-5 shadow-card hover:shadow-elevated transition-shadow">
       <div className="flex items-start justify-between">
         <div>
           <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</div>
@@ -150,14 +150,14 @@ const Dashboard = () => {
 
       {/* Charts row */}
       <div className="grid gap-4 grid-cols-1 xl:grid-cols-3">
-        <div className="xl:col-span-2 rounded-2xl border border-border bg-card p-5 shadow-card">
+        <div className="xl:col-span-2 rounded-2xl border border-border bg-card/40 backdrop-blur-md p-5 shadow-card">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="font-display font-semibold text-lg">Rendimiento operativo</h3>
               <p className="text-xs text-muted-foreground">Entregas vs pendientes — últimos 12 meses</p>
             </div>
             <div className="flex gap-1 rounded-lg bg-secondary p-1 text-xs font-medium">
-              <button className="px-3 py-1.5 rounded-md bg-card shadow-sm">Año</button>
+              <button className="px-3 py-1.5 rounded-md bg-card/40 backdrop-blur-md shadow-sm">Año</button>
               <button className="px-3 py-1.5 text-muted-foreground">Mes</button>
               <button className="px-3 py-1.5 text-muted-foreground">Semana</button>
             </div>
@@ -193,7 +193,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
+        <div className="rounded-2xl border border-border bg-card/40 backdrop-blur-md p-5 shadow-card">
           <h3 className="font-display font-semibold text-lg">Estado de flota</h3>
           <p className="text-xs text-muted-foreground">Distribución actual</p>
           <div className="relative h-52 mt-2">
@@ -227,7 +227,7 @@ const Dashboard = () => {
 
       {/* Bottom row */}
       <div className="grid gap-4 grid-cols-1 xl:grid-cols-3">
-        <div className="xl:col-span-2 rounded-2xl border border-border bg-card p-5 shadow-card">
+        <div className="xl:col-span-2 rounded-2xl border border-border bg-card/40 backdrop-blur-md p-5 shadow-card">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="font-display font-semibold text-lg">Top conductores</h3>
@@ -253,7 +253,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
+        <div className="rounded-2xl border border-border bg-card/40 backdrop-blur-md p-5 shadow-card">
           <h3 className="font-display font-semibold text-lg">Actividad reciente</h3>
           <p className="text-xs text-muted-foreground">Eventos en tiempo real</p>
           <ul className="mt-4 space-y-3">

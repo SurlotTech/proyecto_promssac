@@ -48,7 +48,7 @@ export default function ClienteTable({
   const hasta = Math.min(pagina * tamañoPagina, totalFiltradas);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
       {isLoading ? (
         <p className="p-12 text-center text-sm text-muted-foreground">Cargando clientes…</p>
       ) : isError ? (

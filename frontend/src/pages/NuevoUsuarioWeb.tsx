@@ -112,7 +112,7 @@ const NuevoUsuarioWeb = () => {
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-background animate-fade-in">
+    <div className="flex min-h-0 flex-1 flex-col bg-transparent animate-fade-in">
       <header className="sticky top-0 z-10 flex flex-col gap-4 border-b border-border bg-card/95 px-4 py-4 backdrop-blur supports-[backdrop-filter]:bg-card/80 sm:flex-row sm:items-start sm:justify-between sm:px-6">
         <div className="min-w-0 flex-1">
           <nav className="mb-2 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-sm text-muted-foreground">
@@ -153,7 +153,7 @@ const NuevoUsuarioWeb = () => {
 
       <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
         <div className="mx-auto max-w-6xl space-y-6">
-          <section className="max-w-2xl overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+          <section className="max-w-2xl overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
             <FormSectionTitle>Información del usuario</FormSectionTitle>
             <div className="space-y-4 p-5">
               <div className="space-y-2">
@@ -162,7 +162,7 @@ const NuevoUsuarioWeb = () => {
                 </Label>
                 <Input
                   id="nu-name"
-                  className="h-10 bg-background"
+                  className="h-10 bg-transparent"
                   placeholder="Ej. María García López"
                   autoComplete="name"
                   value={fullName}
@@ -175,7 +175,7 @@ const NuevoUsuarioWeb = () => {
                 </Label>
                 <Input
                   id="nu-username"
-                  className="h-10 bg-background"
+                  className="h-10 bg-transparent"
                   placeholder="sin_espacios"
                   autoComplete="username"
                   value={username}
@@ -192,7 +192,7 @@ const NuevoUsuarioWeb = () => {
                 <Input
                   id="nu-email"
                   type="email"
-                  className="h-10 bg-background"
+                  className="h-10 bg-transparent"
                   placeholder="correo@empresa.com"
                   autoComplete="email"
                   value={email}
@@ -206,7 +206,7 @@ const NuevoUsuarioWeb = () => {
                 <Input
                   id="nu-password"
                   type="password"
-                  className="h-10 bg-background"
+                  className="h-10 bg-transparent"
                   autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -220,7 +220,7 @@ const NuevoUsuarioWeb = () => {
                 <Input
                   id="nu-password2"
                   type="password"
-                  className="h-10 bg-background"
+                  className="h-10 bg-transparent"
                   autoComplete="new-password"
                   value={password2}
                   onChange={(e) => setPassword2(e.target.value)}
@@ -229,7 +229,7 @@ const NuevoUsuarioWeb = () => {
             </div>
           </section>
 
-          <section className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+          <section className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
             <button
               type="button"
               className="flex w-full items-center justify-between gap-3 border-b border-border bg-muted/35 px-5 py-3 text-left transition-colors hover:bg-muted/50"
@@ -278,7 +278,7 @@ const NuevoUsuarioWeb = () => {
                         Seleccionar rol
                       </Label>
                       <Select value={selectedRole || undefined} onValueChange={setSelectedRole}>
-                        <SelectTrigger id="nu-role-select" className="h-10 bg-background">
+                        <SelectTrigger id="nu-role-select" className="h-10 bg-transparent">
                           <SelectValue placeholder="Seleccionar rol" />
                         </SelectTrigger>
                         <SelectContent className="max-h-[min(50vh,280px)]">

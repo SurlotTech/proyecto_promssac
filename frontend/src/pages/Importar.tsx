@@ -133,7 +133,7 @@ export default function Importar() {
           {/* Sidebar Form */}
           <aside className="w-full shrink-0 space-y-6 lg:w-80">
 
-            <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-md p-5 shadow-sm">
               <div className="mb-4 flex items-center gap-2 border-b border-border pb-4">
                 <Upload className="size-4 text-primary" />
                 <h3 className="text-sm font-semibold uppercase tracking-wider">
@@ -201,7 +201,7 @@ export default function Importar() {
 
           {/* Main Content Area */}
           <main className="flex-1 space-y-6">
-            <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden flex flex-col h-full max-h-[calc(100vh-12rem)]">
+            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm overflow-hidden flex flex-col h-full max-h-[calc(100vh-12rem)]">
               <div className="px-6 py-4 border-b border-border bg-muted/30">
                 <h2 className="text-lg font-semibold text-foreground tracking-tight">Últimas importaciones</h2>
               </div>
@@ -217,7 +217,7 @@ export default function Importar() {
                       <th className="px-6 py-4 font-semibold text-muted-foreground text-right">Fecha solicitud</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border bg-card">
+                  <tbody className="divide-y divide-border bg-card/40 backdrop-blur-md">
                     {mockImports.map((item, index) => (
                       <tr key={index} className="group hover:bg-muted/20 transition-colors">
                         <td className="px-6 py-4 font-mono font-medium text-primary hover:underline">

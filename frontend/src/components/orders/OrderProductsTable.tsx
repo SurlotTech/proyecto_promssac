@@ -21,7 +21,7 @@ export default function OrderProductsTable({
   onDeleteProduct,
 }: Props) {
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+    <div className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
       <div className="overflow-x-auto scrollbar-thin">
         <table className="w-full min-w-[720px] text-sm">
           <thead>

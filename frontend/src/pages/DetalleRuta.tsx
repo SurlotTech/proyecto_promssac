@@ -7,7 +7,6 @@ import {
   MapPin, 
   Package, 
   User, 
-  CreditCard,
   RotateCcw,
   Eye,
 } from "lucide-react";
@@ -210,9 +209,9 @@ const DetalleRuta = () => {
   if (!route) return <div className="p-8 text-center text-destructive">No se encontró la ruta.</div>;
 
   return (
-    <div className="flex flex-col h-full bg-[#f8f9fc] animate-in fade-in duration-500 overflow-hidden">
+    <div className="flex flex-col h-full bg-transparent animate-in fade-in duration-500 overflow-hidden">
       {/* Light Header / Breadcrumbs */}
-      <header className="bg-white border-b border-border px-6 py-4 flex items-center justify-between shrink-0">
+      <header className="bg-card/40 backdrop-blur-md border-b border-border px-6 py-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <Link to="/rutas" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 text-sm font-medium">
             Rutas
@@ -241,8 +240,7 @@ const DetalleRuta = () => {
 
       {/* Main Tabs Container */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 overflow-hidden">
-        {/* Info Bar and Tabs List */}
-        <div className="bg-white border-b border-border px-6 shrink-0">
+        <div className="bg-card/40 backdrop-blur-md border-b border-border px-6 shrink-0">
           <div className="flex items-center justify-between">
             <TabsList className="bg-transparent h-14 p-0 gap-6">
               <TabsTrigger 
@@ -256,12 +254,6 @@ const DetalleRuta = () => {
                 className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary text-muted-foreground px-0 h-14 font-semibold transition-all hover:text-foreground"
               >
                 Mapa
-              </TabsTrigger>
-              <TabsTrigger 
-                value="cobros" 
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary text-muted-foreground px-0 h-14 font-semibold transition-all hover:text-foreground"
-              >
-                Cobros
               </TabsTrigger>
             </TabsList>
 
@@ -294,8 +286,7 @@ const DetalleRuta = () => {
           </div>
         </div>
 
-        {/* Action/Filter Bar */}
-        <div className="px-6 py-4 flex items-center gap-3 shrink-0 bg-[#f8f9fc]">
+        <div className="px-6 py-4 flex items-center gap-3 shrink-0 bg-transparent">
            <Select value={statusFilter} onValueChange={setStatusFilter}>
              <SelectTrigger className="w-[180px] bg-white border border-border h-10 text-muted-foreground shadow-sm focus:ring-1 focus:ring-primary/20">
                <SelectValue placeholder="Estado" />
@@ -333,19 +324,14 @@ const DetalleRuta = () => {
 
            <div className="flex-1" />
 
-           {activeTab === "cobros" && (
-              <Button variant="outline" className="bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50 h-10 px-6 font-bold shadow-sm">
-                Colecciones
-              </Button>
-           )}
         </div>
 
         {/* Content Area */}
         <div className="flex-1 px-6 pb-6 overflow-hidden flex flex-col">
-          <TabsContent value="despachos" className="m-0 p-0 outline-none flex-1 flex flex-col bg-white rounded-xl shadow-sm border border-zinc-200 overflow-hidden data-[state=inactive]:hidden">
+          <TabsContent value="despachos" className="m-0 p-0 outline-none flex-1 flex flex-col bg-card/40 backdrop-blur-md rounded-xl shadow-sm border border-border/50 overflow-hidden data-[state=inactive]:hidden">
               <div className="overflow-x-auto flex-1 scrollbar-thin">
                 <table className="w-full text-[13px] text-left border-collapse">
-                  <thead className="bg-zinc-50 text-zinc-600 font-bold uppercase text-[11px] tracking-wider border-b border-zinc-200 sticky top-0 z-10">
+                  <thead className="bg-muted/20 backdrop-blur-md text-zinc-600 font-bold uppercase text-[11px] tracking-wider border-b border-border/40 sticky top-0 z-10">
                     <tr>
                       <th className="px-4 py-4">Pedido</th>
                       <th className="px-4 py-4">Estado</th>
@@ -387,7 +373,7 @@ const DetalleRuta = () => {
                       </tr>
                     ) : (
                       routeOrdersFiltered.map((o) => (
-                        <tr key={o.id} className="border-b border-zinc-100 hover:bg-zinc-50/80">
+                        <tr key={o.id} className="border-b border-border/40 hover:bg-white/5">
                           <td className="px-4 py-3 font-semibold text-foreground tabular-nums">{o.id}</td>
                           <td className="px-4 py-3">
                             <OrderStatusBadge status={o.status} />
@@ -425,10 +411,10 @@ const DetalleRuta = () => {
               </div>
           </TabsContent>
 
-          <TabsContent value="mapa" className="m-0 p-0 outline-none flex-1 flex bg-white rounded-xl shadow-sm border border-zinc-200 overflow-hidden data-[state=inactive]:hidden">
-              <div className="w-[300px] border-r border-zinc-200 flex flex-col bg-zinc-50/50 shrink-0 min-h-0">
-                 <div className="bg-zinc-50 px-6 py-4 text-zinc-600 font-bold uppercase text-[11px] tracking-wider border-b border-zinc-200 flex items-center gap-2 shrink-0">
-                    <div className="size-4 rounded border border-zinc-300 bg-white" />
+          <TabsContent value="mapa" className="m-0 p-0 outline-none flex-1 flex bg-card/40 backdrop-blur-md rounded-xl shadow-sm border border-border/50 overflow-hidden data-[state=inactive]:hidden">
+              <div className="w-[300px] border-r border-border/50 flex flex-col bg-transparent shrink-0 min-h-0">
+                 <div className="bg-muted/20 backdrop-blur-md px-6 py-4 text-zinc-600 font-bold uppercase text-[11px] tracking-wider border-b border-border/50 flex items-center gap-2 shrink-0">
+                    <div className="size-4 rounded border border-border/50 bg-white/20" />
                     Pedido
                  </div>
                  <div className="flex-1 overflow-y-auto p-3 min-h-0">
@@ -453,9 +439,9 @@ const DetalleRuta = () => {
                               }}
                               title={o.id}
                               className={cn(
-                                "block w-full truncate rounded-lg px-3 py-2 text-left text-sm font-medium text-foreground hover:bg-white hover:shadow-sm border transition-colors",
+                                "block w-full truncate rounded-lg px-3 py-2 text-left text-sm font-medium text-foreground hover:bg-white/10 hover:shadow-sm border transition-colors",
                                 selectedMapOrderId === o.id
-                                  ? "bg-white shadow-sm border-primary/35 ring-1 ring-primary/20"
+                                  ? "bg-white/20 shadow-sm border-primary/35 ring-1 ring-primary/20"
                                   : "border-transparent hover:border-zinc-200",
                               )}
                             >
@@ -467,7 +453,7 @@ const DetalleRuta = () => {
                     )}
                  </div>
                  {selectedMapOrder && (
-                   <div className="border-t border-zinc-200 bg-white p-4 shrink-0 space-y-2">
+                   <div className="border-t border-border/50 bg-transparent p-4 shrink-0 space-y-2">
                      {(selectedMapOrder.addressLine ?? selectedMapOrder.normalizedAddress) ? (
                        <p className="text-xs text-zinc-600 leading-snug line-clamp-3">
                          {selectedMapOrder.addressLine ?? selectedMapOrder.normalizedAddress}
@@ -510,37 +496,6 @@ const DetalleRuta = () => {
               </div>
           </TabsContent>
 
-          <TabsContent value="cobros" className="m-0 p-0 outline-none flex-1 flex flex-col bg-white rounded-xl shadow-sm border border-zinc-200 overflow-hidden data-[state=inactive]:hidden">
-               <div className="overflow-x-auto flex-1 scrollbar-thin">
-                <table className="w-full text-[13px] text-left border-collapse">
-                  <thead className="bg-zinc-50 text-zinc-600 font-bold uppercase text-[11px] tracking-wider border-b border-zinc-200 sticky top-0 z-10">
-                    <tr>
-                      <th className="px-6 py-4 w-10">#</th>
-                      <th className="px-4 py-4">Tipo de movimiento</th>
-                      <th className="px-4 py-4">Tipo de transacción</th>
-                      <th className="px-4 py-4">Monto</th>
-                      <th className="px-4 py-4">Código de pedido</th>
-                      <th className="px-4 py-4">Hora de gestión</th>
-                      <th className="px-4 py-4">Dirección</th>
-                      <th className="px-4 py-4">Observaciones</th>
-                      <th className="px-4 py-4 text-right pr-6">Pruebas de recolección</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td colSpan={9} className="py-24 text-center">
-                        <div className="flex flex-col items-center gap-5">
-                           <div className="size-20 rounded-full bg-primary-soft/20 flex items-center justify-center border border-primary-soft/50">
-                              <CreditCard className="size-10 text-primary opacity-40" />
-                           </div>
-                           <p className="text-zinc-400 font-medium text-lg">No se han encontrado resultados</p>
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-          </TabsContent>
         </div>
       </Tabs>
 

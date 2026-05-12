@@ -195,7 +195,7 @@ const EditarUsuario = () => {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-background animate-fade-in">
+    <div className="flex min-h-0 flex-1 flex-col bg-transparent animate-fade-in">
       <header className="sticky top-0 z-10 flex flex-col gap-4 border-b border-border bg-card/95 px-4 py-4 backdrop-blur supports-[backdrop-filter]:bg-card/80 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div className="flex flex-col">
           <div className="mb-1 flex items-center gap-2 text-sm text-muted-foreground">
@@ -239,7 +239,7 @@ const EditarUsuario = () => {
 
       <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
         <div className="mx-auto max-w-6xl space-y-6">
-          <section className="max-w-2xl overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+          <section className="max-w-2xl overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
             <FormSectionTitle>Información del usuario</FormSectionTitle>
             <div className="space-y-4 p-5">
               <div className="space-y-2">
@@ -248,7 +248,7 @@ const EditarUsuario = () => {
                 </Label>
                 <Input
                   id="eu-name"
-                  className="h-10 bg-background"
+                  className="h-10 bg-transparent"
                   value={fullName}
                   onChange={(e: ChangeEvent<HTMLInputElement>) => setFullName(e.target.value)}
                   autoComplete="name"
@@ -261,7 +261,7 @@ const EditarUsuario = () => {
                 </Label>
                 <Input
                   id="eu-username"
-                  className="h-10 bg-background"
+                  className="h-10 bg-transparent"
                   value={username}
                   onChange={(e) => setUsername(e.target.value.replace(/\s/g, ""))}
                   autoComplete="username"
@@ -278,7 +278,7 @@ const EditarUsuario = () => {
                 <Input
                   id="eu-email"
                   type="email"
-                  className="h-10 bg-background"
+                  className="h-10 bg-transparent"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   autoComplete="email"
@@ -292,7 +292,7 @@ const EditarUsuario = () => {
                 <Input
                   id="eu-password"
                   type="password"
-                  className="h-10 bg-background"
+                  className="h-10 bg-transparent"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="new-password"
@@ -307,7 +307,7 @@ const EditarUsuario = () => {
                 <Input
                   id="eu-password2"
                   type="password"
-                  className="h-10 bg-background"
+                  className="h-10 bg-transparent"
                   value={password2}
                   onChange={(e) => setPassword2(e.target.value)}
                   autoComplete="new-password"
@@ -318,7 +318,7 @@ const EditarUsuario = () => {
 
           <section
             id="eu-permisos-section"
-            className="flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm"
+            className="flex flex-col overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm"
           >
             <button
               type="button"
@@ -370,7 +370,7 @@ const EditarUsuario = () => {
                         Seleccionar rol
                       </Label>
                       <Select value={selectedRole || undefined} onValueChange={setSelectedRole}>
-                        <SelectTrigger id="eu-role-select" className="h-10 bg-background">
+                        <SelectTrigger id="eu-role-select" className="h-10 bg-transparent">
                           <SelectValue placeholder="Seleccionar rol" />
                         </SelectTrigger>
                         <SelectContent className="max-h-[min(50vh,280px)]">

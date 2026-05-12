@@ -56,7 +56,7 @@ const EnlaceCliente = () => {
   };
 
   return (
-    <div className="h-screen bg-background animate-fade-in overflow-hidden">
+    <div className="h-screen bg-transparent animate-fade-in overflow-hidden">
       <div className="flex w-full h-full lg:flex-row">
         {/* Columna Izquierda - Información */}
         <div className="w-full space-y-6 lg:w-1/2 overflow-y-auto px-4 lg:px-8 pb-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
@@ -79,7 +79,7 @@ const EnlaceCliente = () => {
                       "relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 flex-shrink-0",
                       item.completado
                         ? "bg-primary border-primary"
-                        : "bg-background border-border"
+                        : "bg-transparent border-border"
                     )}
                   >
                     {item.completado ? (

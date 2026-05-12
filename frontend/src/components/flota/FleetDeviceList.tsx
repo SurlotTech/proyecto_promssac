@@ -27,7 +27,7 @@ const FleetDeviceList = ({
   );
 
   return (
-    <div className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-card">
+    <div className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-card/40 backdrop-blur-md">
       <div className="shrink-0 space-y-3 border-b border-border/60 p-3 sm:p-4">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />

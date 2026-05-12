@@ -20,7 +20,7 @@ const FleetLiveMap = () => {
   const activeVehicles = vehicles.filter((v) => v.status === "in_route" || v.status === "active");
 
   return (
-    <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+    <div className="rounded-xl border border-border bg-card/40 backdrop-blur-md p-5 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h3 className="text-base font-semibold text-foreground">Flota en vivo</h3>

@@ -54,7 +54,7 @@ const Alertas = () => {
         <div className="flex w-full flex-col gap-6 lg:flex-row">
           {/* Sidebar Filters */}
           <aside className="w-full shrink-0 space-y-6 lg:w-80">
-            <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-md p-5 shadow-sm">
               <div className="mb-4 flex items-center gap-2 border-b border-border pb-4">
                 <Filter className="size-4 text-primary" />
                 <h3 className="text-sm font-semibold uppercase tracking-wider">
@@ -161,7 +161,7 @@ const Alertas = () => {
                 value={activeTab}
                 className="mt-0 focus-visible:outline-none focus-visible:ring-0"
               >
-                <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+                <div className="rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                       <thead>

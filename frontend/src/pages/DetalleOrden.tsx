@@ -180,7 +180,7 @@ const DetalleOrden = () => {
 
   if (decodedId.trim() === "") {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 bg-background p-8 animate-fade-in">
+      <div className="flex flex-1 flex-col items-center justify-center gap-4 bg-transparent p-8 animate-fade-in">
         <p className="text-center text-muted-foreground">Identificador de orden no válido.</p>
         <Button asChild variant="outline">
           <Link to="/ordenes">Volver a órdenes</Link>
@@ -193,7 +193,7 @@ const DetalleOrden = () => {
 
   if (isError || !order) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 bg-background p-8 animate-fade-in">
+      <div className="flex flex-1 flex-col items-center justify-center gap-4 bg-transparent p-8 animate-fade-in">
         <p className="max-w-md text-center text-muted-foreground">
           {isError && error instanceof Error
             ? error.message
@@ -215,7 +215,7 @@ const DetalleOrden = () => {
     order.addressLine?.trim() ?? order.normalizedAddress?.trim() ?? "";
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-background animate-fade-in">
+    <div className="flex min-h-0 flex-1 flex-col bg-transparent animate-fade-in">
       <header className="sticky top-0 z-10">
         <div className="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
@@ -271,11 +271,11 @@ const DetalleOrden = () => {
         </div>
       </header>
 
-      <div className="flex flex-1 flex-col overflow-y-auto custom-scrollbar bg-background lg:flex-row">
-        <aside className="w-full shrink-0 border-b border-border bg-background lg:w-96 xl:w-[400px] lg:border-b-0 lg:border-r">
+      <div className="flex flex-1 flex-col overflow-y-auto custom-scrollbar bg-transparent lg:flex-row">
+        <aside className="w-full shrink-0 border-b border-border bg-transparent lg:w-96 xl:w-[400px] lg:border-b-0 lg:border-r">
           <div className="space-y-4 p-4">
             <Collapsible open={resumenOpen} onOpenChange={setResumenOpen}>
-              <section className="overflow-hidden rounded-l border border-border bg-card shadow-sm">
+              <section className="overflow-hidden rounded-l border border-border bg-card/40 backdrop-blur-md shadow-sm">
                 <div className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left">
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Resumen</h3>
                   <CollapsibleTrigger asChild>
@@ -382,7 +382,7 @@ const DetalleOrden = () => {
             </Collapsible>
 
             <Collapsible open={camposOpen} onOpenChange={setCamposOpen}>
-              <section className="overflow-hidden rounded-l border border-border bg-card shadow-sm">
+              <section className="overflow-hidden rounded-l border border-border bg-card/40 backdrop-blur-md shadow-sm">
                 <div className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left">
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                     Campos personalizados
@@ -412,7 +412,7 @@ const DetalleOrden = () => {
             </Collapsible>
 
             <Collapsible open={itemsOpen} onOpenChange={setItemsOpen}>
-              <section className="overflow-hidden rounded-l border border-border bg-card shadow-sm">
+              <section className="overflow-hidden rounded-l border border-border bg-card/40 backdrop-blur-md shadow-sm">
                 <div className="flex w-full flex-wrap items-center justify-between gap-2 px-4 py-3 text-left">
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Ítems</h3>
                   <CollapsibleTrigger asChild>
@@ -477,7 +477,7 @@ const DetalleOrden = () => {
             </Collapsible>
 
             <Collapsible open={comentariosOpen} onOpenChange={setComentariosOpen}>
-              <section className="overflow-hidden rounded-l border border-border bg-card shadow-sm">
+              <section className="overflow-hidden rounded-l border border-border bg-card/40 backdrop-blur-md shadow-sm">
                 <div className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left">
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Comentarios</h3>
                   <CollapsibleTrigger asChild>
@@ -513,7 +513,7 @@ const DetalleOrden = () => {
         </aside>
 
         <main className="flex flex-1 flex-col gap-6 p-4 md:p-6 lg:max-w-3xl">
-          <section className="rounded-xl border border-border bg-card p-5 shadow-sm">
+          <section className="rounded-xl border border-border bg-card/40 backdrop-blur-md p-5 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border/60 pb-4">
               <div>
                 <h2 className="text-lg font-semibold tracking-tight">Vista rápida</h2>
@@ -559,7 +559,7 @@ const DetalleOrden = () => {
             </dl>
           </section>
 
-          <section className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+          <section className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
             <div className="border-b border-border/60 px-5 py-3">
               <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                 Ubicación de entrega

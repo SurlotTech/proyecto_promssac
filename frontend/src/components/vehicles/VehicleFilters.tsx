@@ -26,7 +26,7 @@ interface Props {
 
 /** Ancho según contenido (sm+); en columna estrecha siguen ocupando todo el ancho */
 const pillTrigger =
-  "h-9 w-full min-w-0 shrink rounded-lg border-border/70 bg-white px-4 py-0 shadow-none transition-colors hover:bg-zinc-50 focus:ring-2 focus:ring-ring focus:ring-offset-2 data-[state=open]:bg-zinc-50 sm:w-fit sm:max-w-[min(100%,18rem)] [&>div]:mr-2";
+  "h-12 w-full min-w-0 shrink rounded-full border-border/100 bg-transparent px-4 py-0 shadow-none transition-colors hover:bg-zinc-50 focus:ring-2 focus:ring-ring focus:ring-offset-2 data-[state=open]:bg-zinc-50 sm:w-fit sm:max-w-[min(100%,18rem)] [&>div]:mr-2";
 
 const VehicleFilters = ({ filters, onChange, onReset, toolbarRight }: Props) => {
   const hasActive =
@@ -41,7 +41,7 @@ const VehicleFilters = ({ filters, onChange, onReset, toolbarRight }: Props) => 
             placeholder="Buscar por placa, conductor..."
             value={filters.search}
             onChange={(e) => onChange({ ...filters, search: e.target.value })}
-            className="h-9 rounded-lg border-border/70 bg-white pl-10 shadow-none transition-colors hover:bg-zinc-50 focus-visible:ring-offset-0"
+            className="h-12 rounded-full border-border/100 bg-transparent pl-10 shadow-none transition-colors hover:bg-zinc-50 focus-visible:ring-offset-0"
           />
         </div>
 
@@ -53,7 +53,7 @@ const VehicleFilters = ({ filters, onChange, onReset, toolbarRight }: Props) => 
           <SelectTrigger className={pillTrigger}>
             <div className="flex items-center gap-2">
               <Truck className="size-4 shrink-0 text-foreground/80" aria-hidden strokeWidth={1.75} />
-              <span className="min-w-0 truncate text-left leading-none">
+              <span className="min-w-0 truncate text-left text-sm">
                 <SelectValue placeholder="Tipo de vehículo" />
               </span>
             </div>
@@ -62,8 +62,6 @@ const VehicleFilters = ({ filters, onChange, onReset, toolbarRight }: Props) => 
             <SelectItem value="all">Vehículos</SelectItem>
             <SelectItem value="Furgón">Furgón</SelectItem>
             <SelectItem value="Camión">Camión</SelectItem>
-            <SelectItem value="Moto">Moto</SelectItem>
-            <SelectItem value="Camioneta">Camioneta</SelectItem>
           </SelectContent>
         </Select>
 
@@ -74,7 +72,7 @@ const VehicleFilters = ({ filters, onChange, onReset, toolbarRight }: Props) => 
           <SelectTrigger className={pillTrigger}>
             <div className="flex items-center gap-2">
               <Activity className="size-4 shrink-0 text-foreground/80" aria-hidden strokeWidth={1.75} />
-              <span className="min-w-0 truncate text-left leading-none">
+              <span className="min-w-0 truncate text-left text-sm">
                 <SelectValue placeholder="Estado" />
               </span>
             </div>

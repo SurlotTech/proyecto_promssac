@@ -76,7 +76,7 @@ const UsuariosMovil = () => {
   }, [users, includeInactive, searchTerm]);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-background animate-fade-in">
+    <div className="flex min-h-0 flex-1 flex-col bg-transparent animate-fade-in">
       <header className="sticky top-0 z-10 flex flex-col gap-4 border-b border-border bg-card/95 px-4 py-4 backdrop-blur supports-[backdrop-filter]:bg-card/80 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div className="flex flex-col">
           <h1 className="text-xl font-bold tracking-tight text-foreground">Usuarios móviles</h1>
@@ -98,11 +98,11 @@ const UsuariosMovil = () => {
       </header>
 
       <div className="flex-1 overflow-auto p-4 sm:p-6">
-        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
           <div className="flex flex-wrap items-center gap-3 border-b border-border bg-muted/20 p-4">
             <Input
               placeholder="Buscar usuario móvil"
-              className="h-9 w-full bg-background sm:w-[300px]"
+              className="h-9 w-full bg-transparent sm:w-[300px]"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -189,7 +189,7 @@ const UsuariosMovil = () => {
                               <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-44 border-border bg-card shadow-md">
+                          <DropdownMenuContent align="end" className="w-44 border-border bg-card/40 backdrop-blur-md shadow-md">
                             <DropdownMenuItem
                               className="cursor-pointer"
                               onClick={() => navigate(`/usuarios/movil/${user.id}/editar`)}

@@ -71,7 +71,7 @@ const NuevoSubestado = () => {
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-background animate-fade-in">
+    <div className="flex min-h-0 flex-1 flex-col bg-transparent animate-fade-in">
       <header className="sticky top-0 z-10 border-b border-border bg-card/95 px-4 py-4 backdrop-blur supports-[backdrop-filter]:bg-card/85 sm:px-6">
         <div className="mx-auto flex max-w-4xl flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex min-w-0 items-start gap-3">
@@ -103,7 +103,7 @@ const NuevoSubestado = () => {
 
       <div className="flex-1 overflow-auto p-4 pb-28 sm:p-6 sm:pb-24">
         <div className="mx-auto max-w-4xl">
-          <section className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+          <section className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
             <div className="border-b border-border bg-muted/30 px-5 py-3">
               <h2 className="text-sm font-semibold text-foreground">Datos del subestado</h2>
               <p className="mt-0.5 text-xs text-muted-foreground">Completa los campos obligatorios para registrar el motivo.</p>
@@ -116,7 +116,7 @@ const NuevoSubestado = () => {
                     Estado
                   </LabelWithHint>
                   <Select value={estado} onValueChange={setEstado}>
-                    <SelectTrigger id="ns-estado" className="h-10 w-full bg-background">
+                    <SelectTrigger id="ns-estado" className="h-10 w-full bg-transparent">
                       <SelectValue placeholder="Seleccionar estado" />
                     </SelectTrigger>
                     <SelectContent>
@@ -135,7 +135,7 @@ const NuevoSubestado = () => {
                     id="ns-nombre"
                     value={nombre}
                     onChange={(e) => setNombre(e.target.value)}
-                    className="h-10 bg-background"
+                    className="h-10 bg-transparent"
                     placeholder="Ej. Cliente ausente"
                   />
                 </div>
@@ -145,7 +145,7 @@ const NuevoSubestado = () => {
                     Tipo
                   </LabelWithHint>
                   <Select value={tipo} onValueChange={setTipo}>
-                    <SelectTrigger id="ns-tipo" className="h-10 w-full bg-background">
+                    <SelectTrigger id="ns-tipo" className="h-10 w-full bg-transparent">
                       <SelectValue placeholder="Seleccionar tipo" />
                     </SelectTrigger>
                     <SelectContent>
@@ -164,7 +164,7 @@ const NuevoSubestado = () => {
                     id="ns-codigo"
                     value={codigo}
                     onChange={(e) => setCodigo(e.target.value)}
-                    className="h-10 bg-background"
+                    className="h-10 bg-transparent"
                     placeholder="Opcional"
                   />
                 </div>
@@ -172,7 +172,7 @@ const NuevoSubestado = () => {
                 <div>
                   <LabelWithHint htmlFor="ns-modo">Modo</LabelWithHint>
                   <Select value={modo} onValueChange={setModo}>
-                    <SelectTrigger id="ns-modo" className="h-10 w-full bg-background">
+                    <SelectTrigger id="ns-modo" className="h-10 w-full bg-transparent">
                       <SelectValue placeholder="Seleccionar modo" />
                     </SelectTrigger>
                     <SelectContent>
