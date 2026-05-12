@@ -46,7 +46,6 @@ const operationsItems: NavItem[] = [
   { to: "/vehiculos", label: "Vehículos", icon: Truck },
   { to: "/clientes", label: "Clientes", icon: UserSquare2 },
   { to: "/alertas", label: "Alertas", icon: Bell },
-  { to: "/importar", label: "Importar", icon: Upload },
 ];
 
 const usersGroup: NavItem = {

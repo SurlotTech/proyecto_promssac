@@ -10,7 +10,7 @@ import {
 import PageHeader from "@/components/PageHeader";
 import ClientFormDialog from "@/components/clients/ClientFormDialog";
 import ClienteActivoConfirmDialog from "@/components/clients/ClienteActivoConfirmDialog";
-import ClienteFiltersSidebar from "@/components/clients/ClienteFiltersSidebar";
+import ClienteFilters from "@/components/clients/ClienteFilters";
 import ClienteImportDialog from "@/components/clients/ClienteImportDialog";
 import ClienteTable from "@/components/clients/ClienteTable";
 import { Button } from "@/components/ui/button";
@@ -34,7 +34,7 @@ const Clientes = () => {
   );
 
   const [pagina, setPagina] = useState(1);
-  const [tamañoPagina, setTamañoPagina] = useState(25);
+  const [tamañoPagina, setTamañoPagina] = useState(10);
 
   useEffect(() => {
     setPagina(1);
@@ -148,8 +148,9 @@ const Clientes = () => {
       />
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4 sm:p-6 lg:p-8">
-        <div className="flex min-h-0 flex-1 flex-col gap-6 lg:flex-row lg:gap-8">
-          <ClienteFiltersSidebar filtros={filtros} totalConFiltros={listaFiltrada.length} />
+        <div className="flex min-h-0 flex-1 flex-col gap-5">
+          <ClienteFilters filtros={filtros} totalConFiltros={listaFiltrada.length} />
+          
           <main className="flex min-h-0 min-w-0 flex-1 flex-col">
             <ClienteTable
               filasPagina={filasPagina}

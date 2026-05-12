@@ -57,7 +57,7 @@ export default function ClienteTable({
         </p>
       ) : (
         <>
-          <div className="min-h-0 flex-1 overflow-auto">
+          <div className="min-h-0 flex-1 overflow-auto scrollbar-thin">
             <table className="w-full text-left text-sm">
               <thead className="sticky top-0 z-10 bg-muted/95 shadow-[0_1px_0_hsl(var(--border))] backdrop-blur-sm">
                 <tr className="text-[11px] uppercase tracking-wider text-muted-foreground">

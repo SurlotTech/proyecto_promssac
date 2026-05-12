@@ -299,7 +299,7 @@ export default function ClientFormDialog({ open, onOpenChange, editing }: Props)
               ) : null}
               <div className="space-y-1.5 sm:col-span-2">
                 <Label htmlFor="cli-iiee">IIEE</Label>
-                <Input id="cli-iiee" value={codigoModularIiee} onChange={(e) => setCodigoModularIiee(e.target.value)} />
+                <Input placeholder="Ej: 003350 (Número de la institución)" id="cli-iiee" value={codigoModularIiee} onChange={(e) => setCodigoModularIiee(e.target.value)} />
               </div>
               <div className="space-y-1.5 sm:col-span-2">
                 <Label htmlFor="cli-nivel-select">NIVEL</Label>

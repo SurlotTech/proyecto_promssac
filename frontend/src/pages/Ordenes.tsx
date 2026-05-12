@@ -29,7 +29,6 @@ import { persistOrderDraft, type OrderCreationDraft, type OrderCompletarLocation
 const PAGE_SIZE = 8;
 
 function orderMatches(o: Order, f: OrderFiltersState): boolean {
-  if (f.orderCode !== "all" && o.id !== f.orderCode) return false;
   if (f.status !== "all" && o.status !== f.status) return false;
   if (f.substatus !== "all" && o.substatus !== f.substatus) return false;
   if (f.vehiclePlate !== "all" && o.vehiclePlate !== f.vehiclePlate) return false;
@@ -41,16 +40,8 @@ function orderMatches(o: Order, f: OrderFiltersState): boolean {
 
   if (f.contactName.trim()) {
     const q = f.contactName.toLowerCase().trim();
-    const hit =
-      o.contactName.toLowerCase().includes(q) || o.clientName.toLowerCase().includes(q);
+    const hit = o.clientName.toLowerCase().includes(q);
     if (!hit) return false;
-  }
-
-  if (f.contactIdentifier !== "all") {
-    const c = o.contactIdentifier.toLowerCase();
-    if (f.contactIdentifier === "dni" && !c.includes("dni")) return false;
-    if (f.contactIdentifier === "ruc" && !c.includes("ruc")) return false;
-    if (f.contactIdentifier === "tel" && !(c.includes("tel") || c.includes("+51"))) return false;
   }
 
   return true;
@@ -139,8 +130,6 @@ const Ordenes = () => {
     return { total, inRoute, pending, delivered };
   }, [allOrders]);
 
-  const orderIds = useMemo(() => allOrders.map((o) => o.id), [allOrders]);
-
   const handleApplyFilters = () => {
     toast.success(`${filtered.length} orden${filtered.length !== 1 ? "es" : ""} encontrada${filtered.length !== 1 ? "s" : ""}.`);
   };
@@ -211,7 +200,6 @@ const Ordenes = () => {
           onChange={setFilters}
           onReset={handleResetFilters}
           onApply={handleApplyFilters}
-          orderIds={orderIds}
           substatusOptions={orderSubstatusOptions}
           vehiclePlates={vehiclePlatesInOrders}
         />

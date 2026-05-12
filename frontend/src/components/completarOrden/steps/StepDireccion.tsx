@@ -8,6 +8,8 @@ import { fieldInputClass } from "@/lib/completarOrden/constants";
 import { cn } from "@/lib/utils";
 
 interface Props {
+  contactName: string;
+  onContactNameChange: (v: string) => void;
   addressLine: string;
   onAddressLineChange: (v: string) => void;
   normalizedAddress: string;
@@ -26,6 +28,8 @@ interface Props {
 }
 
 const StepDireccion = ({
+  contactName,
+  onContactNameChange,
   addressLine,
   onAddressLineChange,
   normalizedAddress,
@@ -49,6 +53,20 @@ const StepDireccion = ({
 
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8">
       <div className="min-w-0 space-y-4">
+        <div className="space-y-1.5">
+          <Label htmlFor="co-client" className="text-xs text-muted-foreground">
+            Cliente <span className="text-primary">*</span>
+          </Label>
+          <Input
+            id="co-client"
+            value={contactName}
+            onChange={(e) => onContactNameChange(e.target.value)}
+            placeholder="Nombre del cliente"
+            className={fieldInputClass}
+            autoComplete="name"
+          />
+        </div>
+
         <div className="space-y-1.5">
           <Label htmlFor="co-address" className="text-xs text-muted-foreground">
             Dirección o referencia <span className="text-primary">*</span>
