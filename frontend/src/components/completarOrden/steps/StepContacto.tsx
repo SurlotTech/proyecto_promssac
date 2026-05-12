@@ -49,7 +49,7 @@ const StepContacto = ({
   return (
   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
     <div className="space-y-1.5">
-      <Label className="text-xs text-muted-foreground">
+      <Label className="text-sm text-muted-foreground">
         Identificador <span className="text-primary">*</span>
       </Label>
       <div className="flex gap-2">
@@ -91,11 +91,11 @@ const StepContacto = ({
         </div>
       </div>
       {idType === "dni" ? (
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Con 8 dígitos se consulta RENIEC y se completa el nombre (servidor con token Factiliza).
         </p>
       ) : idType === "ruc" ? (
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Con 11 dígitos se consulta SUNAT y se completa la razón social. La dirección de entrega la defines en el paso
           siguiente usando el mapa.
         </p>
@@ -103,7 +103,7 @@ const StepContacto = ({
     </div>
 
     <div className="space-y-1.5">
-      <Label htmlFor="co-contact-name" className="text-xs text-muted-foreground">
+      <Label htmlFor="co-contact-name" className="text-sm text-muted-foreground">
         Nombre del contacto <span className="text-primary">*</span>
       </Label>
       <Input
@@ -117,7 +117,7 @@ const StepContacto = ({
     </div>
 
     <div className="space-y-1.5">
-      <Label htmlFor="co-phone" className="text-xs text-muted-foreground">
+      <Label htmlFor="co-phone" className="text-sm text-muted-foreground">
         Teléfono <span className="text-primary">*</span>
       </Label>
       <Input
@@ -134,7 +134,7 @@ const StepContacto = ({
         autoComplete="tel"
         inputMode="numeric"
       />
-      <p className="text-[11px] text-muted-foreground">
+      <p className="text-xs text-muted-foreground">
         Obligatorio: exactamente <strong className="text-foreground">9 dígitos</strong> (celular Perú).
       </p>
       {phonePartialInvalid ? (
@@ -143,7 +143,7 @@ const StepContacto = ({
     </div>
 
     <div className="space-y-1.5">
-      <Label htmlFor="co-email" className="text-xs text-muted-foreground">
+      <Label htmlFor="co-email" className="text-sm text-muted-foreground">
         Correo electrónico
       </Label>
       <Input
@@ -158,7 +158,7 @@ const StepContacto = ({
         )}
         autoComplete="email"
       />
-      <p className="text-[11px] text-muted-foreground">Opcional. Si lo completas, debe ser un correo válido.</p>
+      <p className="text-xs text-muted-foreground">Opcional. Si lo completas, debe ser un correo válido.</p>
       {emailInvalid ? (
         <p className="text-[10px] text-destructive">Correo electrónico no válido.</p>
       ) : null}

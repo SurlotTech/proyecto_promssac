@@ -19,11 +19,20 @@ import {
   Calendar,
   Contact,
   FileText,
+  MoreHorizontal,
+  Eye,
+  Pencil
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 const mockNotificationsSent = [
@@ -224,10 +233,19 @@ const Notificaciones = () => {
                           <td className="px-4 py-4 text-muted-foreground">
                             {notif.fechaEnvio}
                           </td>
-                          <td className="px-4 py-4">
-                            <Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-primary">
-                              <Mail className="size-4" />
-                            </Button>
+                           <td className="px-4 py-4 text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:bg-muted hover:text-foreground">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-40 border-border bg-card/40 backdrop-blur-md shadow-md">
+                                <DropdownMenuItem className="cursor-pointer">
+                                  <Mail className="mr-2 h-4 w-4" /> Ver mensaje
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </td>
                         </tr>
                       ))}
@@ -312,17 +330,21 @@ const Notificaciones = () => {
                           {n.ultimaActualizacion}
                         </td>
                         <td className="px-4 py-4 text-right">
-                          <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-primary">
-                              <Edit2 className="size-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-destructive">
-                              <Trash2 className="size-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="size-8 text-muted-foreground">
-                               <Plus className="size-4 rotate-45" />
-                            </Button>
-                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:bg-muted hover:text-foreground">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-40 border-border bg-card/40 backdrop-blur-md shadow-md">
+                              <DropdownMenuItem className="cursor-pointer">
+                                <Edit2 className="mr-2 h-4 w-4" /> Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive">
+                                <Trash2 className="mr-2 h-4 w-4" /> Eliminar
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </td>
                       </tr>
                     ))}

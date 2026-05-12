@@ -47,18 +47,20 @@ const RouteTable = ({ routes, onSelect, onEdit, onDelete, vehicleTypeByPlate = {
               return (
                 <tr
                   key={r.id}
-                  onClick={() => onSelect(r)}
-                  className="group cursor-pointer transition-colors hover:bg-surface-muted"
+                  className="group transition-colors hover:bg-surface-muted"
                 >
                   <td className="px-4 py-4">
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-soft text-primary">
-                        <MapPin className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-foreground truncate max-w-[200px]">{r.name}</p>
-                      </div>
-                    </div>
+                      <button
+                        onClick={() => onSelect(r)}
+                        className="flex items-center gap-2 text-left transition-all hover:translate-x-0.5 group/name"
+                      >
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-soft text-primary transition-colors group-hover/name:bg-primary group-hover/name:text-white">
+                          <MapPin className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-foreground truncate max-w-[200px] transition-colors group-hover/name:text-primary group-hover/name:underline underline-offset-4">{r.name}</p>
+                        </div>
+                      </button>
                   </td>
                   <td className="px-4 py-4">
                     <div className="min-w-0">

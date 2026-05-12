@@ -47,9 +47,9 @@ const StepDatosOrden = ({
 }: Props) => {
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-end">
+      <div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label htmlFor="co-order-id" className="text-xs text-muted-foreground">
+          <Label htmlFor="co-order-id" className="text-sm text-muted-foreground">
             Número de la orden <span className="text-primary">*</span>
           </Label>
           <Input
@@ -59,22 +59,21 @@ const StepDatosOrden = ({
             className={cn(fieldInputClass, "bg-muted/40 tabular-nums")}
           />
         </div>
+
         <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground">
+          <Label className="text-sm text-muted-foreground">
             Fecha de entrega <span className="text-primary">*</span>
           </Label>
           <RouteDateRangePicker
             dateFrom={deliveryFrom}
             dateTo={deliveryTo}
             onRangeChange={onDeliveryRangeChange}
-            className="w-full min-w-0 lg:max-w-none"
+            className="w-full"
           />
         </div>
-      </div>
 
-      <div className="grid max-w-2xl grid-cols-2 gap-3 sm:gap-4">
-        <div className="min-w-0 space-y-1.5">
-          <Label className="text-xs text-muted-foreground">
+        <div className="space-y-1.5">
+          <Label className="text-sm text-muted-foreground">
             Modo <span className="text-primary">*</span>
           </Label>
           <Select value={mode} onValueChange={onModeChange}>
@@ -94,8 +93,9 @@ const StepDatosOrden = ({
             </SelectContent>
           </Select>
         </div>
-        <div className="min-w-0 space-y-1.5">
-          <Label className="text-xs text-muted-foreground">Prioridad</Label>
+
+        <div className="space-y-1.5">
+          <Label className="text-sm text-muted-foreground">Prioridad</Label>
           <Select value={priority} onValueChange={(v) => onPriorityChange(v as RoutePriority)}>
             <SelectTrigger className={selectTriggerClass}>
               <SelectValue />

@@ -35,21 +35,23 @@ const VehicleTable = ({ vehicles, onSelect }: Props) => {
               return (
                 <tr
                   key={v.id}
-                  onClick={() => onSelect(v)}
-                  className="group cursor-pointer transition-colors hover:bg-surface-muted"
+                  className="group transition-colors hover:bg-surface-muted"
                 >
                   <td className="px-5 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
+                    <button
+                      onClick={() => onSelect(v)}
+                      className="flex items-center gap-3 text-left transition-all hover:translate-x-0.5 group/plate"
+                    >
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary transition-colors group-hover/plate:bg-primary group-hover/plate:text-white">
                         <TypeIcon className="h-5 w-5" aria-hidden />
                       </div>
                       <div className="min-w-0">
-                        <p className="font-semibold text-foreground">{v.plate}</p>
+                        <p className="font-semibold text-foreground transition-colors group-hover/plate:text-primary group-hover/plate:underline underline-offset-4">{v.plate}</p>
                         <p className="text-xs text-muted-foreground">
                           {v.capacityKg.toLocaleString()} kg cap.
                         </p>
                       </div>
-                    </div>
+                    </button>
                   </td>
                   <td className="px-5 py-4 text-foreground">{v.type}</td>
                   <td className="px-5 py-4 text-foreground">

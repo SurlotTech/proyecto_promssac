@@ -1,5 +1,11 @@
-import { PackageOpen, Pencil, Plus, Trash2 } from "lucide-react";
+import { PackageOpen, Pencil, Plus, Trash2, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { OrderProductRow } from "@/domain/orderProducts";
 import { formatSolAmount } from "@/lib/formatCurrency";
 
@@ -121,28 +127,21 @@ function ProductLineRow({ row: p, onEdit, onDelete }: RowProps) {
       <td className="px-4 py-3.5 text-muted-foreground sm:px-5">{p.customField}</td>
       <td className="px-4 py-3.5 text-muted-foreground sm:px-5">{p.createdAt}</td>
       <td className="px-4 py-3.5 text-right sm:px-5">
-        <div className="flex justify-end gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-8 text-muted-foreground hover:text-foreground"
-            aria-label={`Editar ${p.code}`}
-            onClick={() => onEdit(p)}
-          >
-            <Pencil className="size-4" strokeWidth={2} />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-8 text-muted-foreground hover:text-destructive"
-            aria-label={`Eliminar ${p.code}`}
-            onClick={() => void onDelete(p)}
-          >
-            <Trash2 className="size-4" strokeWidth={2} />
-          </Button>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:bg-muted hover:text-foreground">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-40 border-border bg-card/40 backdrop-blur-md shadow-md">
+            <DropdownMenuItem className="cursor-pointer" onClick={() => onEdit(p)}>
+              <Pencil className="mr-2 h-4 w-4" /> Editar
+            </DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive" onClick={() => void onDelete(p)}>
+              <Trash2 className="mr-2 h-4 w-4" /> Eliminar
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </td>
     </tr>
   );

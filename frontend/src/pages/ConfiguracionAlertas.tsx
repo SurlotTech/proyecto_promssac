@@ -55,14 +55,14 @@ const ConfiguracionAlertas = () => {
         <div className="mx-auto max-w-4xl space-y-6">
           {/* ALERTA POR ESTADOS */}
           <Card className={cn(
-            "overflow-hidden transition-all duration-300",
-            alerts.estados ? "border-primary/20 shadow-md" : "opacity-70 grayscale-[0.5]"
+            "overflow-hidden transition-all duration-300 border-border bg-card/40 backdrop-blur-md shadow-sm",
+            alerts.estados ? "ring-1 ring-primary/20" : "opacity-70 grayscale-[0.5]"
           )}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 bg-muted/30 pb-4">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-border/50 pb-4">
               <div className="flex items-center gap-3">
                 <div className={cn(
                   "flex h-9 w-9 items-center justify-center rounded-lg transition-colors",
-                  alerts.estados ? "bg-primary text-white shadow-glow" : "bg-muted text-muted-foreground"
+                  alerts.estados ? "bg-[#f43f3e] text-white shadow-glow" : "bg-muted text-muted-foreground"
                 )}>
                   <Activity className="size-5" />
                 </div>
@@ -75,7 +75,7 @@ const ConfiguracionAlertas = () => {
                 <div className="space-y-2">
                   <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Estado</Label>
                   <Select disabled={!alerts.estados} defaultValue="item1">
-                    <SelectTrigger className="bg-background/50">
+                    <SelectTrigger className="h-11 rounded-xl border-border/60 bg-background/30 transition-all focus:ring-2 focus:ring-primary/20">
                       <SelectValue placeholder="Seleccione un elemento" />
                     </SelectTrigger>
                     <SelectContent>
@@ -87,7 +87,7 @@ const ConfiguracionAlertas = () => {
                 <div className="space-y-2">
                   <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Subestado</Label>
                   <Select disabled={!alerts.estados} defaultValue="sub1">
-                    <SelectTrigger className="bg-background/50">
+                    <SelectTrigger className="h-11 rounded-xl border-border/60 bg-background/30 transition-all focus:ring-2 focus:ring-primary/20">
                       <SelectValue placeholder="Seleccione un elemento" />
                     </SelectTrigger>
                     <SelectContent>
@@ -102,14 +102,14 @@ const ConfiguracionAlertas = () => {
 
           {/* ALERTA POR ENTREGA FUERA DE TIEMPO */}
           <Card className={cn(
-            "overflow-hidden transition-all duration-300",
-            alerts.tiempo ? "border-primary/20 shadow-md" : "opacity-70 grayscale-[0.5]"
+            "overflow-hidden transition-all duration-300 border-border bg-card/40 backdrop-blur-md shadow-sm",
+            alerts.tiempo ? "ring-1 ring-primary/20" : "opacity-70 grayscale-[0.5]"
           )}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 bg-muted/30 pb-4">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-border/50 pb-4">
               <div className="flex items-center gap-3">
                 <div className={cn(
                   "flex h-9 w-9 items-center justify-center rounded-lg transition-colors",
-                  alerts.tiempo ? "bg-primary text-white shadow-glow" : "bg-muted text-muted-foreground"
+                  alerts.tiempo ? "bg-[#f43f3e] text-white shadow-glow" : "bg-muted text-muted-foreground"
                 )}>
                   <Clock className="size-5" />
                 </div>
@@ -125,7 +125,7 @@ const ConfiguracionAlertas = () => {
                     type="number" 
                     disabled={!alerts.tiempo} 
                     defaultValue="20" 
-                    className="bg-background/50 pr-12"
+                    className="h-11 rounded-xl border-border/60 bg-background/30 pr-12 transition-all focus:ring-2 focus:ring-primary/20"
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">Min</span>
                 </div>
@@ -135,14 +135,14 @@ const ConfiguracionAlertas = () => {
 
           {/* ALERTA POR EXCESO DE TIEMPO EN CLIENTE */}
           <Card className={cn(
-            "overflow-hidden transition-all duration-300",
-            alerts.cliente ? "border-primary/20 shadow-md" : "opacity-70 grayscale-[0.5]"
+            "overflow-hidden transition-all duration-300 border-border bg-card/40 backdrop-blur-md shadow-sm",
+            alerts.cliente ? "ring-1 ring-primary/20" : "opacity-70 grayscale-[0.5]"
           )}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 bg-muted/30 pb-4">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-border/50 pb-4">
               <div className="flex items-center gap-3">
                 <div className={cn(
                   "flex h-9 w-9 items-center justify-center rounded-lg transition-colors",
-                  alerts.cliente ? "bg-primary text-white shadow-glow" : "bg-muted text-muted-foreground"
+                  alerts.cliente ? "bg-[#f43f3e] text-white shadow-glow" : "bg-muted text-muted-foreground"
                 )}>
                   <Timer className="size-5" />
                 </div>
@@ -159,7 +159,7 @@ const ConfiguracionAlertas = () => {
                       type="number" 
                       disabled={!alerts.cliente} 
                       defaultValue="500" 
-                      className="bg-background/50 pr-12"
+                      className="h-11 rounded-xl border-border/60 bg-background/30 pr-12 transition-all focus:ring-2 focus:ring-primary/20"
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">Mts</span>
                   </div>
@@ -171,7 +171,7 @@ const ConfiguracionAlertas = () => {
                       type="number" 
                       disabled={!alerts.cliente} 
                       defaultValue="30" 
-                      className="bg-background/50 pr-12"
+                      className="h-11 rounded-xl border-border/60 bg-background/30 pr-12 transition-all focus:ring-2 focus:ring-primary/20"
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">Min</span>
                   </div>
@@ -181,7 +181,7 @@ const ConfiguracionAlertas = () => {
           </Card>
 
           <div className="flex justify-center pt-4 pb-12">
-            <Button className="h-12 w-full max-w-xs gap-2 bg-warning text-warning-foreground shadow-glow hover:bg-warning/90">
+            <Button className="h-12 w-full max-w-xs gap-2 bg-[#f43f3e] hover:bg-[#d93534] text-white shadow-lg shadow-red-500/20 transition-all hover:scale-105 active:scale-95 font-bold">
               <Save className="size-5" />
               Guardar configuración
             </Button>

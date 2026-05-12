@@ -21,7 +21,7 @@ const StepPersonalizados = ({ customFields, onCustomFieldChange }: Props) => (
     {customFieldKeys.map((key) =>
       key === "telefono_director" ? (
         <div key={key} className="space-y-1.5">
-          <Label htmlFor={`cf-${key}`} className="text-xs text-muted-foreground">
+          <Label htmlFor={`cf-${key}`} className="text-sm text-muted-foreground">
             {customFieldLabels[key]}
           </Label>
           <Input
@@ -39,13 +39,13 @@ const StepPersonalizados = ({ customFields, onCustomFieldChange }: Props) => (
             }
             className={fieldInputClass}
           />
-          <p id={`cf-${key}-hint`} className="text-[11px] text-muted-foreground">
+          <p id={`cf-${key}-hint`} className="text-xs text-muted-foreground">
             Solo números (máximo {PERU_PHONE_DIGIT_COUNT}); si lo completas, son exactamente {PERU_PHONE_DIGIT_COUNT} dígitos.
           </p>
         </div>
       ) : (
         <div key={key} className="space-y-1.5">
-          <Label htmlFor={`cf-${key}`} className="text-xs text-muted-foreground">
+          <Label htmlFor={`cf-${key}`} className="text-sm text-muted-foreground">
             {customFieldLabels[key]}
           </Label>
           <Input

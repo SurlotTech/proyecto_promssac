@@ -44,17 +44,8 @@ const Login = () => {
             <img 
               src="/logo.png" 
               alt="FleetOps" 
-              className="h-20 w-25 object-contain"
+              className="h-44 w-37 object-contain"
             />
-          </div>
-
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-foreground">
-              Bienvenido de nuevo
-            </h2>
-            <p className="text-muted-foreground mt-2">
-              Ingresa tus credenciales para continuar
-            </p>
           </div>
 
           {error && (

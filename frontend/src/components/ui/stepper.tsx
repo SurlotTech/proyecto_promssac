@@ -1,10 +1,11 @@
-import { Check, Circle } from "lucide-react";
+import { Check, LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Step {
   id: string;
   title: string;
   description?: string;
+  icon?: LucideIcon;
 }
 
 interface StepperProps {
@@ -36,7 +37,7 @@ const Stepper = ({
     <div
       className={cn(
         "flex gap-2",
-        orientation === "horizontal" && "w-full overflow-x-auto pb-2",
+        orientation === "horizontal" && "max-w-full overflow-x-auto pb-2",
         orientation === "vertical" && "flex-col gap-0"
       )}
     >
@@ -74,6 +75,8 @@ const Stepper = ({
               >
                 {completed ? (
                   <Check className="h-4 w-4" strokeWidth={2.5} />
+                ) : step.icon ? (
+                  <step.icon className="h-4 w-4" />
                 ) : (
                   <span>{index + 1}</span>
                 )}

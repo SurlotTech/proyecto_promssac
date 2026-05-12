@@ -1,10 +1,17 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
-import { Ban, CheckCircle, ChevronLeft, ChevronRight, Eye, Pencil, SearchX, School } from "lucide-react";
+import { Ban, CheckCircle, ChevronLeft, ChevronRight, Eye, Pencil, SearchX, School, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import {
   type Client,
   nombreInstitucionYNivelCliente,
@@ -225,13 +232,20 @@ function ClienteTableRow({
     <tr
       className={cn("group transition-colors hover:bg-muted/20", !cliente.activo && "opacity-[0.72]")}
     >
-      <td className="max-w-[min(280px,32vw)] px-4 py-3.5 font-medium">
+      <td className="max-w-[min(320px,40vw)] px-4 py-3.5">
         <Link
           to={`/clientes/detalle/${encodeURIComponent(cliente.id)}`}
-          className="block truncate text-foreground underline-offset-2 transition-colors hover:text-primary hover:underline"
+          className="flex items-center gap-3 transition-all hover:translate-x-0.5 group/client"
           title={cliente.nombre}
         >
-          {vista.nombreInstitucion}
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary transition-colors group-hover/client:bg-primary group-hover/client:text-white">
+            <School className="size-4" strokeWidth={1.75} />
+          </div>
+          <div className="min-w-0">
+            <span className="block truncate font-semibold text-foreground transition-colors group-hover/client:text-primary group-hover/client:underline underline-offset-4">
+              {vista.nombreInstitucion}
+            </span>
+          </div>
         </Link>
       </td>
       <td className="px-4 py-3.5 text-center">
@@ -270,33 +284,42 @@ function ClienteTableRow({
           {cliente.activo ? "Activo" : "Desactiv."}
         </Badge>
       </td>
-      <td className="px-4 py-3.5">
-        <div className="flex flex-wrap justify-end gap-1.5">
-          <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" asChild>
-            <Link to={`/clientes/detalle/${encodeURIComponent(cliente.id)}`} aria-label="Ver detalle">
-              <Eye className="size-4" />
-            </Link>
-          </Button>
-          <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" aria-label="Editar" onClick={() => onEditar(cliente)}>
-            <Pencil className="size-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className={`h-9 shrink-0 gap-1 px-2.5 text-xs ${cliente.activo ? "text-destructive" : ""}`}
-            onClick={() => onToggleActivo(cliente)}
-          >
-            {cliente.activo ? (
-              <>
-                <Ban className="size-4" /> Desactivar
-              </>
-            ) : (
-              <>
-                <CheckCircle className="size-4" /> Reactivar
-              </>
-            )}
-          </Button>
-        </div>
+      <td className="px-4 py-3.5 text-right">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:bg-muted hover:text-foreground">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem asChild className="cursor-pointer">
+              <Link to={`/clientes/detalle/${encodeURIComponent(cliente.id)}`}>
+                <Eye className="mr-2 h-4 w-4" /> Ver detalle
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer" onClick={() => onEditar(cliente)}>
+              <Pencil className="mr-2 h-4 w-4" /> Editar cliente
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              className={cn(
+                "cursor-pointer",
+                cliente.activo ? "text-destructive focus:text-destructive" : "text-primary focus:text-primary"
+              )}
+              onClick={() => onToggleActivo(cliente)}
+            >
+              {cliente.activo ? (
+                <>
+                  <Ban className="mr-2 h-4 w-4" /> Desactivar
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="mr-2 h-4 w-4" /> Reactivar
+                </>
+              )}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </td>
     </tr>
   );

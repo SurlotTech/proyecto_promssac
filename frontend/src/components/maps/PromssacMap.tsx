@@ -27,6 +27,8 @@ export type PromssacMapProps = {
   showStylePicker?: boolean;
   /** Al cambiar `mapKey`, volver al estilo CARTO. */
   resetStyleOnMapKeyChange?: boolean;
+  /** Estilo inicial del mapa (default, bright, liberty). */
+  defaultStyle?: PromssacMapStyleKey;
   /**
    * Llamado al crear el mapa. Podés enganchar listeners o marcadores.
    * Si devolvés una función, se ejecuta al destruir el mapa (mismo criterio que `mapKey`).
@@ -43,6 +45,7 @@ export const PromssacMap = forwardRef<PromssacMapRef, PromssacMapProps>(function
     containerClassName,
     showStylePicker = true,
     resetStyleOnMapKeyChange = true,
+    defaultStyle,
     onMap,
   },
   ref,
@@ -57,15 +60,15 @@ export const PromssacMap = forwardRef<PromssacMapRef, PromssacMapProps>(function
   centerRef.current = center;
   zoomRef.current = zoom;
 
-  const [styleKey, setStyleKey] = useState<PromssacMapStyleKey>("default");
+  const [styleKey, setStyleKey] = useState<PromssacMapStyleKey>(defaultStyle || "default");
 
   useImperativeHandle(ref, () => ({
     getMap: () => mapInst.current,
   }));
 
   useLayoutEffect(() => {
-    if (resetStyleOnMapKeyChange) setStyleKey("default");
-  }, [mapKey, resetStyleOnMapKeyChange]);
+    if (resetStyleOnMapKeyChange) setStyleKey(defaultStyle || "default");
+  }, [mapKey, resetStyleOnMapKeyChange, defaultStyle]);
 
   useEffect(() => {
     if (!mapKey) return;
@@ -74,11 +77,11 @@ export const PromssacMap = forwardRef<PromssacMapRef, PromssacMapProps>(function
 
     const map = new maplibregl.Map({
       container: el,
-      style: PROMSSAC_MAP_STYLES.default,
+      style: PROMSSAC_MAP_STYLES[styleKey],
       center: centerRef.current,
       zoom: zoomRef.current,
       maxPitch: 85,
-      pitch: 0,
+      pitch: styleKey === "liberty" ? 60 : 0,
     });
     map.addControl(
       new maplibregl.NavigationControl({
@@ -89,7 +92,6 @@ export const PromssacMap = forwardRef<PromssacMapRef, PromssacMapProps>(function
       "top-right",
     );
     mapInst.current = map;
-
     const cleanupUser = onMapRef.current?.(map);
 
     return () => {
@@ -102,11 +104,60 @@ export const PromssacMap = forwardRef<PromssacMapRef, PromssacMapProps>(function
   useEffect(() => {
     const map = mapInst.current;
     if (!map) return;
-    map.setStyle(PROMSSAC_MAP_STYLES[styleKey]);
-    const t = window.setTimeout(() => {
+
+    const currentStyleUrl = PROMSSAC_MAP_STYLES[styleKey];
+    // MapLibre's getStyle().name or checking against internal state is complex, 
+    // but setStyle is generally smart enough. Still, we only want to add 3D logic after it's done.
+
+    map.setStyle(currentStyleUrl);
+
+    const handleStyleLoad = () => {
+      if (styleKey === "liberty") {
+        const layers = map.getStyle()?.layers;
+        const labelLayerId = layers?.find(
+          (layer) => layer.type === "symbol" && layer.layout && layer.layout["text-field"],
+        )?.id;
+
+        if (!map.getLayer("3d-buildings") && map.getSource("openmaptiles")) {
+          map.addLayer(
+            {
+              id: "3d-buildings",
+              source: "openmaptiles",
+              "source-layer": "building",
+              type: "fill-extrusion",
+              minzoom: 14,
+              paint: {
+                "fill-extrusion-color": "#aaa",
+                "fill-extrusion-height": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  14,
+                  0,
+                  14.05,
+                  ["get", "render_height"],
+                ],
+                "fill-extrusion-base": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  14,
+                  0,
+                  14.05,
+                  ["get", "render_min_height"],
+                ],
+                "fill-extrusion-opacity": 0.6,
+              },
+            },
+            labelLayerId,
+          );
+        }
+      }
+      
       map.easeTo({ pitch: styleKey === "liberty" ? 60 : 0, duration: 500 });
-    }, 350);
-    return () => window.clearTimeout(t);
+    };
+
+    map.once("style.load", handleStyleLoad);
   }, [styleKey]);
 
   if (!mapKey) {

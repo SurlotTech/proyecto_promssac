@@ -6,17 +6,21 @@ import { vehicleTypeIcon } from "./vehicleTypeIcon";
 const VehicleCard = ({ v, onClick }: { v: Vehicle; onClick: () => void }) => {
   const Icon = vehicleTypeIcon[v.type];
   return (
-    <button
-      onClick={onClick}
-      className="group w-full rounded-xl border border-border bg-card/40 backdrop-blur-md p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+    <div
+      className="group w-full rounded-xl border border-border bg-card/40 backdrop-blur-md p-4 text-left shadow-sm transition-all"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary-soft text-primary">
             <Icon className="h-5 w-5" />
           </div>
-          <div>
-            <p className="font-semibold text-foreground">{v.plate}</p>
+          <div className="min-w-0">
+            <button 
+              onClick={onClick}
+              className="text-left font-semibold text-foreground transition-colors hover:text-primary hover:underline underline-offset-4"
+            >
+              {v.plate}
+            </button>
             <p className="text-xs text-muted-foreground">{v.type}</p>
           </div>
         </div>
@@ -29,7 +33,7 @@ const VehicleCard = ({ v, onClick }: { v: Vehicle; onClick: () => void }) => {
           {v.driver ?? "Sin asignar"}
         </span>
       </div>
-    </button>
+    </div>
   );
 };
 

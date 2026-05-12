@@ -201,167 +201,280 @@ export default function ClientFormDialog({ open, onOpenChange, editing }: Props)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{editing ? "Editar cliente" : "Nuevo cliente"}</DialogTitle>
-          <DialogDescription className="sr-only">
-            {editing ? "Editar datos del cliente" : "Formulario nuevo cliente"}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-h-[92vh] overflow-hidden p-0 sm:max-w-5xl [&>button]:hidden">
+        <div className="flex max-h-[inherit] flex-col">
+          <header className="shrink-0 border-b border-border px-5 py-4">
+            <DialogTitle className="text-xl font-semibold tracking-tight">
+              {editing ? "Editar cliente" : "Nuevo cliente"}
+            </DialogTitle>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Completa los datos del cliente. Los campos con * son obligatorios.
+            </p>
+          </header>
 
-        <div className="grid gap-5 py-2">
-          <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="cli-codigo">CODIGO</Label>
-                <Input id="cli-codigo" value={codigoRegional} onChange={(e) => setCodigoRegional(e.target.value)} />
-              </div>
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="cli-depto">DEPARTAMENTO</Label>
-                <Input id="cli-depto" value={departamento} onChange={(e) => setDepartamento(e.target.value)} />
-              </div>
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="cli-prov">PROVINCIA</Label>
-                <Input id="cli-prov" value={provincia} onChange={(e) => setProvincia(e.target.value)} />
-              </div>
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="cli-dist">DISTRITO</Label>
-                <Input id="cli-dist" value={distrito} onChange={(e) => setDistrito(e.target.value)} />
-              </div>
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="cli-ugel">UGEL</Label>
-                <Input id="cli-ugel" value={ugel} onChange={(e) => setUgel(e.target.value)} />
-              </div>
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="cli-centro">CENTRO POBLADO</Label>
-                <Input id="cli-centro" value={centroPoblado} onChange={(e) => setCentroPoblado(e.target.value)} />
-              </div>
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="cli-dir">DIRECCIÓN</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="cli-dir"
-                    value={direccion}
-                    onChange={(e) => setDireccion(e.target.value)}
-                    maxLength={300}
-                    placeholder="Dirección o búsqueda (Perú, Nominatim)"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        void buscarDireccionPorTexto();
-                      }
-                    }}
-                    className="min-w-0 flex-1"
-                  />
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="icon"
-                    className="shrink-0"
-                    disabled={buscandoDireccion}
-                    aria-label="Buscar dirección en el mapa"
-                    title="Buscar dirección (Perú)"
-                    onClick={() => void buscarDireccionPorTexto()}
-                  >
-                    {buscandoDireccion ? (
-                      <Loader2 className="size-4 animate-spin" aria-hidden />
-                    ) : (
-                      <Search className="size-4" aria-hidden />
-                    )}
-                  </Button>
+          <div className="flex-1 overflow-y-auto px-5 py-5">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              
+              {/* Sección: Datos Institucionales */}
+              <section className="space-y-4 rounded-lg border border-border/60 bg-muted/20 p-4">
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                  Datos Institucionales
+                </h3>
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="cli-codigo">Código *</Label>
+                    <Input 
+                      id="cli-codigo" 
+                      value={codigoRegional} 
+                      onChange={(e) => setCodigoRegional(e.target.value)} 
+                      placeholder="Ej: 1501"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="cli-iiee">IIEE (Código Modular)</Label>
+                    <Input 
+                      placeholder="Ej: 003350" 
+                      id="cli-iiee" 
+                      value={codigoModularIiee} 
+                      onChange={(e) => setCodigoModularIiee(e.target.value)} 
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="cli-centro">Centro Poblado</Label>
+                    <Input 
+                      id="cli-centro" 
+                      value={centroPoblado} 
+                      onChange={(e) => setCentroPoblado(e.target.value)} 
+                      placeholder="Nombre del centro poblado"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="cli-nivel-select">Nivel Educativo</Label>
+                    <Select
+                      value={nivelEducacion === "" ? "__sin_nivel__" : nivelEducacion}
+                      onValueChange={(v) => setNivelEducacion(v === "__sin_nivel__" ? "" : v)}
+                    >
+                      <SelectTrigger id="cli-nivel-select">
+                        <SelectValue placeholder="Seleccionar nivel" />
+                      </SelectTrigger>
+                      <SelectContent position="popper">
+                        <SelectItem value="__sin_nivel__">—</SelectItem>
+                        <SelectItem value="PRIMARIA">Primaria</SelectItem>
+                        <SelectItem value="SECUNDARIA">Secundaria</SelectItem>
+                        {nivelEducacion &&
+                        nivelEducacion !== "PRIMARIA" &&
+                        nivelEducacion !== "SECUNDARIA" ? (
+                          <SelectItem value={nivelEducacion}>{nivelEducacion}</SelectItem>
+                        ) : null}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <p className="text-[10px] leading-snug text-muted-foreground">
-                  Buscá por texto (mín. 4 caracteres, resultados en Perú) o ubicá con el mapa debajo; Enter también busca.
-                </p>
-              </div>
-              {open && mapSession ? (
-                <div className="space-y-1.5 sm:col-span-2">
-                  <Label className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                    Ubicación en mapa
+              </section>
+
+              {/* Sección: Ubicación Geográfica */}
+              <section className="space-y-4 rounded-lg border border-border/60 bg-muted/20 p-4">
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                  Ubicación Geográfica
+                </h3>
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="cli-depto">Departamento</Label>
+                    <Input 
+                      id="cli-depto" 
+                      value={departamento} 
+                      onChange={(e) => setDepartamento(e.target.value)} 
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="cli-prov">Provincia</Label>
+                    <Input 
+                      id="cli-prov" 
+                      value={provincia} 
+                      onChange={(e) => setProvincia(e.target.value)} 
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="cli-dist">Distrito</Label>
+                    <Input 
+                      id="cli-dist" 
+                      value={distrito} 
+                      onChange={(e) => setDistrito(e.target.value)} 
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="cli-ugel">UGEL</Label>
+                    <Input 
+                      id="cli-ugel" 
+                      value={ugel} 
+                      onChange={(e) => setUgel(e.target.value)} 
+                    />
+                  </div>
+                </div>
+              </section>
+
+              {/* Sección: Dirección y Mapa */}
+              <section className="space-y-4 rounded-lg border border-border/60 bg-muted/20 p-4 sm:col-span-2">
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                  Dirección y Ubicación
+                </h3>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <Label htmlFor="cli-dir">Dirección</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="cli-dir"
+                        value={direccion}
+                        onChange={(e) => setDireccion(e.target.value)}
+                        maxLength={300}
+                        placeholder="Dirección o búsqueda (Perú, Nominatim)"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            void buscarDireccionPorTexto();
+                          }
+                        }}
+                        className="min-w-0 flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="icon"
+                        className="shrink-0"
+                        disabled={buscandoDireccion}
+                        aria-label="Buscar dirección en el mapa"
+                        title="Buscar dirección (Perú)"
+                        onClick={() => void buscarDireccionPorTexto()}
+                      >
+                        {buscandoDireccion ? (
+                          <Loader2 className="size-4 animate-spin" aria-hidden />
+                        ) : (
+                          <Search className="size-4" aria-hidden />
+                        )}
+                      </Button>
+                    </div>
+                    <p className="text-[10px] leading-snug text-muted-foreground">
+                      Buscá por texto (mín. 4 caracteres, resultados en Perú) o ubicá con el mapa debajo; Enter también busca.
+                    </p>
+                  </div>
+                  
+                  {open && mapSession ? (
+                    <div className="space-y-1.5 sm:col-span-2">
+                      <Label className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                        Ubicación en mapa
+                      </Label>
+                      <ClienteMaplibreUbicacion
+                        sessionKey={mapSessionKey}
+                        mode="edit"
+                        initialLat={latitud}
+                        initialLng={longitud}
+                        onLocationResolved={(la, ln, dirReal) => {
+                          setUbicacionMapaLimpiar(false);
+                          setLatitud(la);
+                          setLongitud(ln);
+                          if (dirReal) setDireccion(dirReal);
+                        }}
+                        onClearLocation={() => {
+                          setLatitud(null);
+                          setLongitud(null);
+                          setUbicacionMapaLimpiar(true);
+                        }}
+                      />
+                    </div>
+                  ) : null}
+                </div>
+              </section>
+
+              {/* Sección: Contacto del Director */}
+              <section className="space-y-4 rounded-lg border border-border/60 bg-muted/20 p-4">
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                  Contacto del Director
+                </h3>
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="cli-dir-nombre" className="whitespace-pre-line leading-snug">
+                      Nombres y Apellidos
+                    </Label>
+                    <Input
+                      id="cli-dir-nombre"
+                      value={nombreApellidosDirectorIiee}
+                      onChange={(e) => setNombreApellidosDirectorIiee(e.target.value)}
+                      placeholder="Nombre completo del director"
+                      maxLength={200}
+                      autoComplete="name"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="cli-mail">Email</Label>
+                    <Input 
+                      id="cli-mail" 
+                      type="email" 
+                      value={email} 
+                      onChange={(e) => setEmail(e.target.value)} 
+                      autoComplete="off"
+                      placeholder="correo@ejemplo.com"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="cli-tel">Teléfono</Label>
+                    <Input 
+                      id="cli-tel" 
+                      value={telefono} 
+                      onChange={(e) => setTelefono(e.target.value)}
+                      placeholder="+51 999 999 999" 
+                    />
+                  </div>
+                </div>
+              </section>
+
+              {/* Sección: Estado */}
+              <section className="space-y-4 rounded-lg border border-border/60 bg-muted/20 p-4">
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                  Estado
+                </h3>
+                <div className="flex items-center gap-3 rounded-lg border border-border/70 bg-muted/20 px-4 py-3">
+                  <Checkbox 
+                    id="cli-activo" 
+                    checked={activo} 
+                    onCheckedChange={(v) => setActivo(Boolean(v))} 
+                  />
+                  <Label htmlFor="cli-activo" className="cursor-pointer font-normal text-sm">
+                    Cliente activo
                   </Label>
-                  <ClienteMaplibreUbicacion
-                    sessionKey={mapSessionKey}
-                    mode="edit"
-                    initialLat={latitud}
-                    initialLng={longitud}
-                    onLocationResolved={(la, ln, dirReal) => {
-                      setUbicacionMapaLimpiar(false);
-                      setLatitud(la);
-                      setLongitud(ln);
-                      if (dirReal) setDireccion(dirReal);
-                    }}
-                    onClearLocation={() => {
-                      setLatitud(null);
-                      setLongitud(null);
-                      setUbicacionMapaLimpiar(true);
-                    }}
-                  />
                 </div>
-              ) : null}
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="cli-iiee">IIEE</Label>
-                <Input placeholder="Ej: 003350 (Número de la institución)" id="cli-iiee" value={codigoModularIiee} onChange={(e) => setCodigoModularIiee(e.target.value)} />
-              </div>
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="cli-nivel-select">NIVEL</Label>
-                <Select
-                  value={nivelEducacion === "" ? "__sin_nivel__" : nivelEducacion}
-                  onValueChange={(v) => setNivelEducacion(v === "__sin_nivel__" ? "" : v)}
-                >
-                  <SelectTrigger id="cli-nivel-select">
-                    <SelectValue placeholder="Elegí nivel" />
-                  </SelectTrigger>
-                  <SelectContent position="popper">
-                    <SelectItem value="__sin_nivel__">—</SelectItem>
-                    <SelectItem value="PRIMARIA">Primaria</SelectItem>
-                    <SelectItem value="SECUNDARIA">Secundaria</SelectItem>
-                    {nivelEducacion &&
-                    nivelEducacion !== "PRIMARIA" &&
-                    nivelEducacion !== "SECUNDARIA" ? (
-                      <SelectItem value={nivelEducacion}>{nivelEducacion}</SelectItem>
-                    ) : null}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="cli-dir-nombre" className="whitespace-pre-line leading-snug">
-                  {"NOMBRES Y APELLIDOS\n(DIRECTOR DE LA IIEE)"}
-                </Label>
-                <Input
-                  id="cli-dir-nombre"
-                  value={nombreApellidosDirectorIiee}
-                  onChange={(e) => setNombreApellidosDirectorIiee(e.target.value)}
-                  placeholder="Como en la columna del Excel regional"
-                  maxLength={200}
-                  autoComplete="name"
-                />
-              </div>
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="cli-mail">EMAIL DIRECTOR IIEE</Label>
-                <Input id="cli-mail" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="off" />
-              </div>
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="cli-tel">TELEFONO 1 DIRECTOR IIEE</Label>
-                <Input id="cli-tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} />
-              </div>
+                <p className="text-xs text-muted-foreground">
+                  Los clientes inactivos no aparecerán en las listas de selección al crear órdenes.
+                </p>
+              </section>
+
             </div>
-
-          <div className="flex items-center gap-2 rounded-lg border border-border/70 bg-muted/20 px-3 py-2.5">
-            <Checkbox id="cli-activo" checked={activo} onCheckedChange={(v) => setActivo(Boolean(v))} />
-            <Label htmlFor="cli-activo" className="cursor-pointer font-normal leading-snug text-sm">
-              ACTIVO
-            </Label>
           </div>
-        </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>
-            Cancelar
-          </Button>
-          <Button type="button" onClick={() => submit()} disabled={busy}>
-            {busy ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
-            {busy ? "Guardando…" : "Guardar"}
-          </Button>
-        </DialogFooter>
+          <footer className="shrink-0 border-t border-border bg-muted/30 px-5 py-4">
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:flex-wrap sm:justify-end sm:gap-3">
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm"
+                className="h-10 w-full sm:w-auto sm:min-w-[120px]"
+                onClick={() => onOpenChange(false)} 
+                disabled={busy}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                type="button" 
+                size="sm"
+                className="h-10 w-full bg-primary text-primary-foreground hover:bg-primary-hover sm:w-auto sm:min-w-[140px]"
+                onClick={() => submit()} 
+                disabled={busy}
+              >
+                {busy ? <Loader2 className="size-4 animate-spin mr-2" aria-hidden /> : null}
+                {busy ? "Guardando…" : "Guardar cliente"}
+              </Button>
+            </div>
+          </footer>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -77,12 +77,17 @@ const OrderTable = ({ orders, selectedIds, onSelectionChange, onView, onEdit }: 
                   />
                 </td>
                 <td className="px-3 py-3.5">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
+                  <button
+                    onClick={() => onView?.(o)}
+                    className="flex items-center gap-2 text-left transition-all hover:translate-x-0.5 group/id"
+                  >
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary transition-colors group-hover/id:bg-primary group-hover/id:text-white">
                       <Package className="h-3.5 w-3.5" />
                     </div>
-                    <span className="font-semibold text-foreground">{o.id}</span>
-                  </div>
+                    <span className="font-semibold text-foreground transition-colors group-hover/id:text-primary group-hover/id:underline underline-offset-4">
+                      {o.id}
+                    </span>
+                  </button>
                 </td>
                 <td className="px-3 py-3.5">
                   <OrderStatusBadge status={o.status} />

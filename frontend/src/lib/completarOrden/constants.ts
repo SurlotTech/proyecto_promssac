@@ -1,10 +1,11 @@
+import { FileText, MapPin, Package, User } from "lucide-react";
 import type { Step } from "@/components/ui/stepper";
 
 export const selectTriggerClass =
-  "h-9 w-full border-border/80 bg-background px-3 text-sm shadow-sm transition-colors hover:bg-muted/50 focus:ring-2 focus:ring-ring focus:ring-offset-0 [&>span]:line-clamp-1 [&>span]:w-full [&>span]:truncate [&>span]:text-left [&>span]:font-semibold [&>span]:text-foreground [&>span[data-placeholder]]:font-normal [&>span[data-placeholder]]:text-muted-foreground";
+  "h-12 w-full rounded-full border-border bg-transparent px-4 text-base shadow-none transition-all hover:bg-zinc-50 hover:border-zinc-300 focus:ring-2 focus:ring-ring focus:ring-offset-2 [&>span]:line-clamp-1 [&>span]:w-full [&>span]:truncate [&>span]:text-left [&>span]:font-normal [&>span]:text-foreground [&>span[data-placeholder]]:font-normal [&>span[data-placeholder]]:text-muted-foreground";
 
 export const fieldInputClass =
-  "h-9 border-border/80 text-sm font-medium shadow-sm focus-visible:ring-2 focus-visible:ring-ring";
+  "h-12 rounded-full border-border bg-transparent px-4 text-base font-normal shadow-none transition-all hover:bg-zinc-50 hover:border-zinc-300 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
 
 export const customFieldKeys = [
   "director",
@@ -27,10 +28,10 @@ export const customFieldLabels: Record<CustomFieldKey, string> = {
 };
 
 export const COMPLETAR_ORDEN_STEPS: Step[] = [
-  { id: "order", title: "Datos de orden", description: "ID, fecha, ruta" },
-  { id: "contact", title: "Contacto", description: "Nombre, teléfono" },
-  { id: "address", title: "Dirección", description: "Envío y mapa" },
-  { id: "custom", title: "Personalizados", description: "Campos extra" },
+  { id: "order", title: "Datos de orden", description: "ID, fecha, ruta", icon: FileText },
+  { id: "contact", title: "Contacto", description: "Nombre, teléfono", icon: User },
+  { id: "address", title: "Dirección", description: "Envío y mapa", icon: MapPin },
+  { id: "custom", title: "Personalizados", description: "Campos extra", icon: Package },
 ];
 
 /** Paso donde están director, paquetes, guías, etc. (último del asistente). */

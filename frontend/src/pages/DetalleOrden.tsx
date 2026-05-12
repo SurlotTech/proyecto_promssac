@@ -5,27 +5,28 @@ import {
   ClipboardCopy,
   FileEdit,
   GitBranch,
-  MapPin,
   Package,
   Phone,
   Truck,
   User,
+  Clock,
+  MapPin,
+  CheckCircle,
 } from "lucide-react";
-import { MapContainer, Marker, TileLayer } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
+import React, { useEffect, useRef } from "react";
+import { motion, useAnimation, useInView } from "framer-motion";
+import { 
+  FaClipboardCheck, 
+  FaTruck, 
+  FaRoute, 
+  FaCheckCircle, 
+  FaMapMarkerAlt,
+  FaWarehouse,
+  FaClock,
+  FaBoxOpen,
+  FaUser
+} from "react-icons/fa";
 
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
-
-// @ts-expect-error _getIconUrl is an internal property
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconUrl: markerIcon,
-  iconRetinaUrl: markerIcon2x,
-  shadowUrl: markerShadow,
-});
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -92,14 +93,218 @@ function formatoSoles(importe: number): string {
   }).format(importe);
 }
 
-function coordsOrden(
-  lat: number | undefined,
-  lng: number | undefined,
-): [number, number] | null {
-  if (typeof lat !== "number" || typeof lng !== "number") return null;
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-  return [lat, lng];
+
+interface TimelineEvent {
+  id: number;
+  title: string;
+  description: string;
+  date: string;
+  icon: React.ReactNode;
+  isCompleted: boolean;
+  color: string;
 }
+
+const TimelineCard = ({ event, index, timelineColor }: { event: TimelineEvent; index: number; timelineColor: string }) => {
+  const cardRef = useRef(null);
+  const isInView = useInView(cardRef, { once: true, margin: "-50px" });
+  const controls = useAnimation();
+
+  useEffect(() => {
+    if (isInView) {
+      controls.start("visible");
+    }
+  }, [isInView, controls]);
+
+  const cardVariants = {
+    hidden: { 
+      opacity: 0,
+      x: index % 2 === 0 ? -40 : 40,
+      y: 20
+    },
+    visible: {
+      opacity: 1,
+      x: 0,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        delay: index * 0.1
+      }
+    }
+  };
+
+  return (
+    <motion.div
+      ref={cardRef}
+      variants={cardVariants}
+      initial="hidden"
+      animate={controls}
+      className="relative flex flex-col sm:flex-row items-center w-full mb-12"
+    >
+      {/* Symmetrical containers to keep circle in the exact center */}
+      <div className={cn(
+        "hidden sm:flex flex-1 px-8",
+        index % 2 === 0 ? "justify-end" : "order-last justify-start"
+      )}>
+        <div className={cn(
+          "bg-white rounded-2xl border border-zinc-200/60 p-6 shadow-sm transition-all duration-300 hover:shadow-md w-full max-w-2xl",
+          !event.isCompleted && "opacity-60 grayscale-[0.5]"
+        )}>
+          <div className="flex items-center mb-4">
+            <div className={cn(
+              "size-12 rounded-2xl flex items-center justify-center text-white shadow-md",
+              event.isCompleted ? "bg-primary" : "bg-zinc-200"
+            )}>
+              <div className="text-xl">{event.icon}</div>
+            </div>
+            <div className="ml-5 flex-1">
+              <h3 className="text-lg font-bold text-foreground tracking-tight">{event.title}</h3>
+              <p className="text-[12px] font-bold uppercase tracking-widest text-primary flex items-center gap-1.5 mt-1 opacity-80">
+                <FaClock className="size-3" /> {event.date}
+              </p>
+            </div>
+          </div>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            {event.description}
+          </p>
+        </div>
+      </div>
+
+      {/* Center Circle - Positioned exactly at 50% width */}
+      <div className="flex justify-center w-12 z-10 shrink-0">
+        <div 
+          className={cn(
+            "size-6 rounded-full border-4 border-white shadow-lg transition-colors duration-1000 ease-in-out",
+            !event.isCompleted && "border-zinc-50"
+          )}
+          style={{ backgroundColor: event.isCompleted ? timelineColor : "#e2e8f0" }}
+        />
+      </div>
+
+      <div className={cn(
+        "flex-1 px-4 sm:px-8",
+        index % 2 === 0 ? "" : "sm:order-first"
+      )}>
+        <div className={cn(
+          "sm:hidden bg-white rounded-2xl border border-zinc-200/60 p-6 shadow-sm mb-6",
+          !event.isCompleted && "opacity-60 grayscale-[0.5]"
+        )}>
+           <div className="flex items-center mb-4">
+            <div className={cn(
+              "size-10 rounded-xl flex items-center justify-center text-white shadow-sm",
+              event.isCompleted ? "bg-primary" : "bg-zinc-200"
+            )}>
+              <div className="text-lg">{event.icon}</div>
+            </div>
+            <div className="ml-4">
+              <h3 className="text-base font-bold text-foreground tracking-tight">{event.title}</h3>
+              <p className="text-[11px] font-bold text-primary uppercase tracking-widest mt-0.5">{event.date}</p>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            {event.description}
+          </p>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const OrderTimeline = ({ order }: { order: any }) => {
+  const [timelineColor, setTimelineColor] = React.useState("rgb(59, 130, 246)");
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const colors = [
+        "rgb(59, 130, 246)", // Blue
+        "rgb(16, 185, 129)", // Emerald
+        "rgb(245, 158, 11)", // Amber
+        "rgb(139, 92, 246)", // Violet
+        "rgb(236, 72, 153)", // Pink
+      ];
+      setTimelineColor(colors[Math.floor(Math.random() * colors.length)]);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const events: TimelineEvent[] = useMemo(() => {
+    const list: TimelineEvent[] = [];
+    
+    list.push({
+      id: 1,
+      title: "Registro en sistema",
+      description: "La orden ha sido creada exitosamente y se encuentra en espera de programación.",
+      date: order.createdAtIso ? formatIsoCreacion(order.createdAtIso) || "Hoy" : "Hoy",
+      icon: <FaWarehouse />,
+      isCompleted: true,
+      color: "blue"
+    });
+
+    const hasVehicle = !!order.vehiclePlate;
+    list.push({
+      id: 2,
+      title: "Asignado a vehículo",
+      description: hasVehicle 
+        ? `Programado para despacho en unidad ${order.vehiclePlate}. Conductor: ${order.driverName || "N/A"}.` 
+        : "Esperando asignación de unidad de transporte y ruta operativa.",
+      date: order.routeDate || "Pendiente",
+      icon: <FaTruck />,
+      isCompleted: hasVehicle,
+      color: hasVehicle ? "indigo" : "zinc"
+    });
+
+    const inRoute = ["in_route", "delivered", "partially_delivered", "no_delivered"].includes(order.status);
+    list.push({
+      id: 3,
+      title: "Despacho en curso",
+      description: inRoute 
+        ? "El vehículo ha iniciado el recorrido GPS. La orden se encuentra próxima a ser visitada." 
+        : "Pendiente de inicio de ruta por parte del transportista.",
+      date: inRoute ? "En tránsito" : "Pendiente",
+      icon: <FaRoute />,
+      isCompleted: inRoute,
+      color: inRoute ? "amber" : "zinc"
+    });
+
+    const finalStatus = ["delivered", "partially_delivered", "no_delivered"].includes(order.status);
+    list.push({
+      id: 4,
+      title: order.status === "no_delivered" ? "Visita fallida" : "Entrega final",
+      description: finalStatus 
+        ? `Gestión finalizada con estado: ${order.status === "delivered" ? "Conforme" : "Incidencia"}.` 
+        : "Esperando reporte de cierre por parte del conductor.",
+      date: finalStatus ? "Finalizado" : "En espera",
+      icon: <FaCheckCircle />,
+      isCompleted: finalStatus,
+      color: finalStatus ? "green" : "zinc"
+    });
+
+    return list;
+  }, [order]);
+
+  return (
+    <div className="relative w-full py-10 flex flex-col items-center">
+      {/* Central Spine - Sharp and Professional */}
+      <div 
+        className="absolute left-6 sm:left-1/2 transform sm:-translate-x-1/2 w-0.5 h-full bg-zinc-200/80" 
+      />
+      <div 
+        className="absolute left-6 sm:left-1/2 transform sm:-translate-x-1/2 w-1 h-full transition-colors duration-1000 ease-in-out opacity-60" 
+        style={{ backgroundColor: timelineColor }}
+      />
+
+      <div className="relative space-y-4">
+        {events.map((event, index) => (
+          <TimelineCard 
+            key={event.id} 
+            event={event} 
+            index={index} 
+            timelineColor={timelineColor} 
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const DetalleOrden = () => {
   const { orderId = "" } = useParams<{ orderId: string }>();
@@ -133,7 +338,12 @@ const DetalleOrden = () => {
     substatus: "",
   });
 
-  const mapCenter = useMemo(() => coordsOrden(order?.latitude, order?.longitude), [order]);
+  const mapCenter = useMemo(() => {
+    const lat = order?.latitude;
+    const lng = order?.longitude;
+    if (typeof lat !== "number" || typeof lng !== "number") return null;
+    return [lat, lng] as [number, number];
+  }, [order]);
 
   const goToCompletarDatos = useCallback(() => {
     if (!order) return;
@@ -512,86 +722,9 @@ const DetalleOrden = () => {
           </div>
         </aside>
 
-        <main className="flex flex-1 flex-col gap-6 p-4 md:p-6 lg:max-w-3xl">
-          <section className="rounded-xl border border-border bg-card/40 backdrop-blur-md p-5 shadow-sm">
-            <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border/60 pb-4">
-              <div>
-                <h2 className="text-lg font-semibold tracking-tight">Vista rápida</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Datos leídos desde el servidor. La línea temporal detallada (eventos GPS, evidencias)
-                  aparecerá cuando exista auditoría en el sistema.
-                </p>
-              </div>
-              <OrderStatusBadge status={order.status} />
-            </div>
+        <main className="flex flex-1 flex-col gap-8 p-4 md:p-10">
 
-            <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-              <div className="flex gap-2">
-                <dt className="flex items-center gap-1 text-muted-foreground">
-                  <MapPin className="size-3.5 shrink-0" /> Ventana entrega
-                </dt>
-                <dd className="font-medium text-foreground">
-                  {order.deliveryWindowFrom?.trim() && order.deliveryWindowTo?.trim()
-                    ? `${order.deliveryWindowFrom} – ${order.deliveryWindowTo}`
-                    : EMPTY}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">Modo entrega</dt>
-                <dd className="font-medium text-foreground">{textoSeguro(order.deliveryMode)}</dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">Prioridad</dt>
-                <dd className="font-medium text-foreground">{textoSeguro(order.deliveryPriority)}</dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">Contraentrega</dt>
-                <dd className="font-medium text-foreground">
-                  {typeof order.cashOnDelivery === "boolean" ? (order.cashOnDelivery ? "Sí" : "No") : EMPTY}
-                </dd>
-              </div>
-              {typeof order.serviceMinutes === "number" ? (
-                <div className="sm:col-span-2">
-                  <dt className="text-muted-foreground">Tiempo de servicio previsto</dt>
-                  <dd className="font-medium text-foreground">{order.serviceMinutes} min</dd>
-                </div>
-              ) : null}
-            </dl>
-          </section>
-
-          <section className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
-            <div className="border-b border-border/60 px-5 py-3">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Ubicación de entrega
-              </h3>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                Centro del mapa: coordenadas de la orden o vista general de Lima.
-              </p>
-            </div>
-            <div className="h-[260px] w-full shrink-0 sm:h-[300px]">
-              <MapContainer
-                center={mapCenter ?? LIMA_CENTER}
-                zoom={mapCenter ? 15 : 12}
-                className="h-full w-full z-0"
-                scrollWheelZoom={false}
-              >
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                {mapCenter ? <Marker position={mapCenter} /> : null}
-              </MapContainer>
-            </div>
-            {!mapCenter ? (
-              <p className="border-t border-border/60 px-5 py-2 text-xs text-muted-foreground">
-                Falta ubicación GPS. Usa «Modificar datos» para georreferenciar la entrega.
-              </p>
-            ) : (
-              <p className="border-t border-border/60 px-5 py-2 font-mono text-[11px] text-muted-foreground">
-                Lat {mapCenter[0].toFixed(6)} · Lng {mapCenter[1].toFixed(6)}
-              </p>
-            )}
-          </section>
+          <OrderTimeline order={order} />
         </main>
       </div>
 

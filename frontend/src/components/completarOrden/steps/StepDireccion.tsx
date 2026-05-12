@@ -45,7 +45,7 @@ const StepDireccion = ({
   onMapLocationCommit,
 }: Props) => (
   <div className="space-y-6">
-    <p className="text-xs leading-relaxed text-muted-foreground">
+    <p className="text-sm leading-relaxed text-muted-foreground">
       La dirección de entrega sale del <strong className="text-foreground">mapa</strong> (arrastra el pin o pulsa el
       mapa). El texto del DNI/RUC no se copia aquí. Puedes buscar por escrito con el ícono{" "}
       <MapPin className="inline size-3.5 align-text-bottom" strokeWidth={2} />.
@@ -54,7 +54,7 @@ const StepDireccion = ({
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8">
       <div className="min-w-0 space-y-4">
         <div className="space-y-1.5">
-          <Label htmlFor="co-client" className="text-xs text-muted-foreground">
+          <Label htmlFor="co-client" className="text-sm text-muted-foreground">
             Cliente <span className="text-primary">*</span>
           </Label>
           <Input
@@ -68,7 +68,7 @@ const StepDireccion = ({
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="co-address" className="text-xs text-muted-foreground">
+          <Label htmlFor="co-address" className="text-sm text-muted-foreground">
             Dirección o referencia <span className="text-primary">*</span>
           </Label>
           <div className="relative">
@@ -97,7 +97,7 @@ const StepDireccion = ({
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="co-norm" className="text-xs text-muted-foreground">
+          <Label htmlFor="co-norm" className="text-sm text-muted-foreground">
             Dirección normalizada
           </Label>
           <Input
@@ -111,7 +111,7 @@ const StepDireccion = ({
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label htmlFor="co-svc" className="text-xs text-muted-foreground">
+            <Label htmlFor="co-svc" className="text-sm text-muted-foreground">
               Tiempo de servicio (minutos)
             </Label>
             <Input
@@ -124,7 +124,7 @@ const StepDireccion = ({
             />
           </div>
           <div className="space-y-1.5 sm:col-span-2">
-            <Label htmlFor="co-ref" className="text-xs text-muted-foreground">
+            <Label htmlFor="co-ref" className="text-sm text-muted-foreground">
               Referencia
             </Label>
             <Textarea
@@ -133,14 +133,14 @@ const StepDireccion = ({
               onChange={(e) => onAddressReferenceChange(e.target.value)}
               placeholder="Indicaciones adicionales para el conductor"
               rows={3}
-              className="min-h-[5.5rem] resize-y border-border/80 text-sm shadow-sm focus-visible:ring-2 focus-visible:ring-ring"
+              className="min-h-[5.5rem] resize-y rounded-2xl border-border bg-transparent px-4 py-3 text-base font-normal shadow-none transition-all hover:bg-zinc-50 hover:border-zinc-300 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label htmlFor="co-lat" className="text-xs text-muted-foreground">
+            <Label htmlFor="co-lat" className="text-sm text-muted-foreground">
               Latitud
             </Label>
             <Input
@@ -148,11 +148,11 @@ const StepDireccion = ({
               readOnly
               value={lat}
               placeholder="—"
-              className={cn(fieldInputClass, "bg-muted/40 font-mono text-xs tabular-nums")}
+              className={cn(fieldInputClass, "bg-muted/40 font-mono text-sm tabular-nums")}
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="co-lng" className="text-xs text-muted-foreground">
+            <Label htmlFor="co-lng" className="text-sm text-muted-foreground">
               Longitud
             </Label>
             <Input
@@ -160,7 +160,7 @@ const StepDireccion = ({
               readOnly
               value={lng}
               placeholder="—"
-              className={cn(fieldInputClass, "bg-muted/40 font-mono text-xs tabular-nums")}
+              className={cn(fieldInputClass, "bg-muted/40 font-mono text-sm tabular-nums")}
             />
           </div>
         </div>

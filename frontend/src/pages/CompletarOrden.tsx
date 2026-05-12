@@ -97,8 +97,8 @@ const CompletarOrden = () => {
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-transparent">
       <header className="sticky top-0 z-10 border-b border-border bg-card/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-card/80 sm:px-6">
-        <div className="mx-auto flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex items-start gap-3 sm:items-center">
+        <div className="mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
             <Button
               type="button"
               variant="ghost"
@@ -113,7 +113,7 @@ const CompletarOrden = () => {
               <h1 className="text-lg font-semibold tracking-tight text-foreground sm:text-xl">
                 Completar datos de la orden
               </h1>
-              <p className="mt-0.5 text-sm text-muted-foreground">
+              <p className="mt-0.5 text-xs text-muted-foreground">
                 {f.draft.routeLabel ? (
                   <span className="mr-2 font-medium text-foreground">Ruta: {f.draft.routeLabel}</span>
                 ) : null}
@@ -123,27 +123,27 @@ const CompletarOrden = () => {
               </p>
             </div>
           </div>
-          <div className="w-full overflow-x-auto sm:w-auto sm:shrink-0">
-            <Stepper
-              steps={f.steps}
-              currentStep={f.currentStep}
-              onStepChange={f.setCurrentStep}
-              completedSteps={f.completedSteps}
-            />
-          </div>
         </div>
       </header>
 
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-4xl space-y-8 px-4 py-6 sm:px-6 sm:py-8">
-          <div className="rounded-xl border border-border bg-card/40 backdrop-blur-md p-4 shadow-sm sm:p-6">
-            <div className="mb-4 flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-soft text-primary">
-                <CompletarOrdenStepIcon step={f.currentStep} />
-              </div>
-              <h2 className="text-lg font-semibold text-foreground">{f.steps[f.currentStep].title}</h2>
+          <div className="rounded-[2.5rem] border border-white/20 bg-white/40 shadow-xl shadow-black/5 backdrop-blur-2xl p-6">
+            <div className="flex items-center justify-center">
+              <Stepper
+                steps={f.steps}
+                currentStep={f.currentStep}
+                onStepChange={f.setCurrentStep}
+                completedSteps={f.completedSteps}
+              />
             </div>
-            {renderStep()}
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="w-full max-w-2xl">
+              <div className="w-full animate-in fade-in slide-in-from-bottom-2 duration-500">
+                {renderStep()}
+              </div>
+            </div>
           </div>
 
           <div className="flex flex-col-reverse gap-3 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">

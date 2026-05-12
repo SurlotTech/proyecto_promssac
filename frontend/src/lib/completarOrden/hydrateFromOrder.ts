@@ -64,8 +64,8 @@ export function completarFormSnapshotFromOrder(order: Order): CompletarHydration
   const ident = order.contactIdentifier ?? "";
   return {
     vehicleId: order.vehicleId?.trim() ?? "",
-    deliveryFrom: order.deliveryWindowFrom ?? "",
-    deliveryTo: order.deliveryWindowTo ?? "",
+    deliveryFrom: (order.deliveryWindowFrom || order.routeDateIso || "").slice(0, 10),
+    deliveryTo: (order.deliveryWindowTo || order.routeDateIso || "").slice(0, 10),
     mode: order.deliveryMode?.trim() || "default",
     priority: coercePriority(order.deliveryPriority),
     cod: order.cashOnDelivery === true,
