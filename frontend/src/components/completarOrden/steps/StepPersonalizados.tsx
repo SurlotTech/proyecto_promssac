@@ -39,9 +39,6 @@ const StepPersonalizados = ({ customFields, onCustomFieldChange }: Props) => (
             }
             className={fieldInputClass}
           />
-          <p id={`cf-${key}-hint`} className="text-xs text-muted-foreground">
-            Solo números (máximo {PERU_PHONE_DIGIT_COUNT}); si lo completas, son exactamente {PERU_PHONE_DIGIT_COUNT} dígitos.
-          </p>
         </div>
       ) : (
         <div key={key} className="space-y-1.5">

@@ -2,6 +2,7 @@ import { ArrowLeft, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import NewProductDialog from "@/components/orders/NewProductDialog";
 import OrderProductsTable from "@/components/orders/OrderProductsTable";
+import ConfirmDeleteDialog from "@/components/ui/ConfirmDeleteDialog";
 import { Button } from "@/components/ui/button";
 import {
   Breadcrumb,
@@ -12,6 +13,8 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { useOrderProductosPage } from "@/hooks/useOrderProductosPage";
+import type { OrderProductRow } from "@/domain/orderProducts";
+import { useState } from "react";
 
 const OrdenProductos = () => {
   const {
@@ -23,6 +26,9 @@ const OrdenProductos = () => {
     dialog,
     actions,
   } = useOrderProductosPage();
+
+  const [productToDelete, setProductToDelete] = useState<OrderProductRow | null>(null);
+  const [deleteProductPending, setDeleteProductPending] = useState(false);
 
   if (!displayOrderId) {
     return (
@@ -66,11 +72,17 @@ const OrdenProductos = () => {
         </Breadcrumb>
 
         <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              type="button"
+              onClick={actions.finishAndReturnToCompletar}
+              className="flex size-10 shrink-0 items-center justify-center rounded-lg text-destructive"
+            >
+              <ArrowLeft className="size-5" strokeWidth={2.25} />
+            </button>
             <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-[28px]">
-              Productos
+              {displayOrderId}
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
           </div>
           <Button
             type="button"
@@ -91,21 +103,8 @@ const OrdenProductos = () => {
             rows={products}
             onAddProduct={actions.openCreateDialog}
             onEditProduct={actions.openEditDialog}
-            onDeleteProduct={actions.deleteProduct}
+            onDeleteProduct={(row) => setProductToDelete(row)}
           />
-
-          <div className="mt-4 flex justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-10 gap-2 border-primary/55 text-primary hover:bg-primary-soft sm:min-w-[260px]"
-              onClick={actions.finishAndReturnToCompletar}
-            >
-              <ArrowLeft className="h-4 w-4" strokeWidth={2.25} />
-              Volver a campos personalizados
-            </Button>
-          </div>
         </div>
       </div>
 
@@ -116,6 +115,30 @@ const OrdenProductos = () => {
         editRow={dialog.editingProduct}
         onSaved={dialog.onProductCreated}
         onUpdated={dialog.onProductUpdated}
+      />
+      <ConfirmDeleteDialog
+        open={productToDelete != null}
+        onOpenChange={(open) => {
+          if (!open) setProductToDelete(null);
+        }}
+        title="Eliminar producto"
+        description={
+          productToDelete
+            ? `¿Eliminar el producto «${productToDelete.code}» de esta orden? Esta acción no se puede deshacer.`
+            : ""
+        }
+        confirmLabel="Eliminar producto"
+        isPending={deleteProductPending}
+        onConfirm={async () => {
+          if (!productToDelete) return;
+          setDeleteProductPending(true);
+          try {
+            await actions.deleteProduct(productToDelete);
+            setProductToDelete(null);
+          } finally {
+            setDeleteProductPending(false);
+          }
+        }}
       />
     </div>
   );

@@ -47,14 +47,14 @@ export function VehicleDriverSelect({
       onValueChange={(v) => onChange(v === NONE ? "" : v)}
       disabled={disabled || isLoading}
     >
-      <SelectTrigger className={cn("h-10", triggerClassName)}>
+      <SelectTrigger className={cn("h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 shadow-sm transition-all hover:border-slate-300 focus:border-ring focus:ring-4 focus:ring-ring/20 focus:ring-offset-0 focus-visible:ring-offset-0 [&>span]:line-clamp-1 [&>span]:w-full [&>span]:truncate [&>span]:text-left [&>span[data-placeholder]]:font-normal [&>span[data-placeholder]]:text-slate-400", triggerClassName)}>
         <SelectValue
           placeholder={
             isLoading ? "Cargando conductores…" : placeholder ?? "Seleccionar conductor (opcional)"
           }
         />
       </SelectTrigger>
-      <SelectContent align="start">
+      <SelectContent align="start" className="rounded-xl border-slate-200 shadow-lg">
         <SelectItem value={NONE} className="text-sm">
           Sin asignar
         </SelectItem>

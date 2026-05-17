@@ -82,47 +82,6 @@ const FleetFilters = ({ filters, onChange, onApply, variant = "bar" }: Props) =>
     </div>
   );
 
-  const actionButtons = (
-    <div
-      className={cn(
-        "flex min-w-0 items-stretch gap-2",
-        isSidebar && "w-full",
-        !isSidebar && "shrink-0 flex-wrap lg:ml-auto",
-      )}
-    >
-      <Button
-        type="button"
-        className={cn(
-          filterBtnClass,
-          "bg-primary text-primary-foreground hover:bg-primary-hover",
-          isSidebar && "min-w-0 flex-1",
-        )}
-        onClick={() => onApply?.()}
-      >
-        <Filter className="size-4 shrink-0" />
-        Filtrar
-      </Button>
-      <Button
-        type="button"
-        variant="outline"
-        className={cn(
-          "h-10 w-10 shrink-0 rounded-xl border-primary/35 p-0 text-primary hover:bg-primary-soft sm:w-11",
-          isSidebar && "self-stretch",
-        )}
-        disabled={!hasActive}
-        onClick={() =>
-          onChange({
-            ...filters,
-            status: "all",
-          })
-        }
-        aria-label="Limpiar filtros"
-      >
-        <RotateCcw className="size-4" />
-      </Button>
-    </div>
-  );
-
   if (isSidebar) {
     return (
       <div className="border-b border-border/70 bg-surface-muted/50 px-3 py-3 sm:px-4">
@@ -131,7 +90,6 @@ const FleetFilters = ({ filters, onChange, onApply, variant = "bar" }: Props) =>
             {dateBlock}
             {statusBlock}
           </div>
-          {actionButtons}
         </div>
       </div>
     );
@@ -143,7 +101,6 @@ const FleetFilters = ({ filters, onChange, onApply, variant = "bar" }: Props) =>
         {dateBlock}
         {statusBlock}
       </div>
-      {actionButtons}
     </div>
   );
 };

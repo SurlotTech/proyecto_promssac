@@ -2,7 +2,11 @@ import { cn } from "@/lib/utils";
 import { routeStatusMeta, type RouteStatus } from "@/domain/routes";
 
 const RouteStatusBadge = ({ status }: { status: RouteStatus }) => {
-  const meta = routeStatusMeta[status];
+  const meta = routeStatusMeta[status] ?? {
+    label: status,
+    className: "bg-muted text-muted-foreground",
+    dot: "bg-muted-foreground",
+  };
   return (
     <span
       className={cn(

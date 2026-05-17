@@ -3,7 +3,6 @@ import { useParams, Link } from "react-router-dom";
 import { 
   ChevronRight, 
   Edit3, 
-  Plus, 
   MapPin, 
   Package, 
   User, 
@@ -40,7 +39,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import NewRouteDialog from "@/components/routes/NewRouteDialog";
-import AssociateOrderDialog from "@/components/routes/AssociateOrderDialog";
+
 import OrderStatusBadge from "@/components/orders/OrderStatusBadge";
 import { useMobileUserRouteOptionsQuery, useRouteOrdersQuery, useVehicleOptionsQuery } from "@/hooks/useOperationsQueries";
 import { routesApi } from "@/services";
@@ -207,7 +206,6 @@ const DetalleRuta = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("despachos");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [associateDialogOpen, setAssociateDialogOpen] = useState(false);
   const qc = useQueryClient();
   const { data: vehicles = [] } = useVehicleOptionsQuery();
   const { data: mobileUsers = [] } = useMobileUserRouteOptionsQuery();
@@ -251,12 +249,6 @@ const DetalleRuta = () => {
     [selectedMapOrder],
   );
 
-  function invalidateRouteOrders() {
-    void qc.invalidateQueries({ queryKey: ["rutas", id, "ordenes"] });
-    void qc.invalidateQueries({ queryKey: ["rutas"] });
-    void qc.invalidateQueries({ queryKey: ["ordenes"] });
-  }
-
   useEffect(() => {
     if (id) {
       routesApi.get(id)
@@ -293,13 +285,6 @@ const DetalleRuta = () => {
           >
             <Edit3 className="mr-2 size-4" /> Editar ruta
           </Button>
-          <Button 
-            size="sm" 
-            className="bg-primary hover:bg-primary-hover text-primary-foreground border-none h-9 shadow-md rounded-full px-4"
-            onClick={() => setAssociateDialogOpen(true)}
-          >
-            <Plus className="mr-2 size-4" /> Asociar pedido
-          </Button>
         </div>
       </header>
 
@@ -330,14 +315,13 @@ const DetalleRuta = () => {
                  <SelectValue placeholder="Estado: Todos" />
                </div>
              </SelectTrigger>
-             <SelectContent>
-               <SelectItem value="all">Estado: Todos</SelectItem>
-               <SelectItem value="pending">Pendiente</SelectItem>
-               <SelectItem value="in_route">En ruta</SelectItem>
-               <SelectItem value="delivered">Entregado</SelectItem>
-               <SelectItem value="no_delivered">No entregado</SelectItem>
-               <SelectItem value="partially_delivered">Parcial</SelectItem>
-             </SelectContent>
+<SelectContent>
+                <SelectItem value="all">Estado: Todos</SelectItem>
+                <SelectItem value="pending">Pendiente</SelectItem>
+                <SelectItem value="in_route">En ruta</SelectItem>
+                <SelectItem value="entregado">Entregado</SelectItem>
+                <SelectItem value="no_entregado">No entregado</SelectItem>
+              </SelectContent>
            </Select>
 
            <div className="relative flex-1 max-w-md">
@@ -594,14 +578,6 @@ const DetalleRuta = () => {
         vehicles={vehicles}
         mobileUsers={mobileUsers}
         editingRoute={route}
-      />
-
-      <AssociateOrderDialog
-        open={associateDialogOpen}
-        onOpenChange={setAssociateDialogOpen}
-        rutaId={route.id}
-        fechaRuta={route.deliveryDate}
-        onCreated={() => invalidateRouteOrders()}
       />
     </div>
   );

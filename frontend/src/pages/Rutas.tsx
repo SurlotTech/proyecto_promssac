@@ -20,6 +20,7 @@ import AssignRouteDialog from "@/components/routes/AssignRouteDialog";
 import NewRouteDialog from "@/components/routes/NewRouteDialog";
 import RoutesPaginationBar from "@/components/routes/RoutesPaginationBar";
 import RoutesViewToggle from "@/components/routes/RoutesViewToggle";
+import ConfirmDeleteDialog from "@/components/ui/ConfirmDeleteDialog";
 import { Button } from "@/components/ui/button";
 import type { Route as RouteData } from "@/domain/routes";
 import { places } from "@/domain/routes";
@@ -74,6 +75,7 @@ const Rutas = () => {
   const [routeDialogOpen, setRouteDialogOpen] = useState(false);
   const [editingRoute, setEditingRoute] = useState<RouteData | null>(null);
   const [assignRouteOpen, setAssignRouteOpen] = useState(false);
+  const [routeToDelete, setRouteToDelete] = useState<RouteData | null>(null);
 
   const deleteRouteMut = useMutation({
     mutationFn: (id: string) => routesApi.remove(id),
@@ -101,8 +103,12 @@ const Rutas = () => {
   };
 
   const confirmDeleteRoute = (r: RouteData) => {
-    if (!window.confirm(`¿Eliminar la ruta «${r.code}»? Esta acción no se puede deshacer.`)) return;
-    deleteRouteMut.mutate(r.id);
+    setRouteToDelete(r);
+  };
+
+  const confirmDeleteRouteMut = () => {
+    if (!routeToDelete) return;
+    deleteRouteMut.mutate(routeToDelete.id);
   };
 
   const filteredRoutes = useMemo(
@@ -166,6 +172,10 @@ const Rutas = () => {
         subtitle="Planifica y monitorea las rutas de entrega."
         actions={
           <>
+            <Button variant="outline" size="sm" className="h-9 gap-2">
+              <Download className="size-4 shrink-0" />
+              <span className="hidden sm:inline">Exportar</span>
+            </Button>
             <Button variant="outline" size="sm" className="h-9 gap-2">
               <FileUp className="size-4 shrink-0" />
               <span className="hidden sm:inline">Importar</span>
@@ -292,6 +302,22 @@ const Rutas = () => {
       />
 
       <AssignRouteDialog open={assignRouteOpen} onOpenChange={setAssignRouteOpen} routes={allRoutes} />
+
+      <ConfirmDeleteDialog
+        open={routeToDelete != null}
+        onOpenChange={(open) => {
+          if (!open) setRouteToDelete(null);
+        }}
+        title="Eliminar ruta"
+        description={
+          routeToDelete
+            ? `¿Eliminar la ruta «${routeToDelete.code}»? Esta acción no se puede deshacer.`
+            : ""
+        }
+        confirmLabel="Eliminar ruta"
+        isPending={deleteRouteMut.isPending}
+        onConfirm={confirmDeleteRouteMut}
+      />
     </div>
   );
 };

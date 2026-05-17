@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { X } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import type { OrderRouteOption } from "@/domain/orders";
@@ -19,62 +19,51 @@ const NewOrderDialog = ({ open, onOpenChange, routeOptions }: Props) => {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
-          "max-h-[min(90vh,640px)] gap-0 overflow-hidden p-0 sm:max-w-xl",
+          "max-h-[min(90vh,740px)] gap-0 overflow-y-auto p-8 sm:max-w-[600px] bg-white border-0 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] rounded-[1.5rem]",
           "[&>button]:hidden",
         )}
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
-        <div className="flex max-h-[inherit] flex-col">
-          <header className="flex shrink-0 items-center gap-2 border-b border-border px-4 py-3 sm:px-5">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 shrink-0 rounded-lg text-foreground hover:bg-muted"
-              onClick={() => onOpenChange(false)}
-              aria-label="Volver"
-            >
-              <ArrowLeft className="h-4 w-4" strokeWidth={2} />
-            </Button>
-            <DialogTitle className="text-lg font-semibold tracking-tight text-foreground">
+        <button
+          onClick={() => onOpenChange(false)}
+          className="absolute right-6 top-6 rounded-full bg-red-50 p-2 text-red-500 hover:bg-red-100 transition-colors"
+          aria-label="Cerrar"
+        >
+          <X className="h-4 w-4" strokeWidth={2.5} />
+        </button>
+
+        <div className="flex flex-col">
+          <header className="mb-6">
+            <DialogTitle className="text-[1.35rem] font-bold tracking-tight text-slate-900">
               Nueva orden
             </DialogTitle>
+            <p className="mt-1.5 text-sm text-slate-500 font-normal">
+              Agrega una nueva orden
+            </p>
           </header>
 
-          <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-5">
+          <div className="">
             <NewOrderDialogForm form={form} setForm={setForm} routeOptions={routeOptions} />
           </div>
 
-          <footer className="shrink-0 border-t border-border bg-muted/30 px-4 py-3 sm:px-5">
-            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:flex-wrap sm:justify-end sm:gap-3">
+          <footer className="mt-9 mb-2 flex items-center justify-center">
+            <div className="flex gap-3">
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
-                className="h-9 w-full sm:w-auto sm:min-w-[120px]"
-                disabled={isPending}
-                onClick={() => onOpenChange(false)}
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-9 w-full border-primary/40 text-primary hover:bg-primary-soft sm:w-auto sm:min-w-[200px]"
+                className="h-10 border-primary/40 text-primary hover:bg-primary-soft rounded-full px-5 font-semibold transition-colors"
                 onClick={() => void saveAndGoToContact(routeOptions, () => onOpenChange(false))}
                 disabled={!canSubmit || isPending}
               >
-                Ingresar datos de contacto
+                Ingresar contacto
               </Button>
               <Button
                 type="button"
-                size="sm"
-                className="h-9 w-full bg-primary text-primary-foreground hover:bg-primary-hover sm:w-auto sm:min-w-[140px]"
+                className="h-10 bg-primary hover:bg-primary-hover text-primary-foreground rounded-full px-6 font-semibold shadow-sm transition-colors"
                 onClick={() => void saveOnly(() => onOpenChange(false))}
                 disabled={!canSubmit || isPending}
               >
-                {isPending ? "Guardando…" : "Guardar"}
+                {isPending ? "Guardando…" : "Guardar orden"}
               </Button>
             </div>
           </footer>

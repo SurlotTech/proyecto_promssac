@@ -96,7 +96,7 @@ const CompletarOrden = () => {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-transparent">
-      <header className="sticky top-0 z-10 border-b border-border bg-card/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-card/80 sm:px-6">
+      <header className="sticky top-0 z-10 bg-transparent px-4 py-3 sm:px-6">
         <div className="mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button
@@ -128,7 +128,7 @@ const CompletarOrden = () => {
 
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-4xl space-y-8 px-4 py-6 sm:px-6 sm:py-8">
-          <div className="rounded-[2.5rem] border border-white/20 bg-white/40 shadow-xl shadow-black/5 backdrop-blur-2xl p-6">
+          <div className="rounded-[2.5rem] border border-white/20 bg-white/40 shadow-xl shadow-black/5 backdrop-blur-2xl p-4">
             <div className="flex items-center justify-center">
               <Stepper
                 steps={f.steps}
@@ -139,7 +139,7 @@ const CompletarOrden = () => {
             </div>
           </div>
           <div className="flex flex-col items-center">
-            <div className="w-full max-w-2xl">
+            <div className="w-full">
               <div className="w-full animate-in fade-in slide-in-from-bottom-2 duration-500">
                 {renderStep()}
               </div>

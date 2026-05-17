@@ -11,6 +11,7 @@ import {
   AlertCircle,
   Truck,
   Package,
+  Download,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useOrdersQuery } from "@/hooks/useOperationsQueries";
@@ -44,8 +45,9 @@ const Alertas = () => {
         title="Alertas"
         subtitle="Monitorea y gestiona las alertas operativas en tiempo real."
         actions={
-          <Button className="bg-primary shadow-glow hover:bg-primary-hover">
-            Exportar reporte
+          <Button variant="outline" size="sm" className="h-9 gap-2">
+            <Download className="size-4" />
+            Exportar
           </Button>
         }
       />
@@ -87,10 +89,9 @@ const Alertas = () => {
                     <SelectContent>
                       <SelectItem value="todos">Todos</SelectItem>
                       <SelectItem value="pending">Pendiente</SelectItem>
-                      <SelectItem value="preparing">En preparación</SelectItem>
                       <SelectItem value="in_route">En ruta</SelectItem>
-                      <SelectItem value="delivered">Entregado</SelectItem>
-                      <SelectItem value="cancelled">Devolución</SelectItem>
+                      <SelectItem value="entregado">Entregado</SelectItem>
+                      <SelectItem value="no_entregado">No entregado</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -105,11 +106,23 @@ const Alertas = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="todos">Todos</SelectItem>
-                      <SelectItem value="entrega-terceros">
-                        Entrega Terceros
+                      <SelectItem value="Pendiente">
+                        Pendiente
                       </SelectItem>
-                      <SelectItem value="entrega-cliente">
-                        Entrega Cliente
+                      <SelectItem value="Recepcionado conforme">
+                        Recepcionado conforme
+                      </SelectItem>
+                      <SelectItem value="Entrega tercero">
+                        Entrega tercero
+                      </SelectItem>
+                      <SelectItem value="Entrega UGEL">
+                        Entrega UGEL
+                      </SelectItem>
+                      <SelectItem value="Devolución">
+                        Devolución
+                      </SelectItem>
+                      <SelectItem value="En ruta">
+                        En ruta
                       </SelectItem>
                     </SelectContent>
                   </Select>

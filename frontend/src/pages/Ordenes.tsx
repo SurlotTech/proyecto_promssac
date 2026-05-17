@@ -26,6 +26,10 @@ import { paginationItems } from "@/lib/pagination";
 import { cn } from "@/lib/utils";
 import { persistOrderDraft, type OrderCreationDraft, type OrderCompletarLocationState } from "@/lib/orderCreationDraft";
 
+import { orderSubstatusMeta } from "@/domain/orders";
+
+const SUBSTATUS_OPTIONS = Object.keys(orderSubstatusMeta);
+
 const PAGE_SIZE = 8;
 
 function orderMatches(o: Order, f: OrderFiltersState): boolean {
@@ -58,8 +62,8 @@ const Ordenes = () => {
       clientName: "11073 LLIPYARAQ MICAELA BASTIDAS",
       contactName: "Micaela Bastidas",
       contactIdentifier: "DNI 12345678",
-      status: "delivered",
-      substatus: "Recepcionado Conforme",
+      status: "entregado",
+      substatus: "Recepcionado conforme",
       routeDate: "12/12/2025",
       routeDateIso: "2025-12-12",
       createdAtIso: "2025-12-12T10:00:00Z",
@@ -74,8 +78,8 @@ const Ordenes = () => {
   }, [allOrdersFromQuery]);
 
   const orderSubstatusOptions = useMemo(
-    () => Array.from(new Set(allOrders.map((o) => o.substatus))).sort(),
-    [allOrders],
+    () => SUBSTATUS_OPTIONS,
+    [],
   );
   const vehiclePlatesInOrders = useMemo(
     () => Array.from(new Set(allOrders.map((o) => o.vehiclePlate).filter((p) => p !== "—"))).sort(),
@@ -125,8 +129,8 @@ const Ordenes = () => {
   const stats = useMemo(() => {
     const total = allOrders.length;
     const inRoute = allOrders.filter((o) => o.status === "in_route").length;
-    const pending = allOrders.filter((o) => o.status === "pending").length;
-    const delivered = allOrders.filter((o) => o.status === "delivered").length;
+    const pending = allOrders.filter((o) => o.status === "in_route").length;
+    const delivered = allOrders.filter((o) => o.status === "entregado").length;
     return { total, inRoute, pending, delivered };
   }, [allOrders]);
 

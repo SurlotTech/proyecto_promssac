@@ -2,7 +2,11 @@ import { cn } from "@/lib/utils";
 import { orderStatusMeta, type OrderStatus } from "@/domain/orders";
 
 const OrderStatusBadge = ({ status }: { status: OrderStatus }) => {
-  const meta = orderStatusMeta[status];
+  const meta = orderStatusMeta[status] ?? {
+    label: status,
+    className: "bg-muted text-muted-foreground",
+    dot: "bg-muted-foreground",
+  };
   return (
     <span
       className={cn(

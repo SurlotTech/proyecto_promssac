@@ -58,9 +58,11 @@ const AssignRouteOrdersPanel = ({
                 <SelectValue placeholder="Estado" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Pendiente o en preparación</SelectItem>
-                <SelectItem value="pending">Solo pendiente</SelectItem>
-                <SelectItem value="preparing">Solo en preparación</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="pending">Pendiente</SelectItem>
+                <SelectItem value="in_route">En ruta</SelectItem>
+                <SelectItem value="entregado">Entregado</SelectItem>
+                <SelectItem value="no_entregado">No entregado</SelectItem>
               </SelectContent>
             </Select>
           </div>

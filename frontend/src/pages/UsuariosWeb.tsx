@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { Filter, MoreHorizontal, RotateCcw, User } from "lucide-react";
+import { MoreHorizontal, User, X, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -39,6 +38,7 @@ import type { RolWebOpcion } from "@/domain/webRoles";
 import type { WebUserDetail, WebUserListItem } from "@/domain/webUsers";
 import { useWebRoleOptionsQuery, useWebUserDetailQuery, useWebUsersQuery } from "@/hooks/useOperationsQueries";
 import { webUsersApi } from "@/services/webUsers.api";
+import { cn } from "@/lib/utils";
 
 type ActivoDialogState = {
   id: string;
@@ -57,10 +57,9 @@ const emptyFilters: FilterDraft = { nombre: "", usuario: "", estado: "", rol: ""
 
 function filterUsers(
   users: WebUserListItem[],
-  includeInactive: boolean,
   applied: FilterDraft,
 ): WebUserListItem[] {
-  let list = includeInactive ? users : users.filter((u) => u.estado === "Activo");
+  let list = users.filter((u) => u.estado === "Activo");
   const n = applied.nombre.toLowerCase().trim();
   const uq = applied.usuario.toLowerCase().trim();
   const rq = applied.rol.trim().toLowerCase();
@@ -85,9 +84,8 @@ const UsuariosWeb = () => {
   const { data: users = [], isLoading, isError } = useWebUsersQuery();
   const { data: roleOptions = [] } = useWebRoleOptionsQuery();
 
-  const [draftFilters, setDraftFilters] = useState<FilterDraft>(emptyFilters);
+const [draftFilters, setDraftFilters] = useState<FilterDraft>(emptyFilters);
   const [appliedFilters, setAppliedFilters] = useState<FilterDraft>(emptyFilters);
-  const [includeInactive, setIncludeInactive] = useState(false);
   const [activoDialog, setActivoDialog] = useState<ActivoDialogState>(null);
   const [rolModalUserId, setRolModalUserId] = useState<string | null>(null);
   const [newRoleKey, setNewRoleKey] = useState("");
@@ -154,8 +152,8 @@ const UsuariosWeb = () => {
   const blockedCount = useMemo(() => users.filter((u) => u.estado !== "Activo").length, [users]);
 
   const filteredUsers = useMemo(
-    () => filterUsers(users, includeInactive, appliedFilters),
-    [users, includeInactive, appliedFilters],
+    () => filterUsers(users, appliedFilters),
+    [users, appliedFilters],
   );
 
   return (
@@ -185,89 +183,67 @@ const UsuariosWeb = () => {
       </header>
 
       <div className="flex-1 overflow-auto p-4 sm:p-6">
-        <div className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
-          <div className="flex flex-wrap items-center gap-3 border-b border-border bg-muted/20 p-4">
-            <Input
-              placeholder="Nombre"
-              className="h-9 w-full bg-transparent sm:w-[200px]"
-              value={draftFilters.nombre}
-              onChange={(e) => setDraftFilters((d) => ({ ...d, nombre: e.target.value }))}
-            />
-            <Input
-              placeholder="Usuario"
-              className="h-9 w-full bg-transparent sm:w-[200px]"
-              value={draftFilters.usuario}
-              onChange={(e) => setDraftFilters((d) => ({ ...d, usuario: e.target.value }))}
-            />
-            <Select
-              value={draftFilters.estado || undefined}
-              onValueChange={(v) => setDraftFilters((d) => ({ ...d, estado: v as FilterDraft["estado"] }))}
-            >
-              <SelectTrigger className="h-9 w-full bg-transparent sm:w-[160px]">
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Activo">Activo</SelectItem>
-                <SelectItem value="Inactivo">Inactivo</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select
-              value={draftFilters.rol || undefined}
-              onValueChange={(v) => setDraftFilters((d) => ({ ...d, rol: v }))}
-            >
-              <SelectTrigger className="h-9 w-full bg-transparent sm:w-[180px]">
-                <SelectValue placeholder="Rol" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Personalizado">Personalizado</SelectItem>
-                {roleOptions.map((r) => (
-                  <SelectItem key={r.clave} value={r.nombre}>
-                    {r.nombre}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <div className="flex items-center gap-2 sm:ml-2">
-              <Checkbox
-                id="include-inactive"
-                checked={includeInactive}
-                onCheckedChange={(v) => setIncludeInactive(v === true)}
+        <div className="space-y-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:flex-nowrap lg:gap-2">
+            <div className="relative min-w-0 flex-1 lg:max-w-lg">
+              <Input
+                placeholder="Buscar por nombre o usuario"
+                value={draftFilters.nombre || draftFilters.usuario}
+                onChange={(e) => setDraftFilters((d) => ({ ...d, nombre: e.target.value, usuario: e.target.value }))}
+                className="h-12 rounded-full border-border/100 bg-transparent pl-10 shadow-none transition-colors hover:bg-zinc-50 focus-visible:ring-offset-0"
               />
-              <label
-                htmlFor="include-inactive"
-                className="cursor-pointer text-sm font-medium leading-none text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Incluir inactivos
-              </label>
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             </div>
 
-            <div className="ml-auto flex items-center gap-2">
-              <Button
-                type="button"
-                size="sm"
-                className="h-9 gap-2 bg-primary px-4 font-medium text-primary-foreground shadow-sm hover:bg-primary-hover"
-                onClick={() => setAppliedFilters({ ...draftFilters })}
+            <div className="flex flex-wrap items-center gap-2 sm:justify-end lg:contents">
+              <Select
+                value={draftFilters.estado || "all"}
+                onValueChange={(v) => setDraftFilters((d) => ({ ...d, estado: v === "all" ? "" : v as FilterDraft["estado"] }))}
               >
-                <Filter className="h-4 w-4" />
-                Filtrar
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className="h-9 w-9 text-muted-foreground hover:text-foreground"
-                onClick={() => {
-                  setDraftFilters(emptyFilters);
-                  setAppliedFilters(emptyFilters);
-                }}
-                aria-label="Limpiar filtros"
+                <SelectTrigger className="h-12 w-full min-w-0 shrink rounded-full border-border/100 bg-transparent px-4 py-0 shadow-none transition-colors hover:bg-zinc-50 focus:ring-2 focus:ring-ring focus:ring-offset-2 sm:w-fit sm:max-w-[min(100%,14rem)]">
+                  <SelectValue placeholder="Estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Estados</SelectItem>
+                  <SelectItem value="Activo">Activo</SelectItem>
+                  <SelectItem value="Inactivo">Inactivo</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={draftFilters.rol || "all"}
+                onValueChange={(v) => setDraftFilters((d) => ({ ...d, rol: v === "all" ? "" : v }))}
               >
-                <RotateCcw className="h-4 w-4" />
-              </Button>
+                <SelectTrigger className="h-12 w-full min-w-0 shrink rounded-full border-border/100 bg-transparent px-4 py-0 shadow-none transition-colors hover:bg-zinc-50 focus:ring-2 focus:ring-ring focus:ring-offset-2 sm:w-fit sm:max-w-[min(100%,14rem)]">
+                  <SelectValue placeholder="Rol" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Roles</SelectItem>
+                  {roleOptions.map((r) => (
+                    <SelectItem key={r.clave} value={r.nombre}>
+                      {r.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
+          {(draftFilters.nombre || draftFilters.usuario || draftFilters.estado || draftFilters.rol) && (
+            <div className="flex justify-end">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setDraftFilters(emptyFilters)}
+                className="h-8 text-xs text-muted-foreground hover:text-foreground"
+              >
+                <X className="mr-1 h-3.5 w-3.5" /> Limpiar filtros
+              </Button>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
           {isError ? (
             <p className="p-6 text-sm text-destructive">No se pudo cargar el listado. Revisa el backend e intenta de nuevo.</p>
           ) : isLoading ? (

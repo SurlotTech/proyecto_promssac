@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import FleetDeviceList from "@/components/flota/FleetDeviceList";
 import FleetFilters, { type FleetViewFilters } from "@/components/flota/FleetFilters";
 import FleetMap from "@/components/flota/FleetMap";
@@ -67,6 +69,18 @@ const Flota = () => {
               {error instanceof Error ? error.message : "Error al cargar flota"}
             </p>
           )}
+          <div className="bg-surface-muted/50 p-3 pb-0 sm:px-4">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar por placa, IMEI o alias…"
+                className="h-10 rounded-xl border-border/70 bg-white pl-10 pr-3 shadow-none"
+                aria-label="Buscar dispositivos"
+              />
+            </div>
+          </div>
           <FleetFilters
             variant="sidebar"
             filters={filters}

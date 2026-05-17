@@ -252,12 +252,12 @@ const OrderTimeline = ({ order }: { order: any }) => {
       color: hasVehicle ? "indigo" : "zinc"
     });
 
-    const inRoute = ["in_route", "delivered", "partially_delivered", "no_delivered"].includes(order.status);
+    const inRoute = ["in_route", "entregado", "no_entregado"].includes(order.status);
     list.push({
       id: 3,
       title: "Despacho en curso",
-      description: inRoute 
-        ? "El vehículo ha iniciado el recorrido GPS. La orden se encuentra próxima a ser visitada." 
+      description: inRoute
+        ? "El vehículo ha iniciado el recorrido GPS. La orden se encuentra próxima a ser visitada."
         : "Pendiente de inicio de ruta por parte del transportista.",
       date: inRoute ? "En tránsito" : "Pendiente",
       icon: <FaRoute />,
@@ -265,12 +265,12 @@ const OrderTimeline = ({ order }: { order: any }) => {
       color: inRoute ? "amber" : "zinc"
     });
 
-    const finalStatus = ["delivered", "partially_delivered", "no_delivered"].includes(order.status);
+    const finalStatus = ["entregado", "no_entregado"].includes(order.status);
     list.push({
       id: 4,
-      title: order.status === "no_delivered" ? "Visita fallida" : "Entrega final",
-      description: finalStatus 
-        ? `Gestión finalizada con estado: ${order.status === "delivered" ? "Conforme" : "Incidencia"}.` 
+      title: order.status === "no_entregado" ? "Visita fallida" : "Entrega final",
+      description: finalStatus
+        ? `Gestión finalizada con estado: ${order.status === "entregado" ? "Conforme" : "Incidencia"}.`
         : "Esperando reporte de cierre por parte del conductor.",
       date: finalStatus ? "Finalizado" : "En espera",
       icon: <FaCheckCircle />,

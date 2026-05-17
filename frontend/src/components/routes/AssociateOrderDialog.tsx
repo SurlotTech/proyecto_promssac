@@ -33,7 +33,7 @@ const AssociateOrderDialog = ({ open, onOpenChange, rutaId, fechaRuta, onCreated
         numeroOrden: orderNum,
         rutaId,
         fechaRuta,
-        estado: "pending"
+        estado: "in_route"
       }).then(order => ({ order, toDetails, orderNum })),
     onSuccess: ({ order, toDetails, orderNum }) => {
       toast.success(`Orden ${orderNum} creada.`);

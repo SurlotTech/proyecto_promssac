@@ -1,4 +1,4 @@
-import { MoreHorizontal, Eye, Pencil, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import type { Vehicle } from "@/domain/vehicles";
 import StatusBadge from "./StatusBadge";
 import { vehicleTypeIcon } from "./vehicleTypeIcon";
@@ -12,9 +12,10 @@ import {
 interface Props {
   vehicles: Vehicle[];
   onSelect: (v: Vehicle) => void;
+  onDelete?: (v: Vehicle) => void;
 }
 
-const VehicleTable = ({ vehicles, onSelect }: Props) => {
+const VehicleTable = ({ vehicles, onSelect, onDelete }: Props) => {
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
       <div className="overflow-x-auto scrollbar-thin">
@@ -68,12 +69,9 @@ const VehicleTable = ({ vehicles, onSelect }: Props) => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-40">
                         <DropdownMenuItem onClick={() => onSelect(v)}>
-                          <Eye className="mr-2 h-4 w-4" /> Ver detalle
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onSelect(v)}>
                           <Pencil className="mr-2 h-4 w-4" /> Editar
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive focus:text-destructive">
+                        <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive" onClick={() => onDelete?.(v)}>
                           <Trash2 className="mr-2 h-4 w-4" /> Eliminar
                         </DropdownMenuItem>
                       </DropdownMenuContent>

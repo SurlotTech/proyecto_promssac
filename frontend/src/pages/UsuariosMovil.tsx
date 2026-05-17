@@ -1,11 +1,10 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { MoreHorizontal, RotateCcw, User } from "lucide-react";
+import { MoreHorizontal, User, X, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -40,9 +39,8 @@ type ActivoDialogState = {
 const UsuariosMovil = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { data: users = [], isLoading, isError, refetch } = useMobileUsersQuery();
+  const { data: users = [], isLoading, isError } = useMobileUsersQuery();
   const [searchTerm, setSearchTerm] = useState("");
-  const [includeInactive, setIncludeInactive] = useState(false);
   const [activoDialog, setActivoDialog] = useState<ActivoDialogState>(null);
 
   const setActivoMutation = useMutation({
@@ -61,7 +59,7 @@ const UsuariosMovil = () => {
   const blockedCount = useMemo(() => users.filter((u) => u.estado !== "Activo").length, [users]);
 
   const filteredUsers = useMemo(() => {
-    let list = includeInactive ? users : users.filter((u) => u.estado === "Activo");
+    let list = users.filter((u) => u.estado === "Activo");
     const q = searchTerm.toLowerCase().trim();
     if (q) {
       list = list.filter(
@@ -73,7 +71,7 @@ const UsuariosMovil = () => {
       );
     }
     return list;
-  }, [users, includeInactive, searchTerm]);
+  }, [users, searchTerm]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-transparent animate-fade-in">
@@ -98,36 +96,34 @@ const UsuariosMovil = () => {
       </header>
 
       <div className="flex-1 overflow-auto p-4 sm:p-6">
-        <div className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
-          <div className="flex flex-wrap items-center gap-3 border-b border-border bg-muted/20 p-4">
-            <Input
-              placeholder="Buscar usuario móvil"
-              className="h-9 w-full bg-transparent sm:w-[300px]"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="include-inactive-movil"
-                checked={includeInactive}
-                onCheckedChange={(v) => setIncludeInactive(v === true)}
+        <div className="space-y-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:flex-nowrap lg:gap-2">
+            <div className="relative min-w-0 flex-1 lg:max-w-lg">
+              <Input
+                placeholder="Buscar por nombre o usuario"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="h-12 rounded-full border-border/100 bg-transparent pl-10 shadow-none transition-colors hover:bg-zinc-50 focus-visible:ring-offset-0"
               />
-              <label htmlFor="include-inactive-movil" className="cursor-pointer text-sm font-medium text-foreground">
-                Incluir inactivos
-              </label>
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             </div>
-            <Button
-              variant="outline"
-              size="icon"
-              type="button"
-              className="h-9 w-9 text-muted-foreground hover:text-foreground"
-              onClick={() => void refetch()}
-              aria-label="Actualizar listado"
-            >
-              <RotateCcw className="h-4 w-4" />
-            </Button>
           </div>
 
+          {searchTerm && (
+            <div className="flex justify-end">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSearchTerm("")}
+                className="h-8 text-xs text-muted-foreground hover:text-foreground"
+              >
+                <X className="mr-1 h-3.5 w-3.5" /> Limpiar filtros
+              </Button>
+            </div>
+)}
+        </div>
+
+        <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
           {isError ? (
             <p className="p-6 text-sm text-destructive">No se pudo cargar el listado. Revisa el backend e intenta de nuevo.</p>
           ) : isLoading ? (

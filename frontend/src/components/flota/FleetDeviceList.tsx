@@ -1,6 +1,5 @@
-import { Battery, Radio, Search } from "lucide-react";
+import { Battery, Radio } from "lucide-react";
 import { useMemo } from "react";
-import { Input } from "@/components/ui/input";
 import type { FleetDevice } from "@/domain/fleet";
 import { fleetStatusLabels } from "@/domain/fleet";
 import { formatFleetDateTime } from "@/lib/fleetDateTime";
@@ -28,17 +27,7 @@ const FleetDeviceList = ({
 
   return (
     <div className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-card/40 backdrop-blur-md">
-      <div className="shrink-0 space-y-3 border-b border-border/60 p-3 sm:p-4">
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Buscar por placa, IMEI o alias…"
-            className="h-10 rounded-xl border-border/70 bg-white pl-10 pr-3 shadow-none"
-            aria-label="Buscar dispositivos"
-          />
-        </div>
+      <div className="shrink-0 space-y-3 border-b border-border/60 p-3 sm:p-4 bg-surface-muted/50">
         <p className="text-xs text-muted-foreground">
           <span className="font-semibold text-foreground">{devices.length}</span> dispositivo
           {devices.length !== 1 ? "s" : ""} en vista

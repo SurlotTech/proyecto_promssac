@@ -165,10 +165,10 @@ export const PromssacMap = forwardRef<PromssacMapRef, PromssacMapProps>(function
   }
 
   return (
-    <div className={cn("relative", className)}>
+    <div className={cn("relative !h-full !w-full", className)}>
       <div
         ref={containerRef}
-        className={cn("h-full min-h-[200px] w-full overflow-hidden rounded-xl border border-border bg-muted/20", containerClassName)}
+        className={cn("!h-full !w-full overflow-hidden rounded-xl border border-border bg-muted/20", containerClassName)}
       />
       {showStylePicker ? (
         <div className="absolute left-2 top-2 z-10">

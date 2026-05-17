@@ -2,82 +2,53 @@
 export type OrderRouteOption = { id: string; label: string };
 
 export type OrderStatus =
-  | "pending"
+  | "entregado"
+  | "no_entregado"
   | "in_route"
-  | "delivered"
-  | "no_delivered"
-  | "partially_delivered"
-
-export interface Order {
-  id: string;
-  status: OrderStatus;
-  substatus: string;
-  vehiclePlate: string;
-  clientName: string;
-  /** UUID del cliente de catálogo si la orden tiene `cliente_id`. */
-  clientId?: string;
-  routeDate: string;
-  contactName: string;
-  contactIdentifier: string;
-  routeDateIso: string;
-  createdAtIso: string;
-  isLastDispatch: boolean;
-  /** UUID de la ruta asignada en backend, si existe. */
-  routeId?: string;
-
-  /** UUID del vehículo asignado (lista/detalle backend). */
-  vehicleId?: string;
-
-  /** Conductor operativo (usuario móvil de la ruta o nombre en vehículo). */
-  driverName?: string;
-
-  /** Teléfono del usuario móvil del vehículo de la ruta/orden (si existe en BD). */
-  driverPhone?: string;
-
-  /** Presentes cuando la orden tiene datos del flujo Completar (GET detalle / lista enriquecida). */
-  contactPhone?: string;
-  contactEmail?: string;
-  addressLine?: string;
-  normalizedAddress?: string;
-  latitude?: number;
-  longitude?: number;
-  serviceMinutes?: number;
-  addressReference?: string;
-  deliveryWindowFrom?: string;
-  deliveryWindowTo?: string;
-  deliveryMode?: string;
-  deliveryPriority?: string;
-  cashOnDelivery?: boolean;
-  customFields?: Record<string, string>;
-}
+  | "pending";
 
 export const orderStatusMeta: Record<
   OrderStatus,
   { label: string; className: string; dot: string }
 > = {
-  pending: {
-    label: "Pendiente",
-    className: "bg-muted text-muted-foreground",
-    dot: "bg-muted-foreground",
+  entregado: {
+    label: "Entregado",
+    className: "bg-emerald-500/10 text-emerald-700 border border-emerald-500/20",
+    dot: "bg-emerald-500",
+  },
+  no_entregado: {
+    label: "No entregado",
+    className: "bg-red-500/10 text-red-700 border border-red-500/20",
+    dot: "bg-red-500",
   },
   in_route: {
     label: "En ruta",
-    className: "bg-info-soft text-info",
-    dot: "bg-info",
+    className: "bg-blue-500/10 text-blue-700 border border-blue-500/20",
+    dot: "bg-blue-500",
   },
-  delivered: {
-    label: "Entregado",
-    className: "bg-success-soft text-success",
-    dot: "bg-success",
+  pending: {
+    label: "Pendiente",
+    className: "bg-amber-500/10 text-amber-700 border border-amber-500/20",
+    dot: "bg-amber-500",
   },
-  no_delivered: {
-    label: "No Entregado",
-    className: "bg-info-soft text-info",
-    dot: "bg-info",
-  },
-  partially_delivered: {
-    label: "Entrega Parcial",
-    className: "bg-primary-soft text-primary",
-    dot: "bg-primary",
-  },
+};
+
+export type OrderSubstatus =
+  | "Recepcionado conforme"
+  | "Entrega tercero"
+  | "Entrega UGEL"
+  | "Devolución"
+  | "En ruta"
+  | "Pendiente";
+
+export const orderSubstatusMeta: Record<
+  OrderSubstatus,
+  { label: string; estado: OrderStatus }
+> = {
+  "Recepcionado conforme": { label: "Recepcionado conforme", estado: "entregado" },
+  "Entrega tercero": { label: "Entrega tercero", estado: "entregado" },
+  "Entrega UGEL": { label: "Entrega UGEL", estado: "entregado" },
+  "Devolución": { label: "Devolución", estado: "no_entregado" },
+  "En ruta": { label: "En ruta", estado: "in_route" },
+  "Pendiente": { label: "Pendiente", estado: "pending" },
 };

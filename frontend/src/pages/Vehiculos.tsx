@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ChevronLeft,
   ChevronRight,
@@ -20,11 +20,14 @@ import VehicleTable from "@/components/vehicles/VehicleTable";
 import VehicleCard from "@/components/vehicles/VehicleCard";
 import VehicleEditDialog from "@/components/vehicles/VehicleEditDialog";
 import NewVehicleDialog from "@/components/vehicles/NewVehicleDialog";
+import ConfirmDeleteDialog from "@/components/ui/ConfirmDeleteDialog";
 import type { Vehicle } from "@/domain/vehicles";
 import { useVehiclesQuery } from "@/hooks/useOperationsQueries";
 import { Button } from "@/components/ui/button";
 import { paginationItems } from "@/lib/pagination";
-import { cn } from "@/lib/utils";
+import { cn, errorMessageFromUnknown } from "@/lib/utils";
+import { vehiclesApi } from "@/services/vehicles.api";
+import { toast } from "sonner";
 
 const PAGE_SIZE = 8;
 
@@ -41,6 +44,7 @@ const Vehiculos = () => {
   const [selected, setSelected] = useState<Vehicle | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [vehicleToDelete, setVehicleToDelete] = useState<Vehicle | null>(null);
   const [page, setPage] = useState(1);
 
   const filtered = useMemo(() => {
@@ -85,6 +89,16 @@ const Vehiculos = () => {
     setSelected(v);
     setEditOpen(true);
   };
+
+  const deleteVehicleMut = useMutation({
+    mutationFn: (id: string) => vehiclesApi.remove(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+      toast.success("Vehículo eliminado.");
+      setVehicleToDelete(null);
+    },
+    onError: (e: unknown) => toast.error(errorMessageFromUnknown(e, "No se pudo eliminar el vehículo.")),
+  });
 
   if (isLoading) {
     return (
@@ -227,7 +241,7 @@ const Vehiculos = () => {
               {/* Desktop: según vista */}
               <div className="hidden sm:block">
                 {view === "table" ? (
-                  <VehicleTable vehicles={paginated} onSelect={openDetail} />
+                  <VehicleTable vehicles={paginated} onSelect={openDetail} onDelete={(v) => setVehicleToDelete(v)} />
                 ) : (
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                     {paginated.map((v) => (
@@ -329,6 +343,24 @@ const Vehiculos = () => {
         open={createOpen}
         onOpenChange={setCreateOpen}
         onCreated={() => queryClient.invalidateQueries({ queryKey: ["vehicles"] })}
+      />
+      <ConfirmDeleteDialog
+        open={vehicleToDelete != null}
+        onOpenChange={(open) => {
+          if (!open) setVehicleToDelete(null);
+        }}
+        title="Eliminar vehículo"
+        description={
+          vehicleToDelete
+            ? `¿Eliminar el vehículo con placa «${vehicleToDelete.plate}»? Esta acción no se puede deshacer.`
+            : ""
+        }
+        confirmLabel="Eliminar vehículo"
+        isPending={deleteVehicleMut.isPending}
+        onConfirm={() => {
+          if (!vehicleToDelete) return;
+          deleteVehicleMut.mutate(vehicleToDelete.id);
+        }}
       />
     </div>
   );

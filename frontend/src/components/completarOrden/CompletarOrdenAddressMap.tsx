@@ -38,7 +38,7 @@ const CompletarOrdenAddressMap = ({ lat, lng, onLocationCommit }: Props) => {
   }, [latNum, lngNum, onLocationCommit]);
 
   return (
-    <div className="relative flex min-h-[220px] flex-col overflow-hidden rounded-xl border border-border bg-muted shadow-sm sm:min-h-[280px] lg:min-h-[320px]">
+    <div className="relative flex h-[450px] w-full flex-col overflow-hidden rounded-xl border border-border bg-muted shadow-sm">
       <PromssacMap
         mapKey="completar-orden-address-map"
         center={[lngNum, latNum]}

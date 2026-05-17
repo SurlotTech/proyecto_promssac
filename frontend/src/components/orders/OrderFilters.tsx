@@ -78,23 +78,12 @@ const OrderFilters = ({
       : "all";
 
   useEffect(() => {
-    if (
-      substatusSelectValue === filters.substatus &&
-      vehiclePlateSelectValue === filters.vehiclePlate
-    ) {
-      return;
-    }
     onChange({
       ...filters,
       substatus: substatusSelectValue,
       vehiclePlate: vehiclePlateSelectValue,
     });
-  }, [
-    filters,
-    onChange,
-    substatusSelectValue,
-    vehiclePlateSelectValue,
-  ]);
+  }, [filters, onChange, substatusSelectValue, vehiclePlateSelectValue]);
 
   const hasActive =
     filters.dateFrom ||
@@ -164,10 +153,9 @@ const OrderFilters = ({
             <SelectContent>
               <SelectItem value="all">Estado: Todos</SelectItem>
               <SelectItem value="pending">Pendiente</SelectItem>
-              <SelectItem value="preparing">En preparación</SelectItem>
               <SelectItem value="in_route">En ruta</SelectItem>
-              <SelectItem value="delivered">Entregado</SelectItem>
-              <SelectItem value="cancelled">Devolución</SelectItem>
+              <SelectItem value="entregado">Entregado</SelectItem>
+              <SelectItem value="no_entregado">No entregado</SelectItem>
             </SelectContent>
           </Select>
         </div>

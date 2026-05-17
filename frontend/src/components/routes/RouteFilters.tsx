@@ -85,29 +85,6 @@ const RouteFilters = ({
               ))}
             </SelectContent>
           </Select>
-
-          <Select
-            value={filters.place}
-            onValueChange={(v) => onChange({ ...filters, place: v })}
-          >
-            <SelectTrigger className={pillTrigger}>
-              <div className="flex items-center gap-2">
-                <MapPin className="size-4 shrink-0 text-foreground/80" aria-hidden strokeWidth={1.75} />
-                <span className="min-w-0 truncate text-left text-sm">
-                  <SelectValue placeholder="Lugar" />
-                </span>
-              </div>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Lugar</SelectItem>
-              {places.map((p) => (
-                <SelectItem key={p} value={p}>
-                  {p}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
           <Select
             value={filters.driver}
             onValueChange={(v) => onChange({ ...filters, driver: v })}

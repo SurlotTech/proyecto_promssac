@@ -1,10 +1,9 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Filter, FilterX, MoreHorizontal, Plus, ScrollText, Lock } from "lucide-react";
+import { MoreHorizontal, Plus, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,7 +20,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
-type EstadoEntrega = "entregado" | "no_entregado" | "parcial";
+type EstadoEntrega = "entregado" | "no_entregado" | "in_route" | "pending";
 
 type SubestadoRow = {
   id: string;
@@ -37,7 +36,7 @@ type SubestadoRow = {
 const mockRows: SubestadoRow[] = [
   {
     id: "1",
-    nombre: "Recepcionado Confo…",
+    nombre: "Recepcionado conforme",
     estado: "entregado",
     orden: 1,
     codigo: "",
@@ -47,8 +46,8 @@ const mockRows: SubestadoRow[] = [
   },
   {
     id: "2",
-    nombre: "Dirección no encontr…",
-    estado: "no_entregado",
+    nombre: "Entrega tercero",
+    estado: "entregado",
     orden: 2,
     codigo: "",
     tipo: "Móvil",
@@ -57,8 +56,8 @@ const mockRows: SubestadoRow[] = [
   },
   {
     id: "3",
-    nombre: "Sin personal para rec…",
-    estado: "parcial",
+    nombre: "Entrega UGEL",
+    estado: "entregado",
     orden: 3,
     codigo: "",
     tipo: "Móvil",
@@ -67,12 +66,32 @@ const mockRows: SubestadoRow[] = [
   },
   {
     id: "4",
-    nombre: "Cliente ausente",
+    nombre: "Devolución",
     estado: "no_entregado",
     orden: 4,
     codigo: "",
     tipo: "Móvil",
     fechaCreacion: "08/11/2025 14:30",
+    privado: false,
+  },
+  {
+    id: "5",
+    nombre: "En ruta",
+    estado: "in_route",
+    orden: 5,
+    codigo: "",
+    tipo: "Móvil",
+    fechaCreacion: "09/11/2025 08:00",
+    privado: false,
+  },
+  {
+    id: "6",
+    nombre: "Pendiente",
+    estado: "pending",
+    orden: 6,
+    codigo: "",
+    tipo: "Móvil",
+    fechaCreacion: "10/11/2025 08:00",
     privado: false,
   },
 ];
@@ -81,7 +100,8 @@ const estadoBadge = (estado: EstadoEntrega) => {
   const map = {
     entregado: { label: "Entregado", className: "border-emerald-500 bg-emerald-50 text-emerald-700" },
     no_entregado: { label: "No entregado", className: "border-red-500 bg-red-50 text-red-700" },
-    parcial: { label: "Entrega parcial", className: "border-amber-500 bg-amber-50 text-amber-700" },
+    in_route: { label: "En ruta", className: "border-blue-500 bg-blue-50 text-blue-700" },
+    pending: { label: "Pendiente", className: "border-amber-500 bg-amber-50 text-amber-700" },
   } as const;
   const m = map[estado];
   return (
@@ -93,16 +113,13 @@ const estadoBadge = (estado: EstadoEntrega) => {
 
 const Subestados = () => {
   const navigate = useNavigate();
-  const [tab, setTab] = useState("subestados");
   const [nombreFilter, setNombreFilter] = useState("");
-  const [appliedFilter, setAppliedFilter] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const filtered = useMemo(() => {
-    const q = appliedFilter.trim().toLowerCase();
-    if (!q) return mockRows;
-    return mockRows.filter((r) => r.nombre.toLowerCase().includes(q));
-  }, [appliedFilter]);
+    if (!nombreFilter) return mockRows;
+    return mockRows.filter((r) => r.nombre.toLowerCase().includes(nombreFilter.toLowerCase()));
+  }, [nombreFilter]);
 
   const toggleAll = () => {
     if (selectedIds.length === filtered.length && filtered.length > 0) {
@@ -116,81 +133,33 @@ const Subestados = () => {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
   };
 
-  const applyFilter = () => setAppliedFilter(nombreFilter);
-  const clearFilter = () => {
-    setNombreFilter("");
-    setAppliedFilter("");
-  };
-
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-transparent animate-fade-in">
-      <Tabs value={tab} onValueChange={setTab} className="flex min-h-0 flex-1 flex-col">
-        {/* Pestañas + acciones (misma fila que en la referencia) */}
-        <div className="sticky top-0 z-10 border-b border-border bg-card/40 backdrop-blur-md">
-          <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-            <TabsList className="h-auto w-full justify-start gap-1 rounded-lg bg-muted/60 p-1 sm:w-auto">
-              <TabsTrigger
-                value="subestados"
-                className="rounded-md px-4 py-2 text-sm data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-              >
-                Subestados
-              </TabsTrigger>
-              <TabsTrigger
-                value="items"
-                className="rounded-md px-4 py-2 text-sm data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-              >
-                Subestados de ítems
-              </TabsTrigger>
-            </TabsList>
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                size="sm"
-                className="h-9 gap-1.5 font-medium shadow-glow"
-                onClick={() => navigate("/configuracion/subestados/nuevo")}
-              >
-                <Plus className="size-4" />
-                Crear subestado
-              </Button>
-            </div>
-          </div>
+      <div className="flex flex-wrap items-center justify-between border-b border-border bg-card/40 backdrop-blur-md px-4 py-3 sm:px-6">
+        <h1 className="text-xl font-bold tracking-tight text-foreground">Subestados</h1>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            size="sm"
+            className="h-9 gap-1.5 font-medium shadow-glow"
+            onClick={() => navigate("/configuracion/subestados/nuevo")}
+          >
+            <Plus className="size-4" />
+            Crear subestado
+          </Button>
         </div>
+      </div>
 
-        <TabsContent value="subestados" className="mt-0 flex min-h-0 flex-1 flex-col focus-visible:outline-none">
-          <div className="flex-1 overflow-auto p-4 sm:p-6">
-            <div className="overflow-hidden rounded-xl border border-border shadow-sm">
-{/* Barra de filtros */}
+      <div className="flex-1 overflow-auto p-4 sm:p-6">
+        <div className="overflow-hidden rounded-xl border border-border shadow-sm">
           <div className="flex flex-wrap items-center gap-3 border-b border-border bg-muted/20 px-4 py-3">
             <Input
               placeholder="Nombre"
               value={nombreFilter}
               onChange={(e) => setNombreFilter(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && applyFilter()}
               className="h-9 w-full bg-transparent sm:max-w-xs"
             />
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                type="button"
-                size="sm"
-                className="h-9 gap-2"
-                onClick={applyFilter}
-              >
-                <Filter className="size-4" />
-                Filtrar
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-9 gap-2"
-                onClick={clearFilter}
-              >
-                <FilterX className="size-4" />
-                Limpiar filtro
-              </Button>
-            </div>
           </div>
 
-          {/* Tabla */}
           <div className="overflow-x-auto bg-card/40 backdrop-blur-md">
             <Table>
               <TableHeader className="bg-muted/40">
@@ -250,19 +219,8 @@ const Subestados = () => {
               </TableBody>
             </Table>
           </div>
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="items" className="mt-0 flex-1 p-4 sm:p-6 focus-visible:outline-none">
-          <div className="rounded-xl border border-dashed border-border bg-muted/20 px-6 py-16 text-center">
-            <p className="text-sm font-medium text-foreground">Subestados de ítems</p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Vista en preparación. Aquí podrás gestionar subestados asociados a ítems de pedido.
-            </p>
-          </div>
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
     </div>
   );
 };

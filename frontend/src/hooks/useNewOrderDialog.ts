@@ -22,10 +22,10 @@ export interface NewOrderFormState {
 
 function emptyForm(): NewOrderFormState {
   return {
-    orderNumber: "",
+    orderNumber: `ORD-${Date.now().toString(36).toUpperCase()}`,
     routeId: "",
     fechaRuta: format(new Date(), "yyyy-MM-dd"),
-    autoCode: false,
+    autoCode: true,
   };
 }
 
@@ -41,7 +41,7 @@ function validateForm(form: NewOrderFormState): string | null {
 
 function buildCreateInput(form: NewOrderFormState): OrderCreateInput {
   const numero = form.autoCode
-    ? `ORD-AUTO-${Date.now().toString(36).toUpperCase()}`
+    ? form.orderNumber.trim()
     : form.orderNumber.trim();
   return {
     numeroOrden: numero,
