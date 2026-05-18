@@ -5,6 +5,7 @@ import {
   ClipboardCopy,
   FileEdit,
   GitBranch,
+  MapPin,
   Package,
   Phone,
   Truck,
@@ -77,7 +78,6 @@ function formatIsoCreacion(iso: string | undefined): string | null {
   }
 }
 
-/** Precio línea desde API (`unitPrice`). */
 function formatoSoles(importe: number): string {
   return new Intl.NumberFormat("es-PE", {
     style: "currency",
@@ -134,7 +134,6 @@ const TimelineCard = ({ event, index, timelineColor }: { event: TimelineEvent; i
       animate={controls}
       className="relative flex flex-col sm:flex-row items-center w-full mb-12"
     >
-      {/* Symmetrical containers to keep circle in the exact center */}
       <div className={cn(
         "hidden sm:flex flex-1 px-8",
         index % 2 === 0 ? "justify-end" : "order-last justify-start"
@@ -163,7 +162,6 @@ const TimelineCard = ({ event, index, timelineColor }: { event: TimelineEvent; i
         </div>
       </div>
 
-      {/* Center Circle - Positioned exactly at 50% width */}
       <div className="flex justify-center w-12 z-10 shrink-0">
         <div 
           className={cn(
@@ -209,11 +207,11 @@ const OrderTimeline = ({ order }: { order: any }) => {
   useEffect(() => {
     const interval = setInterval(() => {
       const colors = [
-        "rgb(59, 130, 246)", // Blue
-        "rgb(16, 185, 129)", // Emerald
-        "rgb(245, 158, 11)", // Amber
-        "rgb(139, 92, 246)", // Violet
-        "rgb(236, 72, 153)", // Pink
+        "rgb(59, 130, 246)",
+        "rgb(16, 185, 129)",
+        "rgb(245, 158, 11)",
+        "rgb(139, 92, 246)",
+        "rgb(236, 72, 153)",
       ];
       setTimelineColor(colors[Math.floor(Math.random() * colors.length)]);
     }, 4000);
@@ -277,7 +275,6 @@ const OrderTimeline = ({ order }: { order: any }) => {
 
   return (
     <div className="relative w-full py-10 flex flex-col items-center">
-      {/* Central Spine - Sharp and Professional */}
       <div 
         className="absolute left-6 sm:left-1/2 transform sm:-translate-x-1/2 w-0.5 h-full bg-zinc-200/80" 
       />
@@ -320,6 +317,13 @@ const DetalleOrden = () => {
     refetch: refetchLines,
   } = useOrderProductLinesQuery(decodedId);
   const { data: routeCatalog = [] } = useRoutesQuery();
+
+  const [modifyStatusOpen, setModifyStatusOpen] = useState(false);
+  const [modifyForm, setModifyForm] = useState({
+    status: "" as OrderStatus | "",
+    substatus: "",
+  });
+
   const { data: substatusesFromApi = [] } = useSubestadosByEstadoQuery(
     modifyForm.status || undefined,
   );
@@ -328,12 +332,6 @@ const DetalleOrden = () => {
   const [camposOpen, setCamposOpen] = useState(true);
   const [itemsOpen, setItemsOpen] = useState(true);
   const [comentariosOpen, setComentariosOpen] = useState(false);
-
-  const [modifyStatusOpen, setModifyStatusOpen] = useState(false);
-  const [modifyForm, setModifyForm] = useState({
-    status: "" as OrderStatus | "",
-    substatus: "",
-  });
 
   const goToCompletarDatos = useCallback(() => {
     if (!order) return;
@@ -731,7 +729,6 @@ const DetalleOrden = () => {
         </aside>
 
         <main className="flex flex-1 flex-col gap-8 p-4 md:p-10">
-
           <OrderTimeline order={order} />
         </main>
       </div>
@@ -741,8 +738,7 @@ const DetalleOrden = () => {
           <DialogHeader className="border-b border-border bg-white p-6">
             <DialogTitle className="text-xl font-bold text-foreground">Modificar estado</DialogTitle>
             <DialogDescription className="text-sm leading-relaxed text-muted-foreground">
-              Estado y subestado según configuración vigente en el servidor. El guardado completo desde
-              esta pantalla requiere un endpoint de actualización en el backend.
+              Estado y subestado según configuración vigente en el servidor.
             </DialogDescription>
           </DialogHeader>
 
