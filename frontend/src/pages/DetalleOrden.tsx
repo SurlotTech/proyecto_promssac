@@ -769,14 +769,14 @@ const DetalleOrden = () => {
                 Subestado
               </Label>
               <Select
-                value={modifyForm.substatus || undefined}
-                onValueChange={(v) => setModifyForm((f) => ({ ...f, substatus: v }))}
+                value={modifyForm.substatus || "_none"}
+                onValueChange={(v) => setModifyForm((f) => ({ ...f, substatus: v === "_none" ? "" : v }))}
               >
                 <SelectTrigger id="substatus-edit" className="h-10">
                   <SelectValue placeholder="Seleccionar subestado" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Ninguno</SelectItem>
+                  <SelectItem value="_none">Ninguno</SelectItem>
                   {modifyForm.status
                     ? substatusesFromApi.map((s) => (
                         <SelectItem key={s.id} value={s.nombre}>
