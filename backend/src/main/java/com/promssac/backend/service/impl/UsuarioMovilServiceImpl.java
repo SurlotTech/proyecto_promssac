@@ -70,8 +70,11 @@ public class UsuarioMovilServiceImpl implements UsuarioMovilService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<MobileUserListItemResponse> listar() {
-        return usuarioMovilRepository.findAllWithVehiculoOrderByCreadoEnDesc().stream()
+    public List<MobileUserListItemResponse> listar(boolean incluirInactivos) {
+        List<UsuarioMovil> usuarios = incluirInactivos
+                ? usuarioMovilRepository.findAllWithVehiculoOrderByCreadoEnDesc()
+                : usuarioMovilRepository.findAllActivoWithVehiculoOrderByCreadoEnDesc();
+        return usuarios.stream()
                 .map(this::toListItem)
                 .toList();
     }

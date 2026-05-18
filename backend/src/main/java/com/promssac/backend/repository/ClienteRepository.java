@@ -25,4 +25,12 @@ public interface ClienteRepository extends JpaRepository<Cliente, UUID> {
             WHERE LOWER(TRIM(c.nombre)) IN :nombres
             """)
     List<String> findNombresNormalizadosExistentesEn(@Param("nombres") Collection<String> nombres);
+
+    @Query("""
+            SELECT c FROM Cliente c
+            WHERE c.activo = true AND LOWER(c.nombre) LIKE LOWER(CONCAT('%', :query, '%'))
+            ORDER BY c.nombre ASC
+            LIMIT 10
+            """)
+    List<Cliente> searchByNombre(@Param("query") String query);
 }

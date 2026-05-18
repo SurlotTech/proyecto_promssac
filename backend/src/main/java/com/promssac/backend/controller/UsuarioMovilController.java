@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,8 +39,9 @@ public class UsuarioMovilController {
     private final UsuarioMovilService usuarioMovilService;
 
     @GetMapping
-    public ResponseEntity<List<MobileUserListItemResponse>> listar() {
-        return ResponseEntity.ok(usuarioMovilService.listar());
+    public ResponseEntity<List<MobileUserListItemResponse>> listar(
+            @RequestParam(name = "incluirInactivos", defaultValue = "false") boolean incluirInactivos) {
+        return ResponseEntity.ok(usuarioMovilService.listar(incluirInactivos));
     }
 
     /** Listado mínimo para combos de rutas (solo activos). Ruta con dos segmentos para no colisionar con {@code /{id}}. */

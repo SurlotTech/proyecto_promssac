@@ -21,6 +21,7 @@ export type OrderCompleteFormSnapshot = {
   priority: RoutePriority;
   cod: boolean;
   customFields: Record<CustomFieldKey, string>;
+  clientId: string;
 };
 
 function compactCustomFields(fields: Record<CustomFieldKey, string>): Record<string, string> | undefined {
@@ -50,5 +51,6 @@ export function buildOrderCompletePayload(s: OrderCompleteFormSnapshot): OrderCo
     prioridadEntrega: s.priority,
     contraEntrega: s.cod,
     camposPersonalizados: compactCustomFields(s.customFields),
+    ...(s.clientId ? { clientId: s.clientId } : {}),
   };
 }

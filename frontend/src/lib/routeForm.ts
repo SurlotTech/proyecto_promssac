@@ -1,6 +1,6 @@
 import type { MobileUserRouteOption } from "@/domain/mobileUsers";
 import type { Route } from "@/domain/routes";
-import { addHoursToTimeString, routeDeliveryUiToIso } from "@/domain/routes";
+import { routeDeliveryUiToIso } from "@/domain/routes";
 import type { VehicleOption } from "@/domain/vehicles";
 import type { RouteWriteBody } from "@/services/routes.api";
 
@@ -10,9 +10,7 @@ export type RouteFormState = {
   mobileUserId: string;
   vehicleId: string;
   dispatchDate: string;
-  startTime: string;
   maxDeliveryDate: string;
-  maxDeliveryTime: string;
   minGapMinutes: string;
 };
 
@@ -23,9 +21,7 @@ export function emptyRouteForm(): RouteFormState {
     mobileUserId: "",
     vehicleId: "",
     dispatchDate: "",
-    startTime: "",
     maxDeliveryDate: "",
-    maxDeliveryTime: "",
     minGapMinutes: "20",
   };
 }
@@ -43,9 +39,7 @@ export function routeToFormState(route: Route, mobileUsers: MobileUserRouteOptio
     mobileUserId: matched?.id ?? "",
     vehicleId: route.vehicleId,
     dispatchDate: isoDate,
-    startTime: route.startTime,
     maxDeliveryDate: isoDate,
-    maxDeliveryTime: route.endTime,
     minGapMinutes: "20",
   };
 }
@@ -61,8 +55,6 @@ export function vehicleIdForMobileUser(
 }
 
 export function buildRouteWriteBody(form: RouteFormState, editing: Route | null): RouteWriteBody {
-  const horaFin = form.maxDeliveryTime.trim() || addHoursToTimeString(form.startTime, 8);
-
   if (editing) {
     return {
       codigo: form.routeCode.trim() || editing.code,
@@ -70,8 +62,6 @@ export function buildRouteWriteBody(form: RouteFormState, editing: Route | null)
       vehiculoId: form.vehicleId,
       usuarioMovilId: form.mobileUserId || null,
       fechaEntrega: form.dispatchDate,
-      horaInicio: form.startTime,
-      horaFin,
       prioridad: editing.priority,
       estado: editing.status,
       lugar: editing.place?.trim() ? editing.place : "",
@@ -88,8 +78,6 @@ export function buildRouteWriteBody(form: RouteFormState, editing: Route | null)
     vehiculoId: form.vehicleId,
     usuarioMovilId: form.mobileUserId || null,
     fechaEntrega: form.dispatchDate,
-    horaInicio: form.startTime,
-    horaFin,
     prioridad: "medium",
     estado: "scheduled",
     lugar: "",

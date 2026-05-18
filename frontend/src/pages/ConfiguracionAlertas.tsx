@@ -1,98 +1,155 @@
-import { useState } from "react";
-import {
-  Save,
-  Clock,
-  CheckCircle,
-} from "lucide-react";
-import PageHeader from "@/components/PageHeader";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { ArrowLeft, Bell, Clock, Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import type { AlertaConfig } from "@/services/alertas.api";
+import { alertasApi } from "@/services/alertas.api";
+import { toast } from "sonner";
 
 const ConfiguracionAlertas = () => {
-  const [alerts, setAlerts] = useState({
-    entregado: true,
-    demora: true,
-  });
+  const [config, setConfig] = useState<AlertaConfig | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const [demoraMinutos, setDemoraMinutos] = useState("20");
+  useEffect(() => {
+    alertasApi.getConfig()
+      .then(setConfig)
+      .catch(() => toast.error("No se pudo cargar la configuración de alertas."))
+      .finally(() => setLoading(false));
+  }, []);
 
-  const toggleAlert = (key: keyof typeof alerts) => {
-    setAlerts((prev) => ({ ...prev, [key]: !prev[key] }));
+  const handleSave = async () => {
+    if (!config) return;
+    setSaving(true);
+    try {
+      const updated = await alertasApi.updateConfig({
+        alertaEntregado: config.alertaEntregado,
+        alertaDemora: config.alertaDemora,
+        demoraMinutos: config.demoraMinutos,
+      });
+      setConfig(updated);
+      toast.success("Configuración de alertas guardada.");
+    } catch {
+      toast.error("No se pudo guardar la configuración.");
+    } finally {
+      setSaving(false);
+    }
   };
 
+  if (loading) {
+    return (
+      <div className="flex flex-1 items-center justify-center p-12 text-sm text-muted-foreground">
+        <Loader2 className="mr-2 size-4 animate-spin" />
+        Cargando configuración…
+      </div>
+    );
+  }
+
+  if (!config) {
+    return (
+      <div className="flex flex-1 items-center justify-center p-12 text-sm text-muted-foreground">
+        No se pudo cargar la configuración.
+      </div>
+    );
+  }
+
   return (
-    <div className="flex h-full flex-col animate-fade-in">
-      <PageHeader
-        title="Configuración de Alertas"
-        subtitle="Define los parámetros para las notificaciones del sistema."
-      />
+    <div className="flex min-h-0 flex-1 flex-col bg-transparent animate-fade-in">
+      <header className="sticky top-0 z-10 border-b border-border bg-card/95 px-4 py-4 backdrop-blur sm:px-6">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-muted-foreground hover:bg-muted hover:text-foreground"
+            asChild
+          >
+            <Link to="/configuracion/alertas" aria-label="Volver">
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+          </Button>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-foreground">Configuración de alertas</h1>
+            <p className="text-xs text-muted-foreground">Define qué eventos generan alertas y sus parámetros.</p>
+          </div>
+        </div>
+      </header>
 
-      <div className="flex-1 overflow-y-auto scrollbar-thin p-4 sm:p-6 lg:p-8">
-        <div className="mx-auto max-w-4xl space-y-6">
-          <Card className={cn(
-            "overflow-hidden transition-all duration-300 border-border bg-card/40 backdrop-blur-md shadow-sm",
-            alerts.entregado ? "ring-1 ring-primary/20" : "opacity-70 grayscale-[0.5]"
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+        <div className="mx-auto max-w-2xl space-y-4">
+          <div className={cn(
+            "flex items-center justify-between rounded-xl border border-border bg-card/40 backdrop-blur-md p-5 shadow-sm",
           )}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-border/50 pb-4">
-              <div className="flex items-center gap-3">
-                <div className={cn(
-                  "flex h-9 w-9 items-center justify-center rounded-lg transition-colors",
-                  alerts.entregado ? "bg-emerald-500 text-white shadow-glow" : "bg-muted text-muted-foreground"
-                )}>
-                  <CheckCircle className="size-5" />
-                </div>
-                <CardTitle className="text-base font-bold uppercase tracking-wider">Alerta por estado Entregado</CardTitle>
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-full bg-success-soft text-success">
+                <Bell className="size-5" />
               </div>
-              <Switch checked={alerts.entregado} onCheckedChange={() => toggleAlert("entregado")} />
-            </CardHeader>
-            <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">
-                Se envía una notificación cuando una orden cambia al estado "Entregado".
-              </p>
-            </CardContent>
-          </Card>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Alerta por estado Entregado</p>
+                <p className="text-xs text-muted-foreground">Notifica cuando una orden pasa a estado entregado.</p>
+              </div>
+            </div>
+            <Switch
+              checked={config.alertaEntregado}
+              onCheckedChange={(v) => setConfig((prev) => prev ? { ...prev, alertaEntregado: v } : prev)}
+            />
+          </div>
 
-          <Card className={cn(
-            "overflow-hidden transition-all duration-300 border-border bg-card/40 backdrop-blur-md shadow-sm",
-            alerts.demora ? "ring-1 ring-primary/20" : "opacity-70 grayscale-[0.5]"
-          )}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-border/50 pb-4">
+          <div className="space-y-4 rounded-xl border border-border bg-card/40 backdrop-blur-md p-5 shadow-sm">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className={cn(
-                  "flex h-9 w-9 items-center justify-center rounded-lg transition-colors",
-                  alerts.demora ? "bg-amber-500 text-white shadow-glow" : "bg-muted text-muted-foreground"
-                )}>
+                <div className="flex size-10 items-center justify-center rounded-full bg-warning-soft text-warning">
                   <Clock className="size-5" />
                 </div>
-                <CardTitle className="text-base font-bold uppercase tracking-wider">Alerta por Demora</CardTitle>
-              </div>
-              <Switch checked={alerts.demora} onCheckedChange={() => toggleAlert("demora")} />
-            </CardHeader>
-            <CardContent className="pt-6">
-              <div className="space-y-2 max-w-sm">
-                <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Minutos de tolerancia</Label>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    disabled={!alerts.demora}
-                    value={demoraMinutos}
-                    onChange={(e) => setDemoraMinutos(e.target.value)}
-                    className="h-11 rounded-xl border-border/60 bg-background/30 pr-12 transition-all focus:ring-2 focus:ring-primary/20"
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">Min</span>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Alerta por Demora</p>
+                  <p className="text-xs text-muted-foreground">Notifica cuando una orden excede el tiempo estimado de entrega.</p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+              <Switch
+                checked={config.alertaDemora}
+                onCheckedChange={(v) => setConfig((prev) => prev ? { ...prev, alertaDemora: v } : prev)}
+              />
+            </div>
 
-          <div className="flex justify-center pt-4 pb-12">
-            <Button className="h-12 w-full max-w-xs gap-2 bg-primary hover:bg-primary-hover shadow-lg transition-all hover:scale-105 active:scale-95 font-bold">
-              <Save className="size-5" />
-              Guardar configuración
+            {config.alertaDemora && (
+              <div className="ml-[52px] space-y-1.5">
+                <Label htmlFor="demora-minutos" className="text-xs text-muted-foreground">
+                  Minutos de tolerancia
+                </Label>
+                <Input
+                  id="demora-minutos"
+                  type="number"
+                  min={1}
+                  max={1440}
+                  value={config.demoraMinutos}
+                  onChange={(e) => {
+                    const v = parseInt(e.target.value, 10);
+                    if (!isNaN(v) && v >= 1 && v <= 1440) {
+                      setConfig((prev) => prev ? { ...prev, demoraMinutos: v } : prev);
+                    }
+                  }}
+                  className="h-10 w-32 bg-transparent"
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <Button
+              className="h-10 gap-2 bg-primary px-6 text-primary-foreground hover:bg-primary-hover"
+              onClick={() => void handleSave()}
+              disabled={saving}
+            >
+              {saving ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Save className="size-4" />
+              )}
+              {saving ? "Guardando…" : "Guardar configuración"}
             </Button>
           </div>
         </div>

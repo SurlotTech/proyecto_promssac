@@ -280,6 +280,12 @@ public class OrdenServiceImpl implements OrdenService {
         CorreoOpcionalValidator.assertValidoSiPresente(request.getContactoEmail());
         destino.setContactoEmail(trimToNull(request.getContactoEmail()));
 
+        if (request.getClienteId() != null) {
+            Cliente cl = clienteRepository.findById(request.getClienteId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Cliente", request.getClienteId()));
+            destino.setCliente(cl);
+        }
+
         destino.setDireccionLinea(trimToNull(request.getDireccionLinea()));
         destino.setDireccionNormalizada(trimToNull(request.getDireccionNormalizada()));
 

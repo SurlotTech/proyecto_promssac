@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  ChevronLeft,
-  ChevronRight,
   Download,
   LayoutGrid,
   List,
@@ -24,7 +22,7 @@ import ConfirmDeleteDialog from "@/components/ui/ConfirmDeleteDialog";
 import type { Vehicle } from "@/domain/vehicles";
 import { useVehiclesQuery } from "@/hooks/useOperationsQueries";
 import { Button } from "@/components/ui/button";
-import { paginationItems } from "@/lib/pagination";
+import RoutesPaginationBar from "@/components/routes/RoutesPaginationBar";
 import { cn, errorMessageFromUnknown } from "@/lib/utils";
 import { vehiclesApi } from "@/services/vehicles.api";
 import { toast } from "sonner";
@@ -72,10 +70,6 @@ const Vehiculos = () => {
   useEffect(() => {
     setPage(1);
   }, [filters]);
-
-  useEffect(() => {
-    setPage((p) => Math.min(p, totalPages));
-  }, [totalPages]);
 
   const stats = useMemo(() => {
     const total = allVehicles.length;
@@ -251,83 +245,14 @@ const Vehiculos = () => {
                 )}
               </div>
 
-              <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-muted-foreground">
-                  Mostrando{" "}
-                  <span className="font-semibold text-foreground">
-                    {(currentPage - 1) * PAGE_SIZE + 1}
-                  </span>
-                  –
-                  <span className="font-semibold text-foreground">
-                    {Math.min(currentPage * PAGE_SIZE, totalFiltered)}
-                  </span>{" "}
-                  de{" "}
-                  <span className="font-semibold text-foreground">{totalFiltered}</span> vehículos
-                </p>
-
-                <nav
-                  className="flex flex-wrap items-center justify-end gap-2"
-                  aria-label="Paginación de vehículos"
-                >
-                  <button
-                    type="button"
-                    disabled={currentPage <= 1}
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    aria-label="Página anterior"
-                    className={cn(
-                      "flex size-9 shrink-0 items-center justify-center rounded-full border-2 bg-white transition-colors",
-                      currentPage <= 1
-                        ? "cursor-not-allowed border-primary/25 text-primary/35"
-                        : "border-primary text-primary hover:bg-primary-soft",
-                    )}
-                  >
-                    <ChevronLeft className="size-4" strokeWidth={2.25} />
-                  </button>
-
-                  {paginationItems(currentPage, totalPages).map((item, idx) =>
-                    item === "ellipsis" ? (
-                      <span
-                        key={`e-${idx}`}
-                        className="flex size-9 shrink-0 items-center justify-center text-sm font-medium text-muted-foreground"
-                        aria-hidden
-                      >
-                        …
-                      </span>
-                    ) : (
-                      <button
-                        key={item}
-                        type="button"
-                        onClick={() => setPage(item)}
-                        aria-label={`Ir a página ${item}`}
-                        aria-current={currentPage === item ? "page" : undefined}
-                        className={cn(
-                          "flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition-colors",
-                          currentPage === item
-                            ? "bg-primary text-primary-foreground shadow-sm"
-                            : "border-2 border-primary bg-white text-foreground hover:bg-primary-soft",
-                        )}
-                      >
-                        {item}
-                      </button>
-                    ),
-                  )}
-
-                  <button
-                    type="button"
-                    disabled={currentPage >= totalPages}
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                    aria-label="Página siguiente"
-                    className={cn(
-                      "flex size-9 shrink-0 items-center justify-center rounded-full border-2 bg-white transition-colors",
-                      currentPage >= totalPages
-                        ? "cursor-not-allowed border-primary/25 text-primary/35"
-                        : "border-primary text-primary hover:bg-primary-soft",
-                    )}
-                  >
-                    <ChevronRight className="size-4" strokeWidth={2.25} />
-                  </button>
-                </nav>
-              </div>
+              <RoutesPaginationBar
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalFiltered={totalFiltered}
+                pageSize={PAGE_SIZE}
+                onPageChange={setPage}
+                label="vehículos"
+              />
             </>
           )}
         </>

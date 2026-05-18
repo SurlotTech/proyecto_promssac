@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { Calendar, CircleGauge, Flag, ListFilter, RotateCcw, Search, Truck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -76,14 +76,6 @@ const OrderFilters = ({
     filters.vehiclePlate === "all" || safeVehiclePlates.includes(filters.vehiclePlate)
       ? filters.vehiclePlate
       : "all";
-
-  useEffect(() => {
-    onChange({
-      ...filters,
-      substatus: substatusSelectValue,
-      vehiclePlate: vehiclePlateSelectValue,
-    });
-  }, [filters, onChange, substatusSelectValue, vehiclePlateSelectValue]);
 
   const hasActive =
     filters.dateFrom ||

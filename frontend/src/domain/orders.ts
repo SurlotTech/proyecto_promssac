@@ -32,23 +32,3 @@ export const orderStatusMeta: Record<
     dot: "bg-amber-500",
   },
 };
-
-export type OrderSubstatus =
-  | "Recepcionado conforme"
-  | "Entrega tercero"
-  | "Entrega UGEL"
-  | "Devolución"
-  | "En ruta"
-  | "Pendiente";
-
-export const orderSubstatusMeta: Record<
-  OrderSubstatus,
-  { label: string; estado: OrderStatus }
-> = {
-  "Recepcionado conforme": { label: "Recepcionado conforme", estado: "entregado" },
-  "Entrega tercero": { label: "Entrega tercero", estado: "entregado" },
-  "Entrega UGEL": { label: "Entrega UGEL", estado: "entregado" },
-  "Devolución": { label: "Devolución", estado: "no_entregado" },
-  "En ruta": { label: "En ruta", estado: "in_route" },
-  "Pendiente": { label: "Pendiente", estado: "pending" },
-};

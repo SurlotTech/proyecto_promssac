@@ -288,6 +288,7 @@ const Rutas = () => {
               totalFiltered={totalFiltered}
               pageSize={PAGE_SIZE}
               onPageChange={setPage}
+              label="rutas"
             />
           </>
         )}

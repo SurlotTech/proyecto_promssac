@@ -7,7 +7,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Stepper } from "@/components/ui/stepper";
-import { CompletarOrdenStepIcon } from "@/components/completarOrden/CompletarOrdenStepIcon";
 import StepContacto from "@/components/completarOrden/steps/StepContacto";
 import StepDatosOrden from "@/components/completarOrden/steps/StepDatosOrden";
 import StepDireccion from "@/components/completarOrden/steps/StepDireccion";
@@ -65,6 +64,10 @@ const CompletarOrden = () => {
       case 2:
         return (
           <StepDireccion
+            contactName={f.contactName}
+            onContactNameChange={f.setContactName}
+            clientSearchQuery={f.clientSearchQuery}
+            onClientSearchQueryChange={f.setClientSearchQuery}
             addressLine={f.addressLine}
             onAddressLineChange={f.setAddressLine}
             normalizedAddress={f.normalizedAddress}
@@ -78,6 +81,12 @@ const CompletarOrden = () => {
             lowAddressConfidence={f.lowAddressConfidence}
             onBuscarPorTexto={f.buscarDireccionPorTexto}
             onMapLocationCommit={f.aplicarUbicacionEnMapa}
+            clientSearchOpen={f.clientSearchOpen}
+            onClientSearchOpenChange={f.setClientSearchOpen}
+            clientSearchResults={f.clientSearchResults}
+            clientSearching={f.clientSearching}
+            onClientSearch={f.handleClientSearch}
+            onClientSelect={f.handleClientSelect}
           />
         );
       case 3:

@@ -1,7 +1,9 @@
 package com.promssac.backend.service;
 
+import com.promssac.backend.model.dto.request.LoginRequest;
 import com.promssac.backend.model.dto.request.WebUserCreateRequest;
 import com.promssac.backend.model.dto.request.WebUserUpdateRequest;
+import com.promssac.backend.model.dto.response.LoginResponse;
 import com.promssac.backend.model.dto.response.ResourceIdResponse;
 import com.promssac.backend.model.dto.response.WebUserDetailResponse;
 import com.promssac.backend.model.dto.response.WebUserListItemResponse;
@@ -10,7 +12,7 @@ import java.util.UUID;
 
 public interface UsuarioWebService {
 
-    List<WebUserListItemResponse> listar();
+    List<WebUserListItemResponse> listar(boolean incluirInactivos);
 
     WebUserDetailResponse obtenerDetalle(UUID id);
 
@@ -19,4 +21,6 @@ public interface UsuarioWebService {
     ResourceIdResponse actualizar(UUID id, WebUserUpdateRequest request);
 
     void setActivo(UUID id, boolean activo);
+
+    LoginResponse login(LoginRequest request);
 }

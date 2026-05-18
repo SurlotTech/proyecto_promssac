@@ -30,8 +30,9 @@ export type MobileUserUpdateBody = Omit<MobileUserCreateBody, "contrasena"> & {
 export type { MobileUserDetail, MobileUserListItem, MobileUserRouteOption, MobileUserVehicleMode };
 
 export const mobileUsersApi = {
-  list(): Promise<MobileUserListItem[]> {
-    return apiGet<MobileUserListItem[]>(endpoints.usuariosMovil);
+  list(incluirInactivos?: boolean): Promise<MobileUserListItem[]> {
+    const q = incluirInactivos ? "?incluirInactivos=true" : "";
+    return apiGet<MobileUserListItem[]>(`${endpoints.usuariosMovil}${q}`);
   },
 
   listRouteOptions(): Promise<MobileUserRouteOption[]> {

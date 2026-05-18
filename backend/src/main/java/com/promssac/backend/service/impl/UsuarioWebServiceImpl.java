@@ -5,8 +5,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.promssac.backend.exception.BusinessException;
 import com.promssac.backend.exception.ResourceNotFoundException;
+import com.promssac.backend.model.dto.request.LoginRequest;
 import com.promssac.backend.model.dto.request.WebUserCreateRequest;
 import com.promssac.backend.model.dto.request.WebUserUpdateRequest;
+import com.promssac.backend.model.dto.response.LoginResponse;
 import com.promssac.backend.model.dto.response.ResourceIdResponse;
 import com.promssac.backend.model.dto.response.WebUserDetailResponse;
 import com.promssac.backend.model.dto.response.WebUserListItemResponse;
@@ -15,6 +17,8 @@ import com.promssac.backend.model.entity.UsuarioWeb;
 import com.promssac.backend.model.enums.ModoPermisoUsuarioWeb;
 import com.promssac.backend.repository.RolWebRepository;
 import com.promssac.backend.repository.UsuarioWebRepository;
+import com.promssac.backend.security.JwtTokenProvider;
+import com.promssac.backend.security.WebUserDetails;
 import com.promssac.backend.service.UsuarioWebService;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -38,6 +42,12 @@ public class UsuarioWebServiceImpl implements UsuarioWebService {
     private static final DateTimeFormatter ULTIMA_CONEX_UI =
             DateTimeFormatter.ofPattern("dd-MM-yy HH:mm", Locale.ROOT);
     private static final String PERMISOS_VACIOS = "{}";
+    private static final String ALL_PERMS_JSON = "{" +
+            "\"g1\":true,\"g2\":true,\"g2-1\":true,\"g2-2\":true," +
+            "\"g2-3\":true,\"g2-4\":true,\"g3\":true,\"g4\":true," +
+            "\"g6\":true,\"a1\":true,\"a2\":true," +
+            "\"a2-1\":true,\"a2-2\":true,\"a3\":true,\"a4\":true" +
+            "}";
     private static final String MSG_USUARIO_DUPLICADO = "Ya existe un usuario con ese nombre de usuario.";
     private static final String MSG_EMAIL_DUPLICADO = "Ya existe un usuario con ese correo.";
 
@@ -45,14 +55,18 @@ public class UsuarioWebServiceImpl implements UsuarioWebService {
     private final RolWebRepository rolWebRepository;
     private final PasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper;
+    private final JwtTokenProvider jwtTokenProvider;
 
     private record RolPermisos(String rolClave, String permisosJson) {}
 
     @Override
     @Transactional(readOnly = true)
-    public List<WebUserListItemResponse> listar() {
+    public List<WebUserListItemResponse> listar(boolean incluirInactivos) {
         Map<String, String> nombrePorClave = indexarNombresRol();
-        return usuarioWebRepository.findAllByOrderByCreadoEnDesc().stream()
+        List<UsuarioWeb> usuarios = incluirInactivos
+                ? usuarioWebRepository.findAllByOrderByCreadoEnDesc()
+                : usuarioWebRepository.findAllByActivoTrueOrderByCreadoEnDesc();
+        return usuarios.stream()
                 .map(u -> toListItem(u, nombrePorClave))
                 .toList();
     }
@@ -148,6 +162,87 @@ public class UsuarioWebServiceImpl implements UsuarioWebService {
         log.info("Usuario web id={} activo={}", id, activo);
     }
 
+    @Override
+    @Transactional
+    public LoginResponse login(LoginRequest request) {
+        String usuario = request.getUsuario().trim();
+        UsuarioWeb entity = usuarioWebRepository
+                .findByNombreUsuarioIgnoreCaseOrEmailIgnoreCase(usuario, usuario)
+                .orElseThrow(() -> new BusinessException("Credenciales inválidas."));
+
+        if (!Boolean.TRUE.equals(entity.getActivo())) {
+            throw new BusinessException("Usuario desactivado. Contacte al administrador.");
+        }
+
+        if (!passwordEncoder.matches(request.getContrasena(), entity.getContrasenaHash())) {
+            throw new BusinessException("Credenciales inválidas.");
+        }
+
+        Map<String, Boolean> permisos = resolverPermisosEfectivos(entity);
+
+        if (permisos.isEmpty() && entity.getModoPermisos() == ModoPermisoUsuarioWeb.ROL
+                && "admin".equalsIgnoreCase(entity.getRolClave())) {
+            log.warn("Rol admin con permisos vacíos al iniciar sesión. Reparando automáticamente.");
+            rolWebRepository.findByClaveIgnoreCase("admin").ifPresent(rol -> {
+                rol.setPermisosJson(ALL_PERMS_JSON);
+                rol.setActivo(true);
+                rolWebRepository.save(rol);
+            });
+            permisos = parsePermisosJson(ALL_PERMS_JSON);
+        }
+
+        String rolNombre = entity.getModoPermisos() == ModoPermisoUsuarioWeb.ROL && entity.getRolClave() != null
+                ? rolWebRepository.findByClaveIgnoreCase(entity.getRolClave())
+                        .map(RolWeb::getNombre)
+                        .orElse(entity.getRolClave())
+                : "Personalizado";
+
+        WebUserDetails userDetails = new WebUserDetails(
+                entity.getId().toString(),
+                entity.getNombreUsuario(),
+                "",
+                entity.getNombreCompleto(),
+                entity.getEmail(),
+                rolNombre,
+                permisos,
+                entity.getActivo()
+        );
+
+        String token = jwtTokenProvider.crearToken(userDetails);
+
+        entity.setUltimaConexion(LocalDateTime.now());
+        usuarioWebRepository.save(entity);
+
+        LoginResponse response = new LoginResponse();
+        response.setToken(token);
+
+        LoginResponse.UsuarioLoginDto dto = new LoginResponse.UsuarioLoginDto();
+        dto.setId(entity.getId().toString());
+        dto.setNombreCompleto(entity.getNombreCompleto());
+        dto.setNombreUsuario(entity.getNombreUsuario());
+        dto.setEmail(entity.getEmail());
+        dto.setRolNombre(rolNombre);
+        dto.setPermissions(permisos);
+        response.setUsuario(dto);
+
+        log.info("Login exitoso usuario={}", entity.getNombreUsuario());
+        return response;
+    }
+
+    private Map<String, Boolean> resolverPermisosEfectivos(UsuarioWeb usuario) {
+        if (usuario.getModoPermisos() == ModoPermisoUsuarioWeb.ROL) {
+            String clave = usuario.getRolClave();
+            if (clave != null) {
+                RolWeb rol = rolWebRepository.findByClaveIgnoreCase(clave).orElse(null);
+                if (rol != null && Boolean.TRUE.equals(rol.getActivo())) {
+                    return parsePermisosJson(rol.getPermisosJson());
+                }
+            }
+            return new HashMap<>();
+        }
+        return parsePermisosJson(usuario.getPermisosJson());
+    }
+
     private RolPermisos resolverRolYPermisosJson(
             ModoPermisoUsuarioWeb modo, String roleKeyRaw, Map<String, Boolean> permisosMap) {
         if (modo == ModoPermisoUsuarioWeb.ROL) {
@@ -186,7 +281,7 @@ public class UsuarioWebServiceImpl implements UsuarioWebService {
         d.setEmail(u.getEmail());
         d.setPermissionMode(u.getModoPermisos().getApiValue());
         d.setRoleKey(u.getRolClave() == null ? "" : u.getRolClave());
-        d.setPermissions(parsePermisosJson(u.getPermisosJson()));
+        d.setPermissions(resolverPermisosEfectivos(u));
         return d;
     }
 

@@ -18,6 +18,9 @@ public interface UsuarioMovilRepository extends JpaRepository<UsuarioMovil, UUID
     @Query("SELECT u FROM UsuarioMovil u JOIN FETCH u.vehiculo ORDER BY u.creadoEn DESC")
     List<UsuarioMovil> findAllWithVehiculoOrderByCreadoEnDesc();
 
+    @Query("SELECT u FROM UsuarioMovil u JOIN FETCH u.vehiculo WHERE u.activo = true ORDER BY u.creadoEn DESC")
+    List<UsuarioMovil> findAllActivoWithVehiculoOrderByCreadoEnDesc();
+
     @Query("SELECT u FROM UsuarioMovil u JOIN FETCH u.vehiculo WHERE u.id = :id")
     Optional<UsuarioMovil> findWithVehiculoById(@Param("id") UUID id);
 

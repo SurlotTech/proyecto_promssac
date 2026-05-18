@@ -61,6 +61,13 @@ const EditarUsuario = () => {
 
   useEffect(() => {
     if (!detail) return;
+
+    setActivePermissions((prev) => {
+      const resolved = { ...defaultWebPermissionMap(), ...detail.permissions };
+      if (permissionType === "personalizado") return prev;
+      return resolved;
+    });
+
     if (hydratedRef.current) return;
     hydratedRef.current = true;
 
@@ -72,7 +79,6 @@ const EditarUsuario = () => {
     const mode = detail.permissionMode === "personalizado" ? "personalizado" : "rol";
     setPermissionType(mode);
     setSelectedRole(mode === "rol" && detail.roleKey ? detail.roleKey : "");
-    setActivePermissions({ ...defaultWebPermissionMap(), ...detail.permissions });
   }, [detail]);
 
   /** Desde listado: ?tab=permisos | ?tab=rol (misma pantalla que “Copia 1”). */

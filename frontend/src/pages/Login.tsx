@@ -6,24 +6,31 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
+  const [usuario, setUsuario] = useState("");
+  const [contrasena, setContrasena] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
 
-    // Simulate network request
-    setTimeout(() => {
-      setIsLoading(false);
-      localStorage.setItem("auth_token", "true");
+    try {
+      await login(usuario, contrasena);
       navigate("/");
-    }, 1500);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error al iniciar sesión.";
+      setError(msg);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -66,7 +73,9 @@ const Login = () => {
                 </div>
                 <Input 
                   id="username" 
-                  type="text" 
+                  type="text"
+                  value={usuario}
+                  onChange={(e) => setUsuario(e.target.value)}
                   placeholder="nombre@ejemplo.com"
                   className="pl-11 h-12 rounded-xl bg-zinc-50 border-zinc-200 transition-colors focus:bg-white focus:ring-primary/20 text-foreground"
                   required
@@ -83,7 +92,9 @@ const Login = () => {
                   <Lock className="h-4 w-4" />
                 </div>
                 <Input 
-                  id="password" 
+                  id="password"
+                  value={contrasena}
+                  onChange={(e) => setContrasena(e.target.value)}
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   className="pl-11 pr-11 h-12 rounded-xl bg-zinc-50 border-zinc-200 transition-colors focus:bg-white focus:ring-primary/20 text-foreground font-mono"
@@ -125,7 +136,7 @@ const Login = () => {
           
           <div className="text-center pt-4 border-t border-border">
             <p className="text-xs text-muted-foreground">
-              Powered by <span className="font-bold text-foreground">Promssac</span> — <a href="#" className="font-medium text-foreground hover:underline">Términos y condiciones</a>
+              Desarrollado por <span className="font-bold text-foreground">Grupo Sulort Tech S.A.C</span>
             </p>
           </div>
         </div>

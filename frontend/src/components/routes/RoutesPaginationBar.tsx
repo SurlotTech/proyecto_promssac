@@ -8,6 +8,7 @@ interface Props {
   totalFiltered: number;
   pageSize: number;
   onPageChange: (page: number) => void;
+  label: string;
 }
 
 const RoutesPaginationBar = ({
@@ -16,6 +17,7 @@ const RoutesPaginationBar = ({
   totalFiltered,
   pageSize,
   onPageChange,
+  label,
 }: Props) => (
   <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
     <p className="text-sm text-muted-foreground">
@@ -24,10 +26,10 @@ const RoutesPaginationBar = ({
       <span className="font-semibold text-foreground">
         {Math.min(currentPage * pageSize, totalFiltered)}
       </span>{" "}
-      de <span className="font-semibold text-foreground">{totalFiltered}</span> rutas
+      de <span className="font-semibold text-foreground">{totalFiltered}</span> {label}
     </p>
 
-    <nav className="flex flex-wrap items-center justify-end gap-2" aria-label="Paginación de rutas">
+    <nav className="flex flex-wrap items-center justify-end gap-2" aria-label={`Paginación de ${label}`}>
       <button
         type="button"
         disabled={currentPage <= 1}

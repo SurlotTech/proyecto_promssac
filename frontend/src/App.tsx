@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import AppLayout from "@/components/layout/AppLayout";
 import Dashboard from "./pages/Dashboard.tsx";
 import Vehiculos from "./pages/Vehiculos.tsx";
@@ -34,62 +35,78 @@ import EnlaceCliente from "./pages/EnlaceCliente.tsx";
 import DetalleImportacion from "./pages/DetalleImportacion.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
-const queryClient = new QueryClient();
-
 import Login from "./pages/Login";
 
-const isAuthenticated = () => localStorage.getItem("auth_token") === "true";
+const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  if (!isAuthenticated()) {
+  const { isAuthenticated } = useAuth();
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
   return <>{children}</>;
 };
+
+const PermissionRoute = ({ permission, children }: { permission: string; children: React.ReactNode }) => {
+  const { isAuthenticated, hasPermission } = useAuth();
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  if (!hasPermission(permission)) {
+    return <Navigate to="/" replace />;
+  }
+  return <>{children}</>;
+};
+
+const AppRoutes = () => (
+  <Routes>
+    <Route path="/login" element={<Login />} />
+    <Route path="/enlace-cliente/:orderId" element={<EnlaceCliente />} />
+    <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+      <Route path="/" element={<Dashboard />} />
+      <Route path="/vehiculos" element={<Vehiculos />} />
+      <Route path="/alertas" element={<Navigate to="/configuracion/alertas" replace />} />
+      <Route path="/rutas" element={<PermissionRoute permission="g1"><Rutas /></PermissionRoute>} />
+      <Route path="/rutas/:id" element={<PermissionRoute permission="g1"><DetalleRuta /></PermissionRoute>} />
+      <Route path="/ordenes" element={<PermissionRoute permission="g2"><Ordenes /></PermissionRoute>} />
+      <Route path="/ordenes/detalle/:orderId" element={<PermissionRoute permission="g2"><DetalleOrden /></PermissionRoute>} />
+      <Route path="/ordenes/completar" element={<CompletarOrden />} />
+      <Route path="/ordenes/productos" element={<OrdenProductos />} />
+      <Route path="/flota" element={<PermissionRoute permission="g3"><Flota /></PermissionRoute>} />
+      <Route path="/clientes" element={<PermissionRoute permission="g4"><Clientes /></PermissionRoute>} />
+      <Route path="/clientes/detalle/:id" element={<PermissionRoute permission="g4"><DetalleCliente /></PermissionRoute>} />
+      <Route path="/importar/:id" element={<DetalleImportacion />} />
+      <Route path="/usuarios" element={<Navigate to="/usuarios/web" replace />} />
+      <Route path="/usuarios/web" element={<PermissionRoute permission="a2"><UsuariosWeb /></PermissionRoute>} />
+      <Route path="/usuarios/web/nuevo" element={<PermissionRoute permission="a2-1"><NuevoUsuarioWeb /></PermissionRoute>} />
+      <Route path="/usuarios/web/:id/editar" element={<PermissionRoute permission="a2"><EditarUsuario /></PermissionRoute>} />
+      <Route path="/usuarios/web/perfil" element={<PerfilUsuario />} />
+      <Route path="/usuarios/movil" element={<PermissionRoute permission="a2"><UsuariosMovil /></PermissionRoute>} />
+      <Route path="/usuarios/movil/nuevo" element={<PermissionRoute permission="a2-2"><NuevoUsuarioMovil /></PermissionRoute>} />
+      <Route path="/usuarios/movil/:id/editar" element={<PermissionRoute permission="a2"><NuevoUsuarioMovil /></PermissionRoute>} />
+      <Route path="/configuracion/subestados" element={<PermissionRoute permission="a4"><Subestados /></PermissionRoute>} />
+      <Route path="/configuracion/subestados/nuevo" element={<PermissionRoute permission="a4"><NuevoSubestado /></PermissionRoute>} />
+      <Route path="/configuracion/alertas" element={<PermissionRoute permission="g6"><Alertas /></PermissionRoute>} />
+      <Route path="/configuracion/alertas/parametros" element={<PermissionRoute permission="a4"><ConfiguracionAlertas /></PermissionRoute>} />
+      <Route path="/configuracion/notificaciones" element={<PermissionRoute permission="a4"><Notificaciones /></PermissionRoute>} />
+      <Route path="/configuracion/notificaciones/nueva" element={<PermissionRoute permission="a4"><NuevaNotificacion /></PermissionRoute>} />
+      <Route path="/config/subestados" element={<Navigate to="/configuracion/subestados" replace />} />
+      <Route path="/usuarios/roles" element={<PermissionRoute permission="a2"><RolesUsuario /></PermissionRoute>} />
+      <Route path="/usuarios/roles/nuevo" element={<PermissionRoute permission="a2"><NuevoRol /></PermissionRoute>} />
+      <Route path="/usuarios/roles/:id/editar" element={<PermissionRoute permission="a2"><EditarRol /></PermissionRoute>} />
+      <Route path="*" element={<NotFound />} />
+    </Route>
+  </Routes>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/enlace-cliente/:orderId" element={<EnlaceCliente />} />
-          <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/vehiculos" element={<Vehiculos />} />
-            <Route path="/alertas" element={<Navigate to="/configuracion/alertas" replace />} />
-            <Route path="/rutas" element={<Rutas />} />
-            <Route path="/rutas/:id" element={<DetalleRuta />} />
-            <Route path="/ordenes" element={<Ordenes />} />
-            <Route path="/ordenes/detalle/:orderId" element={<DetalleOrden />} />
-            <Route path="/ordenes/completar" element={<CompletarOrden />} />
-            <Route path="/ordenes/productos" element={<OrdenProductos />} />
-            <Route path="/flota" element={<Flota />} />
-            <Route path="/clientes" element={<Clientes />} />
-            <Route path="/clientes/detalle/:id" element={<DetalleCliente />} />
-            <Route path="/importar/:id" element={<DetalleImportacion />} />
-            <Route path="/usuarios" element={<Navigate to="/usuarios/web" replace />} />
-            <Route path="/usuarios/web" element={<UsuariosWeb />} />
-            <Route path="/usuarios/web/nuevo" element={<NuevoUsuarioWeb />} />
-            <Route path="/usuarios/web/:id/editar" element={<EditarUsuario />} />
-            <Route path="/usuarios/web/perfil" element={<PerfilUsuario />} />
-            <Route path="/usuarios/movil" element={<UsuariosMovil />} />
-            <Route path="/usuarios/movil/nuevo" element={<NuevoUsuarioMovil />} />
-            <Route path="/usuarios/movil/:id/editar" element={<NuevoUsuarioMovil />} />
-            <Route path="/configuracion/subestados" element={<Subestados />} />
-            <Route path="/configuracion/subestados/nuevo" element={<NuevoSubestado />} />
-            <Route path="/configuracion/alertas" element={<Alertas />} />
-            <Route path="/configuracion/alertas/parametros" element={<ConfiguracionAlertas />} />
-            <Route path="/configuracion/notificaciones" element={<Notificaciones />} />
-            <Route path="/configuracion/notificaciones/nueva" element={<NuevaNotificacion />} />
-            <Route path="/config/subestados" element={<Navigate to="/configuracion/subestados" replace />} />
-            <Route path="/usuarios/roles" element={<RolesUsuario />} />
-            <Route path="/usuarios/roles/nuevo" element={<NuevoRol />} />
-            <Route path="/usuarios/roles/:id/editar" element={<EditarRol />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

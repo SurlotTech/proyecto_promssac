@@ -1,4 +1,4 @@
-import { Clock, MapPin, Route as RouteIcon, Truck, User } from "lucide-react";
+import { MapPin, Route as RouteIcon, Truck, User } from "lucide-react";
 import RouteActionsMenu from "@/components/routes/RouteActionsMenu";
 import { Route, routePriorityMeta } from "@/domain/routes";
 import RouteStatusBadge from "@/components/routes/RouteStatusBadge";
@@ -66,12 +66,6 @@ const RouteCard = ({ route: r, onSelect, onEdit, onDelete, vehicleTypeByPlate = 
             {vehType ? (
               <span className="text-muted-foreground"> · {vehType}</span>
             ) : null}
-          </span>
-        </div>
-        <div className="flex min-w-0 items-center gap-2 text-muted-foreground">
-          <Clock className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
-          <span className="min-w-0 truncate tabular-nums text-xs sm:text-sm">
-            {r.startTime} – {r.endTime}
           </span>
         </div>
         <div className="flex min-w-0 items-center gap-2 text-muted-foreground">

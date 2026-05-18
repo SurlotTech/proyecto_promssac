@@ -5,6 +5,8 @@ import { MoreHorizontal, User, X, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -39,7 +41,8 @@ type ActivoDialogState = {
 const UsuariosMovil = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { data: users = [], isLoading, isError } = useMobileUsersQuery();
+  const [incluirInactivos, setIncluirInactivos] = useState(false);
+  const { data: users = [], isLoading, isError } = useMobileUsersQuery(incluirInactivos);
   const [searchTerm, setSearchTerm] = useState("");
   const [activoDialog, setActivoDialog] = useState<ActivoDialogState>(null);
 
@@ -59,7 +62,7 @@ const UsuariosMovil = () => {
   const blockedCount = useMemo(() => users.filter((u) => u.estado !== "Activo").length, [users]);
 
   const filteredUsers = useMemo(() => {
-    let list = users.filter((u) => u.estado === "Activo");
+    let list = incluirInactivos ? users.filter((u) => u.estado !== "Activo") : users;
     const q = searchTerm.toLowerCase().trim();
     if (q) {
       list = list.filter(
@@ -71,7 +74,7 @@ const UsuariosMovil = () => {
       );
     }
     return list;
-  }, [users, searchTerm]);
+  }, [users, searchTerm, incluirInactivos]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-transparent animate-fade-in">
@@ -120,7 +123,18 @@ const UsuariosMovil = () => {
                 <X className="mr-1 h-3.5 w-3.5" /> Limpiar filtros
               </Button>
             </div>
-)}
+          )}
+
+          <div className="flex items-center gap-2 pt-1">
+            <Checkbox
+              id="incluir-inactivos-movil"
+              checked={incluirInactivos}
+              onCheckedChange={(v) => setIncluirInactivos(v === true)}
+            />
+            <Label htmlFor="incluir-inactivos-movil" className="text-xs text-muted-foreground cursor-pointer">
+              Mostrar usuarios desactivados ({blockedCount})
+            </Label>
+          </div>
         </div>
 
         <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">

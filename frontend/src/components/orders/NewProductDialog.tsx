@@ -167,9 +167,12 @@ export default function NewProductDialog({
                     type="text"
                     inputMode="decimal"
                     value={form.price}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, price: e.target.value }))
-                    }
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (isDecimalInputFragmentValid(val)) {
+                        setForm((f) => ({ ...f, price: val }));
+                      }
+                    }}
                     placeholder="0.00"
                     className={cn(inputClass, "tabular-nums")}
                     autoComplete="off"

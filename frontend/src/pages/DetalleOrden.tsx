@@ -9,22 +9,15 @@ import {
   Phone,
   Truck,
   User,
-  Clock,
-  MapPin,
-  CheckCircle,
 } from "lucide-react";
 import React, { useEffect, useRef } from "react";
 import { motion, useAnimation, useInView } from "framer-motion";
 import { 
-  FaClipboardCheck, 
   FaTruck, 
   FaRoute, 
   FaCheckCircle, 
-  FaMapMarkerAlt,
   FaWarehouse,
   FaClock,
-  FaBoxOpen,
-  FaUser
 } from "react-icons/fa";
 
 
@@ -54,6 +47,7 @@ import {
   useOrderDetailQuery,
   useOrderProductLinesQuery,
   useRoutesQuery,
+  useSubestadosByEstadoQuery,
 } from "@/hooks/useOperationsQueries";
 import {
   persistOrderDraft,
@@ -65,7 +59,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import { LIMA_CENTER } from "@/domain/fleet";
+import { customFieldLabels, type CustomFieldKey } from "@/lib/completarOrden/constants";
 
 const EMPTY = "—";
 
@@ -326,6 +320,9 @@ const DetalleOrden = () => {
     refetch: refetchLines,
   } = useOrderProductLinesQuery(decodedId);
   const { data: routeCatalog = [] } = useRoutesQuery();
+  const { data: substatusesFromApi = [] } = useSubestadosByEstadoQuery(
+    modifyForm.status || undefined,
+  );
 
   const [resumenOpen, setResumenOpen] = useState(true);
   const [camposOpen, setCamposOpen] = useState(true);
@@ -337,13 +334,6 @@ const DetalleOrden = () => {
     status: "" as OrderStatus | "",
     substatus: "",
   });
-
-  const mapCenter = useMemo(() => {
-    const lat = order?.latitude;
-    const lng = order?.longitude;
-    if (typeof lat !== "number" || typeof lng !== "number") return null;
-    return [lat, lng] as [number, number];
-  }, [order]);
 
   const goToCompletarDatos = useCallback(() => {
     if (!order) return;
@@ -523,7 +513,21 @@ const DetalleOrden = () => {
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-foreground">Dirección</p>
+                      <p className="flex items-center gap-1 text-xs font-medium text-foreground">
+                        Dirección
+                        {typeof order.latitude === "number" && typeof order.longitude === "number" ? (
+                          <a
+                            href={`https://www.google.com/maps?q=${order.latitude},${order.longitude}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex size-6 items-center justify-center rounded-md text-primary hover:bg-primary-soft transition-colors"
+                            title="Abrir en Google Maps"
+                            aria-label="Abrir ubicación en Google Maps"
+                          >
+                            <MapPin className="size-3.5" />
+                          </a>
+                        ) : null}
+                      </p>
                       <p className="text-sm text-muted-foreground">{direccionPrimaria || EMPTY}</p>
                       {order.addressReference?.trim() ? (
                         <p className="mt-1 text-xs text-muted-foreground italic">
@@ -609,12 +613,16 @@ const DetalleOrden = () => {
                     {customEntries.length === 0 ? (
                       <p className="text-sm text-muted-foreground">No hay campos registrados para esta orden.</p>
                     ) : (
-                      customEntries.map(([key, val]) => (
-                        <div key={key}>
-                          <p className="text-xs font-medium text-foreground">{key}</p>
-                          <p className="text-sm text-muted-foreground break-words">{val?.trim() || EMPTY}</p>
-                        </div>
-                      ))
+                      <div className="grid grid-cols-2 gap-3">
+                        {customEntries.map(([key, val]) => (
+                          <div key={key}>
+                            <p className="text-xs font-medium text-foreground">
+                              {customFieldLabels[key as CustomFieldKey] ?? key}
+                            </p>
+                            <p className="text-sm text-muted-foreground break-words">{val?.trim() || EMPTY}</p>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
                 </CollapsibleContent>
@@ -762,16 +770,26 @@ const DetalleOrden = () => {
 
             <div className="space-y-2">
               <Label htmlFor="substatus-edit" className="text-sm font-semibold text-muted-foreground">
-                Subestado (libre / catálogo)
+                Subestado
               </Label>
-              <Input
-                id="substatus-edit"
-                placeholder="Ej. Recepcionado conforme"
-                value={modifyForm.substatus}
-                onChange={(e) =>
-                  setModifyForm((f) => ({ ...f, substatus: e.target.value }))
-                }
-              />
+              <Select
+                value={modifyForm.substatus || undefined}
+                onValueChange={(v) => setModifyForm((f) => ({ ...f, substatus: v }))}
+              >
+                <SelectTrigger id="substatus-edit" className="h-10">
+                  <SelectValue placeholder="Seleccionar subestado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Ninguno</SelectItem>
+                  {modifyForm.status
+                    ? substatusesFromApi.map((s) => (
+                        <SelectItem key={s.id} value={s.nombre}>
+                          {s.nombre}
+                        </SelectItem>
+                      ))
+                    : null}
+                </SelectContent>
+              </Select>
               <p className="text-xs text-muted-foreground">
                 Lista maestra de subestados:{" "}
                 <Link to="/configuracion/subestados" className="font-medium text-primary underline">

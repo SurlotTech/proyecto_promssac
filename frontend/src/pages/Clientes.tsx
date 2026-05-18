@@ -28,10 +28,13 @@ const Clientes = () => {
   const filtros = useClienteListaFiltros();
   const { data: clientesRaw = [], isLoading, isError, refetch, isFetching } = useClientsQuery(filtros.incluirInactivos);
 
-  const listaFiltrada = useMemo(
-    () => filtros.aplicarFiltroLista(clientesRaw),
-    [clientesRaw, filtros.aplicarFiltroLista],
-  );
+  const listaFiltrada = useMemo(() => {
+    let list = filtros.aplicarFiltroLista(clientesRaw);
+    if (filtros.incluirInactivos) {
+      list = list.filter((c) => !c.activo);
+    }
+    return list;
+  }, [clientesRaw, filtros.aplicarFiltroLista, filtros.incluirInactivos]);
 
   const [pagina, setPagina] = useState(1);
   const [tamañoPagina, setTamañoPagina] = useState(10);

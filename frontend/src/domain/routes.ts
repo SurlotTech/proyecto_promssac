@@ -19,8 +19,6 @@ export interface Route {
   dispatchCompleted: number;
   dispatchTotal: number;
   deliveryDate: string;
-  startTime: string;
-  endTime: string;
   createdAt: string;
   priority: RoutePriority;
   currentCollection: number;
@@ -84,17 +82,4 @@ export function routeDeliveryUiToIso(ddMmYyyy: string): string {
   if (parts.length !== 3) return "";
   const [d, m, y] = parts;
   return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
-}
-
-/** Suma horas a HH:mm (24 h). */
-export function addHoursToTimeString(timeHHmm: string, hours: number): string {
-  const [hhRaw, mmRaw] = timeHHmm.split(":");
-  const hh = parseInt(hhRaw ?? "", 10);
-  const mm = parseInt(mmRaw ?? "", 10);
-  if (Number.isNaN(hh) || Number.isNaN(mm)) return timeHHmm;
-  let totalMin = hh * 60 + mm + hours * 60;
-  totalMin = ((totalMin % (24 * 60)) + 24 * 60) % (24 * 60);
-  const nh = Math.floor(totalMin / 60);
-  const nm = totalMin % 60;
-  return `${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}`;
 }

@@ -1,4 +1,4 @@
-import { useState, type ComponentType } from "react";
+import { useState, type ComponentType, useMemo } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -23,6 +23,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useAuth } from "@/contexts/AuthContext";
+import { SIDEBAR_PERMISSION_MAP } from "@/domain/permissions";
 
 interface SidebarProps {
   open: boolean;
@@ -45,7 +47,7 @@ const operationsItems: NavItem[] = [
   { to: "/flota", label: "Flota en vivo", icon: MapPin },
   { to: "/vehiculos", label: "Vehículos", icon: Truck },
   { to: "/clientes", label: "Clientes", icon: UserSquare2 },
-  { to: "/alertas", label: "Alertas", icon: Bell },
+  { to: "/configuracion/alertas", label: "Alertas", icon: Bell },
 ];
 
 const usersGroup: NavItem = {
@@ -72,7 +74,50 @@ const pathMatchesSub = (pathname: string, to: string) =>
 
 const Sidebar = ({ open, onClose, isCollapsed, onToggleCollapse }: SidebarProps) => {
   const location = useLocation();
+  const { hasPermission } = useAuth();
   const [expandedMenus, setExpandedMenus] = useState<string[]>(["Usuarios", "Configuración"]);
+
+  const filteredOperationsItems = useMemo(
+    () =>
+      operationsItems.filter((item) => {
+        if (!item.to) return true;
+        const perm = SIDEBAR_PERMISSION_MAP[item.to];
+        return perm ? hasPermission(perm) : true;
+      }),
+    [hasPermission],
+  );
+
+  const showUsersGroup = useMemo(() => {
+    return usersGroup.subItems?.some((s) => {
+      const perm = SIDEBAR_PERMISSION_MAP[s.to];
+      return perm ? hasPermission(perm) : true;
+    });
+  }, [hasPermission]);
+
+  const filteredUsersSubItems = useMemo(
+    () =>
+      usersGroup.subItems?.filter((s) => {
+        const perm = SIDEBAR_PERMISSION_MAP[s.to];
+        return perm ? hasPermission(perm) : true;
+      }) ?? [],
+    [hasPermission],
+  );
+
+  const showSystemGroup = useMemo(() => {
+    return systemGroup.subItems?.some((s) => {
+      const perm = SIDEBAR_PERMISSION_MAP[s.to];
+      return perm ? hasPermission(perm) : true;
+    });
+  }, [hasPermission]);
+
+  const filteredSystemSubItems = useMemo(
+    () =>
+      systemGroup.subItems?.filter((s) => {
+        const perm = SIDEBAR_PERMISSION_MAP[s.to];
+        return perm ? hasPermission(perm) : true;
+      }) ?? [],
+    [hasPermission],
+  );
 
   const toggleMenu = (label: string) => {
     setExpandedMenus((prev) =>
@@ -138,9 +183,10 @@ const Sidebar = ({ open, onClose, isCollapsed, onToggleCollapse }: SidebarProps)
     </>
   );
 
-  const renderExpandableGroup = (item: NavItem) => {
-    if (!item.subItems?.length) return null;
-    const isChildActive = item.subItems.some((s) => pathMatchesSub(location.pathname, s.to));
+  const renderExpandableGroup = (item: NavItem, filteredSubItems?: { to: string; label: string; end?: boolean }[]) => {
+    const subItems = filteredSubItems ?? item.subItems;
+    if (!subItems?.length) return null;
+    const isChildActive = subItems.some((s) => pathMatchesSub(location.pathname, s.to));
 
     const button = (
       <button
@@ -190,7 +236,7 @@ const Sidebar = ({ open, onClose, isCollapsed, onToggleCollapse }: SidebarProps)
         )}
         {!isCollapsed && expandedMenus.includes(item.label) && (
           <ul className="ml-3 space-y-0.5 border-l border-sidebar-border/60 py-1 pl-3">
-            {item.subItems.map((sub) => (
+            {subItems.map((sub) => (
               <li key={sub.to}>
                 <NavLink
                   to={sub.to}
@@ -256,29 +302,37 @@ const Sidebar = ({ open, onClose, isCollapsed, onToggleCollapse }: SidebarProps)
         </div>
 
         <nav className={cn("flex-1 overflow-y-auto py-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10", isCollapsed ? "px-2" : "px-3")}>
-          {renderFlatSection(operationsItems, "Operaciones")}
+          {renderFlatSection(filteredOperationsItems, "Operaciones")}
 
-          {!isCollapsed ? (
-            <p className="mt-6 px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 transition-opacity duration-300">
-              Usuarios
-            </p>
-          ) : (
-            <div className="mx-auto my-3 w-6 border-t border-white/10" />
-          )}
-          <ul className={cn("flex flex-col gap-1", isCollapsed && "gap-4")}>
-            {renderExpandableGroup(usersGroup)}
-          </ul>
+          {showUsersGroup ? (
+            <>
+              {!isCollapsed ? (
+                <p className="mt-6 px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 transition-opacity duration-300">
+                  Usuarios
+                </p>
+              ) : (
+                <div className="mx-auto my-3 w-6 border-t border-white/10" />
+              )}
+              <ul className={cn("flex flex-col gap-1", isCollapsed && "gap-4")}>
+                {renderExpandableGroup(usersGroup, filteredUsersSubItems)}
+              </ul>
+            </>
+          ) : null}
 
-          {!isCollapsed ? (
-            <p className="mt-6 px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 transition-opacity duration-300">
-              Sistema
-            </p>
-          ) : (
-            <div className="mx-auto my-3 w-6 border-t border-white/10" />
-          )}
-          <ul className={cn("flex flex-col gap-1", isCollapsed && "gap-4")}>
-            {renderExpandableGroup(systemGroup)}
-          </ul>
+          {showSystemGroup ? (
+            <>
+              {!isCollapsed ? (
+                <p className="mt-6 px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 transition-opacity duration-300">
+                  Sistema
+                </p>
+              ) : (
+                <div className="mx-auto my-3 w-6 border-t border-white/10" />
+              )}
+              <ul className={cn("flex flex-col gap-1", isCollapsed && "gap-4")}>
+                {renderExpandableGroup(systemGroup, filteredSystemSubItems)}
+              </ul>
+            </>
+          ) : null}
         </nav>
 
         <div className="p-4">

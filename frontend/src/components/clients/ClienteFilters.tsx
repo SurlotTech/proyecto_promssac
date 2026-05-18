@@ -49,6 +49,17 @@ export default function ClienteFilters({ filtros, totalConFiltros }: Props) {
           </Button>
         </div>
       )}
+
+      <div className="flex items-center gap-2 pt-1">
+        <Checkbox
+          id="incluir-inactivos-clientes"
+          checked={f.incluirInactivos}
+          onCheckedChange={(v) => f.setIncluirInactivos(v === true)}
+        />
+        <Label htmlFor="incluir-inactivos-clientes" className="text-xs text-muted-foreground cursor-pointer">
+          Mostrar clientes desactivados
+        </Label>
+      </div>
     </div>
   );
 }

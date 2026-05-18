@@ -60,8 +60,6 @@ export function ClienteMaplibreUbicacion({
     });
   }, [initialLat, initialLng, mode, sessionKey]);
 
-  if (mode === "view" && !hasPoint) return null;
-
   return (
     <div className={cn(className)}>
       <PromssacMap

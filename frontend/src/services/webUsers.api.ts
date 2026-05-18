@@ -20,8 +20,9 @@ export type WebUserUpdateBody = Omit<WebUserCreateBody, "contrasena"> & {
 };
 
 export const webUsersApi = {
-  list(): Promise<WebUserListItem[]> {
-    return apiGet<WebUserListItem[]>(endpoints.usuariosWeb);
+  list(incluirInactivos?: boolean): Promise<WebUserListItem[]> {
+    const q = incluirInactivos ? "?incluirInactivos=true" : "";
+    return apiGet<WebUserListItem[]>(`${endpoints.usuariosWeb}${q}`);
   },
 
   getById(id: string): Promise<WebUserDetail> {

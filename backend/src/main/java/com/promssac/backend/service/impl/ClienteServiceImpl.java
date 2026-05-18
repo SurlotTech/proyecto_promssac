@@ -134,6 +134,16 @@ public class ClienteServiceImpl implements ClienteService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<ClientResponse> buscarPorNombre(String query) {
+        String q = (query == null ? "" : query).trim();
+        if (q.isEmpty()) return List.of();
+        return clienteRepository.searchByNombre(q).stream()
+                .map(this::toResponseSinOrdenes)
+                .toList();
+    }
+
+    @Override
     @Transactional
     public ClientResponse crear(ClientWriteRequest request) {
         String nombreNorm = resolverNombreCatalogo(request);

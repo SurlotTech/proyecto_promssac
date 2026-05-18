@@ -38,6 +38,12 @@ public class ClienteController {
         return ResponseEntity.ok(clienteService.listarParaOperaciones(incluirInactivos));
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<ClientResponse>> buscar(
+            @RequestParam(name = "q") String query) {
+        return ResponseEntity.ok(clienteService.buscarPorNombre(query));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ClientResponse> obtener(@PathVariable UUID id) {
         return ResponseEntity.ok(clienteService.obtener(id));

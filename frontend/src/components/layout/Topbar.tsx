@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface TopbarProps {
   onMenuClick: () => void;
@@ -16,6 +17,24 @@ interface TopbarProps {
 
 const Topbar = ({ onMenuClick }: TopbarProps) => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const initials = user?.nombreCompleto
+    ? user.nombreCompleto
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : "??";
+
+  const displayName = user?.nombreCompleto ?? "Usuario";
+  const displayRole = user?.rolNombre ?? "";
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   return (
     <header className="sticky top-0 z-30 flex h-12 items-center gap-3 bg-[#212121] pr-4 backdrop-blur-md sm:pr-6">
@@ -42,12 +61,12 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
           <DropdownMenuTrigger className="flex items-center gap-2 rounded-lg p-1 pr-2 transition-colors hover:bg-zinc-800">
             <Avatar className="h-8 w-8 ring-2 ring-primary/30">
               <AvatarFallback className="bg-zinc-800 text-xs font-semibold text-zinc-300">
-                AR
+                {initials}
               </AvatarFallback>
             </Avatar>
             <div className="hidden text-left leading-tight md:block">
-              <p className="text-xs font-semibold text-zinc-100">Ana Ríos</p>
-              <p className="text-[10px] text-zinc-400">Operaciones</p>
+              <p className="text-xs font-semibold text-zinc-100">{displayName}</p>
+              <p className="text-[10px] text-zinc-400">{displayRole}</p>
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
@@ -62,10 +81,7 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
             <DropdownMenuSeparator />
             <DropdownMenuItem 
               className="cursor-pointer text-red-500 focus:bg-red-50 focus:text-red-600 dark:text-red-400 dark:focus:bg-red-950/50 dark:focus:text-red-300" 
-              onSelect={() => {
-                localStorage.removeItem("auth_token");
-                navigate("/login");
-              }}
+              onSelect={handleLogout}
             >
               Cerrar sesión
             </DropdownMenuItem>

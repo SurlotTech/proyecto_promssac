@@ -12,7 +12,6 @@ import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -44,12 +43,6 @@ public class Ruta {
 
     @Column(name = "fecha_entrega", nullable = false)
     private LocalDate fechaEntrega;
-
-    @Column(name = "hora_inicio", nullable = false)
-    private LocalTime horaInicio;
-
-    @Column(name = "hora_fin", nullable = false)
-    private LocalTime horaFin;
 
     @Column(nullable = false, length = 20)
     private String prioridad;

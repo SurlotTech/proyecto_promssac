@@ -31,7 +31,6 @@ const RouteTable = ({ routes, onSelect, onEdit, onDelete, vehicleTypeByPlate = {
               <th className="px-4 py-3.5">Conductor</th>
               <th className="px-4 py-3.5">Despachos</th>
               <th className="px-4 py-3.5">Fecha entrega</th>
-              <th className="px-4 py-3.5">Hora inicio</th>
               <th className="px-4 py-3.5">Creado en</th>
               <th className="px-4 py-3.5 text-right">Recaudación</th>
               <th className="px-4 py-3.5 text-center">Estado</th>
@@ -93,7 +92,6 @@ const RouteTable = ({ routes, onSelect, onEdit, onDelete, vehicleTypeByPlate = {
                     </div>
                   </td>
                   <td className="px-4 py-4 text-foreground">{r.deliveryDate}</td>
-                  <td className="px-4 py-4 text-foreground">{r.startTime}</td>
                   <td className="px-4 py-4 text-muted-foreground text-xs">{r.createdAt}</td>
                   <td className="px-4 py-4 text-right align-top">
                     <p className="font-semibold tabular-nums text-foreground">

@@ -84,6 +84,8 @@ export interface OrderCompleteInput {
   vehiculoId?: string;
   /** Quitar vehículo y placa de la orden. */
   quitarVehiculo?: boolean;
+  /** UUID del cliente de catálogo a vincular. */
+  clientId?: string;
 }
 
 function buildOrderCreateJson(input: OrderCreateInput): Record<string, unknown> {

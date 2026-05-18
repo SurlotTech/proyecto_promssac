@@ -1,4 +1,4 @@
-import { Clock, MapPin, Search } from "lucide-react";
+import { MapPin, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -124,10 +124,6 @@ const AssignRouteRoutesPanel = ({
             </div>
             <div className="flex flex-col gap-1 pl-7 text-sm text-muted-foreground">
               <p className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md tabular-nums self-start">{r.vehiclePlate}</p>
-              <p className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
-                <Clock className="h-3.5 w-3.5 shrink-0" />
-                {r.startTime} – {r.endTime}
-              </p>
               {r.place ? (
                 <p className="flex items-center gap-1.5 text-xs">
                   <MapPin className="h-3.5 w-3.5 shrink-0" />

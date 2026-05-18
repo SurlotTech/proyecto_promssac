@@ -5,6 +5,8 @@ import { MoreHorizontal, User, X, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -38,7 +40,6 @@ import type { RolWebOpcion } from "@/domain/webRoles";
 import type { WebUserDetail, WebUserListItem } from "@/domain/webUsers";
 import { useWebRoleOptionsQuery, useWebUserDetailQuery, useWebUsersQuery } from "@/hooks/useOperationsQueries";
 import { webUsersApi } from "@/services/webUsers.api";
-import { cn } from "@/lib/utils";
 
 type ActivoDialogState = {
   id: string;
@@ -58,8 +59,9 @@ const emptyFilters: FilterDraft = { nombre: "", usuario: "", estado: "", rol: ""
 function filterUsers(
   users: WebUserListItem[],
   applied: FilterDraft,
+  soloInactivos: boolean,
 ): WebUserListItem[] {
-  let list = users.filter((u) => u.estado === "Activo");
+  let list = soloInactivos ? users.filter((u) => u.estado !== "Activo") : users;
   const n = applied.nombre.toLowerCase().trim();
   const uq = applied.usuario.toLowerCase().trim();
   const rq = applied.rol.trim().toLowerCase();
@@ -81,7 +83,8 @@ function rolActualLabel(detail: WebUserDetail | undefined, options: RolWebOpcion
 const UsuariosWeb = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { data: users = [], isLoading, isError } = useWebUsersQuery();
+  const [incluirInactivos, setIncluirInactivos] = useState(false);
+  const { data: users = [], isLoading, isError } = useWebUsersQuery(incluirInactivos);
   const { data: roleOptions = [] } = useWebRoleOptionsQuery();
 
 const [draftFilters, setDraftFilters] = useState<FilterDraft>(emptyFilters);
@@ -152,8 +155,8 @@ const [draftFilters, setDraftFilters] = useState<FilterDraft>(emptyFilters);
   const blockedCount = useMemo(() => users.filter((u) => u.estado !== "Activo").length, [users]);
 
   const filteredUsers = useMemo(
-    () => filterUsers(users, appliedFilters),
-    [users, appliedFilters],
+    () => filterUsers(users, appliedFilters, incluirInactivos),
+    [users, appliedFilters, incluirInactivos],
   );
 
   return (
@@ -241,6 +244,17 @@ const [draftFilters, setDraftFilters] = useState<FilterDraft>(emptyFilters);
               </Button>
             </div>
           )}
+
+          <div className="flex items-center gap-2 pt-1">
+            <Checkbox
+              id="incluir-inactivos-web"
+              checked={incluirInactivos}
+              onCheckedChange={(v) => setIncluirInactivos(v === true)}
+            />
+            <Label htmlFor="incluir-inactivos-web" className="text-xs text-muted-foreground cursor-pointer">
+              Mostrar usuarios desactivados ({blockedCount})
+            </Label>
+          </div>
         </div>
 
         <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">

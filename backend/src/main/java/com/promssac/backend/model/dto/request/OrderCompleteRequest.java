@@ -1,5 +1,6 @@
 package com.promssac.backend.model.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -70,6 +71,10 @@ public class OrderCompleteRequest {
 
     /** Claves acordadas con el frontend (director, cajas, guías). */
     private Map<String, String> camposPersonalizados;
+
+    /** Vincular la orden a un cliente del catálogo. */
+    @JsonProperty("clientId")
+    private UUID clienteId;
 
     /** Asignar o cambiar el vehículo (placa se denormaliza en la orden). */
     private UUID vehiculoId;

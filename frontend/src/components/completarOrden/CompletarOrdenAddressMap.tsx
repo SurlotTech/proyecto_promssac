@@ -21,6 +21,8 @@ const CompletarOrdenAddressMap = ({ lat, lng, onLocationCommit }: Props) => {
     const map = mapInstRef.current;
     if (!map) return;
 
+    map.flyTo({ center: [lngNum, latNum], zoom: hasCoords ? 16 : 13, duration: 800 });
+
     if (!markerRef.current) {
       markerRef.current = new maplibregl.Marker({ draggable: true })
         .setLngLat([lngNum, latNum])

@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { fleetApi, mobileUsersApi, ordersApi, routesApi, vehiclesApi, webRolesApi, webUsersApi, clientsApi } from "@/services";
+import { subestadosApi } from "@/services/subestados.api";
 
 export function useVehiclesQuery() {
   return useQuery({
@@ -16,10 +17,10 @@ export function useVehicleOptionsQuery() {
   });
 }
 
-export function useMobileUsersQuery() {
+export function useMobileUsersQuery(incluirInactivos: boolean = false) {
   return useQuery({
-    queryKey: ["usuarios-movil"],
-    queryFn: () => mobileUsersApi.list(),
+    queryKey: ["usuarios-movil", incluirInactivos],
+    queryFn: () => mobileUsersApi.list(incluirInactivos),
   });
 }
 
@@ -31,10 +32,10 @@ export function useMobileUserRouteOptionsQuery() {
   });
 }
 
-export function useWebUsersQuery() {
+export function useWebUsersQuery(incluirInactivos: boolean = false) {
   return useQuery({
-    queryKey: ["usuarios-web"],
-    queryFn: () => webUsersApi.list(),
+    queryKey: ["usuarios-web", incluirInactivos],
+    queryFn: () => webUsersApi.list(incluirInactivos),
   });
 }
 
@@ -148,6 +149,21 @@ export function useClientOrdersQuery(clientId: string | undefined) {
     queryKey: ["clientes", trimmed, "ordenes"],
     queryFn: () => clientsApi.ordersForClient(trimmed!),
     enabled: Boolean(trimmed),
+  });
+}
+
+export function useSubestadosQuery(incluirInactivos: boolean = false) {
+  return useQuery({
+    queryKey: ["subestados", incluirInactivos],
+    queryFn: () => subestadosApi.list(incluirInactivos),
+  });
+}
+
+export function useSubestadosByEstadoQuery(estado: string | undefined) {
+  return useQuery({
+    queryKey: ["subestados", "por-estado", estado],
+    queryFn: () => subestadosApi.listByEstado(estado!),
+    enabled: Boolean(estado),
   });
 }
 

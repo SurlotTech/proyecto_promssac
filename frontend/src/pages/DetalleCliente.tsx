@@ -255,22 +255,24 @@ const DetalleCliente = () => {
           </div>
         </div>
 
-        {tieneUbicacionMapa ? (
-          <div className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
-            <div className="border-b border-border/70 bg-muted/30 px-4 py-3 sm:px-6">
-              <p className="text-sm font-semibold text-foreground">Ubicación en mapa</p>
-              <p className="text-xs text-muted-foreground">Coordenadas guardadas con el cliente (solo lectura)</p>
-            </div>
-            <div className="p-4 sm:p-5">
-              <ClienteMaplibreUbicacion
-                sessionKey={cliente.id}
-                mode="view"
-                initialLat={latMap}
-                initialLng={lngMap}
-              />
-            </div>
+        <div className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
+          <div className="border-b border-border/70 bg-muted/30 px-4 py-3 sm:px-6">
+            <p className="text-sm font-semibold text-foreground">Ubicación en mapa</p>
+            <p className="text-xs text-muted-foreground">
+              {tieneUbicacionMapa
+                ? "Coordenadas guardadas con el cliente (solo lectura)"
+                : "Este cliente no tiene coordenadas registradas."}
+            </p>
           </div>
-        ) : null}
+          <div className="p-4 sm:p-5">
+            <ClienteMaplibreUbicacion
+              sessionKey={cliente.id}
+              mode="view"
+              initialLat={latMap}
+              initialLng={lngMap}
+            />
+          </div>
+        </div>
 
         <div className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
           <div className="flex flex-col gap-1 border-b border-border/70 bg-gradient-to-r from-muted/50 to-muted/20 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">

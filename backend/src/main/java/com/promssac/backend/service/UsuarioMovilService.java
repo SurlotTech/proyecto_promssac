@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface UsuarioMovilService {
 
-    List<MobileUserListItemResponse> listar();
+    List<MobileUserListItemResponse> listar(boolean incluirInactivos);
 
     /** Solo usuarios activos; campos mínimos para combos de rutas. */
     List<MobileUserRouteOptionResponse> listarOpcionesParaRutas();

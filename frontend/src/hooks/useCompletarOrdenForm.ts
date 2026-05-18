@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router-dom";
 import type { RoutePriority } from "@/domain/routes";
@@ -19,6 +19,7 @@ import {
   type CompletarStepContext,
 } from "@/lib/completarOrden/stepValidation";
 import { LIMA_CENTER } from "@/domain/fleet";
+import type { Client } from "@/domain/clients";
 import { errorMessageFromUnknown } from "@/lib/utils";
 import { geocodificacionApi } from "@/services/geocodificacion.api";
 import {
@@ -30,6 +31,7 @@ import {
   type OrderProductsLocationState,
 } from "@/lib/orderCreationDraft";
 import { consultasApi } from "@/services/consultas.api";
+import { clientsApi } from "@/services/clients.api";
 import { ordersApi } from "@/services/orders.api";
 import { toast } from "sonner";
 import { sanitizePeruNineDigitPhoneInput } from "@/lib/completarOrden/contactValidation";
@@ -59,6 +61,7 @@ type FormCache = {
   lat: string;
   lng: string;
   customFields: Record<string, string>;
+  selectedClientId: string;
 };
 
 function saveFormCache(orderId: string, data: Omit<FormCache, "orderId">) {
@@ -117,6 +120,14 @@ export function useCompletarOrdenForm() {
   const [guardandoOrden, setGuardandoOrden] = useState(false);
   const [hydratingOrder, setHydratingOrder] = useState(false);
 
+  const [selectedClientId, setSelectedClientId] = useState("");
+  const [clientSearchQuery, setClientSearchQuery] = useState("");
+
+  const [clientSearchOpen, setClientSearchOpen] = useState(false);
+  const [clientSearchResults, setClientSearchResults] = useState<Client[]>([]);
+  const [clientSearching, setClientSearching] = useState(false);
+  const clientSearchTimer = useRef<ReturnType<typeof setTimeout>>();
+
   useEffect(() => {
     const state = location.state as OrderCompletarLocationState | null;
     const fromNav = state?.orderDraft;
@@ -174,6 +185,7 @@ export function useCompletarOrdenForm() {
         setLat(cached.lat);
         setLng(cached.lng);
       }
+      setSelectedClientId(cached.selectedClientId ?? "");
       return; // No llamar al API
     }
 
@@ -337,6 +349,43 @@ export function useCompletarOrdenForm() {
     }
   }, [addressLine]);
 
+  const handleClientSearch = useCallback((query: string) => {
+    setClientSearchQuery(query);
+    if (clientSearchTimer.current) clearTimeout(clientSearchTimer.current);
+    const q = query.trim();
+    if (q.length < 2) {
+      setClientSearchResults([]);
+      setClientSearchOpen(false);
+      return;
+    }
+    setClientSearching(true);
+    setClientSearchOpen(true);
+    clientSearchTimer.current = setTimeout(async () => {
+      try {
+        const results = await clientsApi.search(q);
+        setClientSearchResults(results);
+        setClientSearchOpen(results.length > 0);
+      } catch {
+        setClientSearchResults([]);
+      } finally {
+        setClientSearching(false);
+      }
+    }, 300);
+  }, []);
+
+  const handleClientSelect = useCallback((client: Client) => {
+    setSelectedClientId(client.id);
+    setAddressLine(client.direccion || "");
+    setNormalizedAddress(client.direccion || "");
+    if (client.latitud != null && client.longitud != null) {
+      setLat(client.latitud.toFixed(6));
+      setLng(client.longitud.toFixed(6));
+    }
+    setClientSearchOpen(false);
+    setClientSearchResults([]);
+    setClientSearchQuery(client.nombre);
+  }, []);
+
   const handleBackToList = useCallback(() => {
     navigate("/ordenes");
   }, [navigate]);
@@ -403,6 +452,7 @@ export function useCompletarOrdenForm() {
           priority,
           cod,
           customFields,
+          clientId: selectedClientId,
         }),
       );
       await queryClient.invalidateQueries({ queryKey: ["ordenes"] });
@@ -445,11 +495,11 @@ export function useCompletarOrdenForm() {
       deliveryFrom, deliveryTo, mode, priority, cod,
       contactName, contactPhone, contactIdentifier, contactEmail, idType,
       addressLine, normalizedAddress, serviceMinutes, addressReference,
-      lat, lng, customFields,
+      lat, lng, customFields, selectedClientId,
     });
     const state: OrderProductsLocationState = { displayOrderId: draft.displayOrderId };
     navigate("/ordenes/productos", { state });
-  }, [draft, navigate, deliveryFrom, deliveryTo, mode, priority, cod, contactName, contactPhone, contactIdentifier, contactEmail, idType, addressLine, normalizedAddress, serviceMinutes, addressReference, lat, lng, customFields]);
+  }, [draft, navigate, deliveryFrom, deliveryTo, mode, priority, cod, contactName, contactPhone, contactIdentifier, contactEmail, idType, addressLine, normalizedAddress, serviceMinutes, addressReference, lat, lng, customFields, selectedClientId]);
 
   const onDeliveryRangeChange = useCallback((from: string, to: string) => {
     setDeliveryFrom(from);
@@ -511,5 +561,13 @@ export function useCompletarOrdenForm() {
     handleSave,
     goToProductos,
     canSave,
+    clientSearchOpen,
+    setClientSearchOpen,
+    clientSearchResults,
+    clientSearching,
+    handleClientSearch,
+    handleClientSelect,
+    clientSearchQuery,
+    setClientSearchQuery,
   };
 }

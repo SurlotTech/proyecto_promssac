@@ -1,10 +1,10 @@
 import { useState, type ReactNode } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -17,6 +17,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { subestadosApi } from "@/services/subestados.api";
 import { toast } from "sonner";
 
 const Hint = ({ text }: { text: string }) => (
@@ -54,20 +55,25 @@ const LabelWithHint = ({
 
 const NuevoSubestado = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [estado, setEstado] = useState("");
   const [nombre, setNombre] = useState("");
-  const [tipo, setTipo] = useState("");
-  const [codigo, setCodigo] = useState("");
-  const [modo, setModo] = useState("");
-  const [grupo, setGrupo] = useState("");
-  const [privado, setPrivado] = useState(false);
 
-  const canSave = estado && nombre.trim() && tipo;
+  const createMut = useMutation({
+    mutationFn: () => subestadosApi.create({ nombre: nombre.trim(), estadoPadre: estado }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["subestados"] });
+      toast.success("Subestado creado.");
+      navigate("/configuracion/subestados");
+    },
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Error al crear."),
+  });
+
+  const canSave = estado && nombre.trim();
 
   const handleSave = () => {
     if (!canSave) return;
-    toast.success("Subestado guardado (demo)");
-    navigate("/configuracion/subestados");
+    createMut.mutate();
   };
 
   return (
@@ -122,7 +128,8 @@ const NuevoSubestado = () => {
                     <SelectContent>
                       <SelectItem value="entregado">Entregado</SelectItem>
                       <SelectItem value="no_entregado">No entregado</SelectItem>
-                      <SelectItem value="parcial">Entrega parcial</SelectItem>
+                      <SelectItem value="in_route">En ruta</SelectItem>
+                      <SelectItem value="pending">Pendiente</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -139,58 +146,15 @@ const NuevoSubestado = () => {
                     placeholder="Ej. Cliente ausente"
                   />
                 </div>
-
-                <div>
-                  <LabelWithHint htmlFor="ns-tipo" required hint="Define si el subestado aplica a flujo móvil, web o ambos.">
-                    Tipo
-                  </LabelWithHint>
-                  <Select value={tipo} onValueChange={setTipo}>
-                    <SelectTrigger id="ns-tipo" className="h-10 w-full bg-transparent">
-                      <SelectValue placeholder="Seleccionar tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="movil">Móvil</SelectItem>
-                      <SelectItem value="web">Web</SelectItem>
-                      <SelectItem value="ambos">Móvil y web</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <LabelWithHint htmlFor="ns-codigo" hint="Código interno opcional para integraciones o reportes.">
-                    Código
-                  </LabelWithHint>
-                  <Input
-                    id="ns-codigo"
-                    value={codigo}
-                    onChange={(e) => setCodigo(e.target.value)}
-                    className="h-10 bg-transparent"
-                    placeholder="Opcional"
-                  />
-                </div>
-
-                <div>
-                  <LabelWithHint htmlFor="ns-modo">Modo</LabelWithHint>
-                  <Select value={modo} onValueChange={setModo}>
-                    <SelectTrigger id="ns-modo" className="h-10 w-full bg-transparent">
-                      <SelectValue placeholder="Seleccionar modo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="normal">Normal</SelectItem>
-                      <SelectItem value="rapido">Rápido</SelectItem>
-                      <SelectItem value="solo_lectura">Solo lectura</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>  
+              </div>
             </div>
 
             <div className="flex flex-col-reverse gap-2 border-t border-border bg-muted/15 px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
               <Button type="button" variant="outline" className="sm:min-w-[120px]" onClick={() => navigate("/configuracion/subestados")}>
                 Cancelar
               </Button>
-              <Button type="button" className="shadow-glow sm:min-w-[140px]" disabled={!canSave} onClick={handleSave}>
-                Guardar
+              <Button type="button" className="shadow-glow sm:min-w-[140px]" disabled={!canSave || createMut.isPending} onClick={handleSave}>
+                {createMut.isPending ? "Guardando…" : "Guardar"}
               </Button>
             </div>
           </section>

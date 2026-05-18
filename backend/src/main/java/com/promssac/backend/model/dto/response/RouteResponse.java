@@ -21,8 +21,6 @@ public class RouteResponse {
     private Integer dispatchCompleted;
     private Integer dispatchTotal;
     private String deliveryDate;
-    private String startTime;
-    private String endTime;
     private String createdAt;
     private String priority;
     private BigDecimal currentCollection;

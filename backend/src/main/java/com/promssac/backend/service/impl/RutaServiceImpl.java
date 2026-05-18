@@ -14,7 +14,6 @@ import com.promssac.backend.repository.VehiculoRepository;
 import com.promssac.backend.service.RutaService;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -32,7 +31,6 @@ public class RutaServiceImpl implements RutaService {
     private static final ZoneId LIMA = ZoneId.of("America/Lima");
     private static final DateTimeFormatter UI_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter UI_DATETIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-    private static final DateTimeFormatter UI_TIME = DateTimeFormatter.ofPattern("HH:mm");
 
     private static final String PRIORIDAD_DEFECTO = "medium";
     private static final String ESTADO_DEFECTO = "scheduled";
@@ -130,8 +128,6 @@ public class RutaServiceImpl implements RutaService {
         r.setNombre(request.getNombre().trim());
         r.setVehiculo(vehiculo);
         r.setFechaEntrega(request.getFechaEntrega());
-        r.setHoraInicio(request.getHoraInicio());
-        r.setHoraFin(resolveHoraFin(request.getHoraInicio(), request.getHoraFin()));
 
         r.setPrioridad(StringUtils.hasText(request.getPrioridad()) ? request.getPrioridad().trim() : PRIORIDAD_DEFECTO);
         r.setEstado(StringUtils.hasText(request.getEstado()) ? request.getEstado().trim() : ESTADO_DEFECTO);
@@ -171,13 +167,6 @@ public class RutaServiceImpl implements RutaService {
         return u.get().getNombreCompleto();
     }
 
-    private static LocalTime resolveHoraFin(LocalTime inicio, LocalTime finSolicitado) {
-        if (finSolicitado != null) {
-            return finSolicitado;
-        }
-        return inicio.plusHours(8);
-    }
-
     private RouteResponse toRouteResponse(Ruta r) {
         RouteResponse dto = new RouteResponse();
         dto.setId(r.getId());
@@ -189,8 +178,6 @@ public class RutaServiceImpl implements RutaService {
         dto.setDispatchCompleted(r.getDespachosCompletados());
         dto.setDispatchTotal(r.getDespachosTotales());
         dto.setDeliveryDate(r.getFechaEntrega().format(UI_DATE));
-        dto.setStartTime(r.getHoraInicio().format(UI_TIME));
-        dto.setEndTime(r.getHoraFin().format(UI_TIME));
         dto.setCreatedAt(r.getCreadoEn().atZone(LIMA).format(UI_DATETIME));
         dto.setPriority(r.getPrioridad());
         dto.setCurrentCollection(r.getCobroActual());

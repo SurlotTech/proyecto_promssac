@@ -10,52 +10,16 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { webRolesApi } from "@/services";
+import {
+  permissionGroups,
+  ALL_PERMISSION_IDS,
+  DEFAULT_PERMISSIONS,
+  type PermissionGroup,
+  type PermissionDef as Permission,
+} from "@/domain/permissions";
 
-export type Permission = {
-  id: string;
-  label: string;
-  isSub?: boolean;
-};
-
-export type PermissionGroup = {
-  id: string;
-  title: string;
-  total: number;
-  permissions: Permission[];
-};
-
-export const permissionGroups: PermissionGroup[] = [
-  {
-    id: "general",
-    title: "General",
-    total: 10,
-    permissions: [
-      { id: "g1", label: "Rutas" },
-      { id: "g2", label: "Ordenes" },
-      { id: "g2-1", label: "Crear órdenes", isSub: true },
-      { id: "g2-2", label: "Editar órdenes", isSub: true },
-      { id: "g2-3", label: "Editar gestión de una orden", isSub: true },
-      { id: "g2-4", label: "Eliminar órdenes", isSub: true },
-      { id: "g3", label: "Flota" },
-      { id: "g4", label: "Clientes" },
-      { id: "g5", label: "Importación" },
-      { id: "g6", label: "Alertas" },
-    ],
-  },
-  {
-    id: "ajustes",
-    title: "Ajustes",
-    total: 6,
-    permissions: [
-      { id: "a1", label: "Cuenta" },
-      { id: "a2", label: "Usuarios" },
-      { id: "a2-1", label: "Crear usuarios web", isSub: true },
-      { id: "a2-2", label: "Crear usuarios móviles", isSub: true },
-      { id: "a3", label: "Vehículos" },
-      { id: "a4", label: "Configuración avanzada" },
-    ],
-  },
-];
+export type { PermissionGroup, Permission };
+export { permissionGroups };
 
 export function allWebPermissionIds(): string[] {
   return permissionGroups.flatMap((g) => g.permissions.map((p) => p.id));

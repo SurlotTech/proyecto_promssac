@@ -253,7 +253,9 @@ const DetalleRuta = () => {
     if (id) {
       routesApi.get(id)
         .then(setRoute)
-        .catch(console.error)
+          .catch((e) => {
+            toast.error(e instanceof Error ? e.message : "Error al cargar la ruta.");
+          })
         .finally(() => setLoading(false));
     }
   }, [id]);

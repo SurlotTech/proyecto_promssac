@@ -48,6 +48,13 @@ export const clientsApi = {
     );
   },
 
+  search(query: string): Promise<Client[]> {
+    const q = encodeURIComponent(query.trim());
+    return apiGet<Partial<Client>[]>(`${endpoints.clients}/search?q=${q}`).then((rows) =>
+      rows.map((r) => clienteDesdeServidor(r as Partial<Client> & Pick<Client, "id" | "nombre">)),
+    );
+  },
+
   get(id: string): Promise<Client> {
     return apiGet<Partial<Client> & Pick<Client, "id" | "nombre">>(
       `${endpoints.clients}/${encodeURIComponent(id)}`,

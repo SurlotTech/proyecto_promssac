@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -30,11 +29,6 @@ public class RouteWriteRequest {
 
     @NotNull
     private LocalDate fechaEntrega;
-
-    @NotNull
-    private LocalTime horaInicio;
-
-    private LocalTime horaFin;
 
     @Size(max = 20)
     private String prioridad;

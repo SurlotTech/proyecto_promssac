@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -32,8 +33,9 @@ public class UsuarioWebController {
     private final UsuarioWebService usuarioWebService;
 
     @GetMapping
-    public ResponseEntity<List<WebUserListItemResponse>> listar() {
-        return ResponseEntity.ok(usuarioWebService.listar());
+    public ResponseEntity<List<WebUserListItemResponse>> listar(
+            @RequestParam(name = "incluirInactivos", defaultValue = "false") boolean incluirInactivos) {
+        return ResponseEntity.ok(usuarioWebService.listar(incluirInactivos));
     }
 
     @PostMapping

@@ -9,8 +9,6 @@ export interface RouteWriteBody {
   vehiculoId: string;
   usuarioMovilId?: string | null;
   fechaEntrega: string;
-  horaInicio: string;
-  horaFin?: string | null;
   prioridad?: string | null;
   estado?: string | null;
   lugar?: string | null;

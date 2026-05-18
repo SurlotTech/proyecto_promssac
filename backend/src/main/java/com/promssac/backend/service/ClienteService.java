@@ -26,4 +26,7 @@ public interface ClienteService {
     ClientResponse cambiarActivo(UUID id, ClientActivoPatchRequest body);
 
     List<OrderResponse> listarOrdenesRelacionadas(UUID clienteId);
+
+    /** Búsqueda rápida por nombre (máx. 10 resultados, solo activos). */
+    List<ClientResponse> buscarPorNombre(String query);
 }
