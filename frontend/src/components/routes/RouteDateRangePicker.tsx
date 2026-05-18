@@ -73,11 +73,11 @@ const RouteDateRangePicker = ({ dateFrom, dateTo, onRangeChange, className, minD
               type="button"
               aria-label={displayText ? `Rango de fechas: ${displayText}` : "Abrir calendario"}
               className={cn(
-                "group inline-flex h-12 w-max min-w-0 max-w-full shrink-0 items-center gap-2 border-0 bg-transparent py-0 pl-4 pr-2 text-left outline-none transition-colors hover:bg-zinc-50",
+                "group inline-flex h-10 w-max min-w-0 max-w-full shrink-0 items-center gap-2 border-0 bg-transparent py-0 pl-3.5 pr-2 text-left outline-none transition-colors hover:bg-zinc-50",
               )}
             >
               <CalendarIcon
-                className="size-4 shrink-0 text-foreground/80"
+                className="size-3.5 shrink-0 text-foreground/80"
                 strokeWidth={1.75}
                 aria-hidden
               />
@@ -93,7 +93,7 @@ const RouteDateRangePicker = ({ dateFrom, dateTo, onRangeChange, className, minD
               e.stopPropagation();
               clear();
             }}
-            className="flex h-12 shrink-0 items-center px-3 text-muted-foreground transition-colors hover:bg-zinc-50 hover:text-foreground"
+            className="flex h-10 shrink-0 items-center px-2.5 text-muted-foreground transition-colors hover:bg-zinc-50 hover:text-foreground"
             aria-label="Limpiar fechas"
           >
             <X className="h-3.5 w-3.5" />
@@ -105,19 +105,19 @@ const RouteDateRangePicker = ({ dateFrom, dateTo, onRangeChange, className, minD
             <button
               type="button"
               className={cn(
-                "group flex h-12 w-full min-w-0 max-w-full shrink-0 items-center gap-2 rounded-full border border-border/100 bg-transparent px-4 py-0 shadow-none transition-colors sm:max-w-[min(100%,18rem)]",
+                "group flex h-10 w-full min-w-0 max-w-full shrink-0 items-center gap-2 rounded-full border border-border/100 bg-transparent px-3.5 py-0 shadow-none transition-colors sm:max-w-[min(100%,18rem)]",
                 "hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
               )}
             >
               <CalendarIcon
-                className="size-4 shrink-0 text-foreground/80"
+                className="size-3.5 shrink-0 text-foreground/80"
                 strokeWidth={1.75}
                 aria-hidden
               />
               <span className="min-w-0 flex-1 truncate text-left text-sm text-foreground/80">
                 Seleccionar fecha
               </span>
-              <ChevronDown className="ml-auto h-4 w-4 shrink-0"/>
+              <ChevronDown className="ml-auto h-3.5 w-3.5 shrink-0"/>
             </button>
           </PopoverTrigger>
         </div>

@@ -13,6 +13,7 @@ import ClienteActivoConfirmDialog from "@/components/clients/ClienteActivoConfir
 import ClienteFilters from "@/components/clients/ClienteFilters";
 import ClienteImportDialog from "@/components/clients/ClienteImportDialog";
 import ClienteTable from "@/components/clients/ClienteTable";
+import RoutesPaginationBar from "@/components/routes/RoutesPaginationBar";
 import { Button } from "@/components/ui/button";
 import type { Client } from "@/domain/clients";
 import { useClienteImportBatch } from "@/hooks/useClienteImportBatch";
@@ -26,22 +27,19 @@ import { toast } from "sonner";
 const Clientes = () => {
   const qc = useQueryClient();
   const filtros = useClienteListaFiltros();
-  const { data: clientesRaw = [], isLoading, isError, refetch, isFetching } = useClientsQuery(filtros.incluirInactivos);
+  const { data: clientesRaw = [], isLoading, isError, refetch, isFetching } = useClientsQuery(true);
 
   const listaFiltrada = useMemo(() => {
-    let list = filtros.aplicarFiltroLista(clientesRaw);
-    if (filtros.incluirInactivos) {
-      list = list.filter((c) => !c.activo);
-    }
-    return list;
-  }, [clientesRaw, filtros.aplicarFiltroLista, filtros.incluirInactivos]);
+    const list = filtros.aplicarFiltroLista(clientesRaw);
+    return list.filter((c) => (filtros.estadoFiltro === "activos" ? c.activo : !c.activo));
+  }, [clientesRaw, filtros.aplicarFiltroLista, filtros.estadoFiltro]);
 
   const [pagina, setPagina] = useState(1);
   const [tamañoPagina, setTamañoPagina] = useState(10);
 
   useEffect(() => {
     setPagina(1);
-  }, [filtros.busqueda, filtros.incluirInactivos]);
+  }, [filtros.busqueda, filtros.estadoFiltro]);
 
   const totalPaginas = Math.max(1, Math.ceil(listaFiltrada.length / tamañoPagina));
 
@@ -89,7 +87,7 @@ const Clientes = () => {
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col animate-fade-in">
+    <div className="animate-fade-in">
       <PageHeader
         title="Clientes"
         subtitle="Carga tus colegios o centros, edítalos o desactiva los que ya no uses."
@@ -150,23 +148,14 @@ const Clientes = () => {
         }
       />
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4 sm:p-6 lg:p-8">
-        <div className="flex min-h-0 flex-1 flex-col gap-5">
-          <ClienteFilters filtros={filtros} totalConFiltros={listaFiltrada.length} />
-          
-          <main className="flex min-h-0 min-w-0 flex-1 flex-col">
-            <ClienteTable
+      <div className="space-y-4 p-4 pt-1 sm:p-6 sm:pt-2 lg:p-8 lg:pt-2">
+        <ClienteFilters filtros={filtros} />
+        
+        <main className="space-y-4">
+          <ClienteTable
               filasPagina={filasPagina}
               totalFiltradas={listaFiltrada.length}
               totalEnCarga={clientesRaw.length}
-              pagina={paginaSafe}
-              totalPaginas={totalPaginas}
-              tamañoPagina={tamañoPagina}
-              onPaginaChange={irAPagina}
-              onTamañoPaginaChange={(n) => {
-                setTamañoPagina(n);
-                setPagina(1);
-              }}
               isLoading={isLoading}
               isError={isError}
               onEditar={(c) => {
@@ -182,9 +171,23 @@ const Clientes = () => {
               }}
               onToggleActivo={setPendingActivoToggle}
             />
+
+            {!isLoading && !isError && listaFiltrada.length > 0 && (
+              <RoutesPaginationBar
+                currentPage={paginaSafe}
+                totalPages={totalPaginas}
+                totalFiltered={listaFiltrada.length}
+                pageSize={tamañoPagina}
+                onPageChange={irAPagina}
+                label="clientes"
+                onPageSizeChange={(n) => {
+                  setTamañoPagina(n);
+                  setPagina(1);
+                }}
+              />
+            )}
           </main>
         </div>
-      </div>
 
       <ClientFormDialog
         open={formOpen}

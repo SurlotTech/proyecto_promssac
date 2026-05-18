@@ -37,7 +37,7 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-12 items-center gap-3 bg-[#212121] pr-4 backdrop-blur-md sm:pr-6">
+    <header className="sticky top-0 z-30 flex h-12 items-center gap-3 bg-[#212121] pr-4 backdrop-blur-lg sm:pr-6">
       <button
         onClick={onMenuClick}
         className="ml-4 rounded-md p-2 text-zinc-400 hover:bg-zinc-800 lg:hidden"

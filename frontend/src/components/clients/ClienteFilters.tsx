@@ -1,22 +1,20 @@
 import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import type { ClienteListaFiltrosApi } from "@/hooks/useClienteListaFiltros";
+import { cn } from "@/lib/utils";
 
 type Props = {
   filtros: ClienteListaFiltrosApi;
-  totalConFiltros: number;
 };
 
-export default function ClienteFilters({ filtros, totalConFiltros }: Props) {
+export default function ClienteFilters({ filtros }: Props) {
   const f = filtros;
   const hasActive = f.busqueda.trim() !== "";
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:flex-nowrap lg:gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center justify-start">
         <div className="relative min-w-0 flex-1 lg:max-w-xl">
           <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
           <Input
@@ -29,10 +27,32 @@ export default function ClienteFilters({ filtros, totalConFiltros }: Props) {
           />
         </div>
 
-        <div className="flex shrink-0 items-center gap-3">
-          <div className="hidden h-12 items-center rounded-full bg-muted/40 px-4 text-xs tabular-nums text-muted-foreground sm:flex">
-            <span className="font-semibold text-foreground mr-1">{totalConFiltros}</span>
-            {totalConFiltros === 1 ? "coincidente" : "coincidentes"}
+        <div className="flex items-center bg-transparent p-1 rounded-full border border-border h-12 px-1 shrink-0 transition-colors hover:bg-zinc-50/50">
+          <div className="flex gap-1">
+            <button
+              type="button"
+              onClick={() => f.setEstadoFiltro("activos")}
+              className={cn(
+                "rounded-full px-5 py-1.5 text-xs font-semibold transition-all h-8 flex items-center justify-center",
+                f.estadoFiltro === "activos"
+                  ? "bg-background text-emerald-600 dark:text-emerald-400 shadow-sm border border-border/40"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Activos
+            </button>
+            <button
+              type="button"
+              onClick={() => f.setEstadoFiltro("inactivos")}
+              className={cn(
+                "rounded-full px-5 py-1.5 text-xs font-semibold transition-all h-8 flex items-center justify-center",
+                f.estadoFiltro === "inactivos"
+                  ? "bg-background text-destructive shadow-sm border border-border/40"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Inactivos
+            </button>
           </div>
         </div>
       </div>
@@ -49,17 +69,6 @@ export default function ClienteFilters({ filtros, totalConFiltros }: Props) {
           </Button>
         </div>
       )}
-
-      <div className="flex items-center gap-2 pt-1">
-        <Checkbox
-          id="incluir-inactivos-clientes"
-          checked={f.incluirInactivos}
-          onCheckedChange={(v) => f.setIncluirInactivos(v === true)}
-        />
-        <Label htmlFor="incluir-inactivos-clientes" className="text-xs text-muted-foreground cursor-pointer">
-          Mostrar clientes desactivados
-        </Label>
-      </div>
     </div>
   );
 }

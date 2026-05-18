@@ -17,6 +17,7 @@ type Props = {
   initialLat: number | null;
   initialLng: number | null;
   className?: string;
+  containerClassName?: string;
   onLocationResolved?: (lat: number, lng: number, direccionReal: string) => void;
   onClearLocation?: () => void;
 };
@@ -27,6 +28,7 @@ export function ClienteMaplibreUbicacion({
   initialLat,
   initialLng,
   className,
+  containerClassName,
   onLocationResolved,
   onClearLocation,
 }: Props) {
@@ -67,7 +69,8 @@ export function ClienteMaplibreUbicacion({
         mapKey={sessionKey}
         center={[startLng, startLat]}
         zoom={startZoom}
-        containerClassName="h-[min(280px,45vh)] w-full"
+        defaultStyle="liberty"
+        containerClassName={cn("h-[min(280px,45vh)] w-full", containerClassName)}
         onMap={(map) => {
           const marker = new maplibregl.Marker({
             color: "hsl(217 91% 60%)",

@@ -86,6 +86,21 @@ export function clienteDesdeServidor(raw: Partial<Client> & Pick<Client, "id" | 
 /** Formato habitual tras import regional IIEE: `{institución} · {nivel}` (véase `clientsExcel.ts`). */
 const SEP_DATOS_IMPORT = " · ";
 
+export function simplificarNombreCliente(nombre: string): string {
+  const t = nombre.trim();
+  if (!t) return "";
+  const partes = t.split(" · ");
+  const filtradas = partes.filter((p) => {
+    const u = p.toUpperCase().trim();
+    if (u.includes("UGEL")) return false;
+    if (u.startsWith("CÓD.") || u.startsWith("COD.")) return false;
+    if (pareceEtiquetaNivel(u)) return false;
+    return true;
+  });
+  if (filtradas.length === 0) return t;
+  return filtradas.join(" · ");
+}
+
 /**
  * Divide el nombre guardado cuando el sufijo después del último separador tiene pinta de nivel educativo corto.
  */
@@ -100,21 +115,41 @@ export function nombreInstitucionYNivelCliente(nombre: string): {
   }
   const i = nombreBd.lastIndexOf(SEP_DATOS_IMPORT);
   if (i <= 0) {
-    return { nombreInstitucion: nombreBd, nivelEducacion: undefined, nombreBd };
+    return {
+      nombreInstitucion: simplificarNombreCliente(nombreBd),
+      nivelEducacion: undefined,
+      nombreBd,
+    };
   }
   const posibleNivel = nombreBd.slice(i + SEP_DATOS_IMPORT.length).trim();
   const base = nombreBd.slice(0, i).trim();
   if (!base || !posibleNivel) {
-    return { nombreInstitucion: nombreBd, nivelEducacion: undefined, nombreBd };
+    return {
+      nombreInstitucion: simplificarNombreCliente(nombreBd),
+      nivelEducacion: undefined,
+      nombreBd,
+    };
   }
   /** Evita partir nombres con “cosa · otra cosa” larguísimas; los niveles suelen ser 1–3 palabras. */
   if (posibleNivel.length > 40 || posibleNivel.split(/\s+/).filter(Boolean).length > 5) {
-    return { nombreInstitucion: nombreBd, nivelEducacion: undefined, nombreBd };
+    return {
+      nombreInstitucion: simplificarNombreCliente(nombreBd),
+      nivelEducacion: undefined,
+      nombreBd,
+    };
   }
   if (!pareceEtiquetaNivel(posibleNivel)) {
-    return { nombreInstitucion: nombreBd, nivelEducacion: undefined, nombreBd };
+    return {
+      nombreInstitucion: simplificarNombreCliente(nombreBd),
+      nivelEducacion: undefined,
+      nombreBd,
+    };
   }
-  return { nombreInstitucion: base, nivelEducacion: posibleNivel, nombreBd };
+  return {
+    nombreInstitucion: simplificarNombreCliente(base),
+    nivelEducacion: posibleNivel,
+    nombreBd,
+  };
 }
 
 function pareceEtiquetaNivel(s: string): boolean {

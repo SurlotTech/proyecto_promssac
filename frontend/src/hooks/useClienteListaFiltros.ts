@@ -4,16 +4,16 @@ import { clienteCoincideBusqueda } from "@/lib/clienteListaFiltros";
 
 export type ClienteListaFiltrosApi = {
   busqueda: string;
-  incluirInactivos: boolean;
+  estadoFiltro: "activos" | "inactivos";
   setBusqueda: (v: string) => void;
-  setIncluirInactivos: (v: boolean) => void;
+  setEstadoFiltro: (v: "activos" | "inactivos") => void;
   limpiarBusqueda: () => void;
   aplicarFiltroLista: (lista: Client[]) => Client[];
 };
 
 export function useClienteListaFiltros(): ClienteListaFiltrosApi {
   const [busqueda, setBusqueda] = useState("");
-  const [incluirInactivos, setIncluirInactivos] = useState(false);
+  const [estadoFiltro, setEstadoFiltro] = useState<"activos" | "inactivos">("activos");
 
   const aplicarFiltroLista = useCallback(
     (list: Client[]) => {
@@ -26,9 +26,9 @@ export function useClienteListaFiltros(): ClienteListaFiltrosApi {
 
   return {
     busqueda,
-    incluirInactivos,
+    estadoFiltro,
     setBusqueda,
-    setIncluirInactivos,
+    setEstadoFiltro,
     limpiarBusqueda: () => {
       setBusqueda("");
     },

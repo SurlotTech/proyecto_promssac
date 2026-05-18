@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
-import { Ban, CheckCircle, ChevronLeft, ChevronRight, Eye, Pencil, SearchX, School, MoreHorizontal } from "lucide-react";
+import { Ban, CheckCircle, Eye, Pencil, SearchX, School, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import RoutesPaginationBar from "@/components/routes/RoutesPaginationBar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,38 +24,23 @@ type Props = {
   filasPagina: Client[];
   totalFiltradas: number;
   totalEnCarga: number;
-  pagina: number;
-  totalPaginas: number;
-  tamañoPagina: number;
-  onPaginaChange: (p: number) => void;
-  onTamañoPaginaChange: (n: number) => void;
   isLoading: boolean;
   isError: boolean;
   onEditar: (c: Client) => void;
   onToggleActivo: (c: Client) => void;
 };
 
-const TAMAÑOS_PAGINA = [10, 25, 50, 100];
-
 export default function ClienteTable({
   filasPagina,
   totalFiltradas,
   totalEnCarga,
-  pagina,
-  totalPaginas,
-  tamañoPagina,
-  onPaginaChange,
-  onTamañoPaginaChange,
   isLoading,
   isError,
   onEditar,
   onToggleActivo,
 }: Props) {
-  const desde = totalFiltradas === 0 ? 0 : (pagina - 1) * tamañoPagina + 1;
-  const hasta = Math.min(pagina * tamañoPagina, totalFiltradas);
-
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
+    <div className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm">
       {isLoading ? (
         <p className="p-12 text-center text-sm text-muted-foreground">Cargando clientes…</p>
       ) : isError ? (
@@ -64,27 +49,24 @@ export default function ClienteTable({
         </p>
       ) : (
         <>
-          <div className="min-h-0 flex-1 overflow-auto scrollbar-thin">
+          <div className="overflow-x-auto scrollbar-thin">
             <table className="w-full text-left text-sm">
-              <thead className="sticky top-0 z-10 bg-muted/95 shadow-[0_1px_0_hsl(var(--border))] backdrop-blur-sm">
-                <tr className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                  <th className="whitespace-nowrap px-4 py-3 font-semibold">Institución</th>
-                  <th className="whitespace-nowrap px-4 py-3 text-center font-semibold">Nivel</th>
-                  <th className="max-w-[200px] px-4 py-3 font-semibold">Ubicación</th>
-                  <th className="max-w-[140px] px-4 py-3 font-semibold">UGEL</th>
-                  <th className="whitespace-nowrap px-4 py-3 text-center font-semibold">Mod. IIEE</th>
-                  <th className="whitespace-nowrap px-4 py-3 font-semibold">Cód. reg.</th>
-                  <th className="max-w-[140px] px-4 py-3 font-semibold">Correo</th>
-                  <th className="whitespace-nowrap px-4 py-3 font-semibold">Teléfono</th>
-                  <th className="whitespace-nowrap px-4 py-3 text-center font-semibold">Órdenes</th>
-                  <th className="whitespace-nowrap px-4 py-3 text-center font-semibold">Estado</th>
-                  <th className="whitespace-nowrap px-4 py-3 pr-5 text-right font-semibold">Acciones</th>
+              <thead>
+                <tr className="border-b border-border bg-surface-muted text-left text-xs font-medium tracking-wider text-muted-foreground/80">
+                  <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Institución</th>
+                  <th className="whitespace-nowrap px-3.5 py-2.5 text-center font-medium">Nivel</th>
+                  <th className="max-w-[140px] px-3.5 py-2.5 font-medium">UGEL</th>
+                  <th className="max-w-[140px] px-3.5 py-2.5 font-medium">Correo</th>
+                  <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Teléfono</th>
+                  <th className="whitespace-nowrap px-3.5 py-2.5 text-center font-medium">Órdenes</th>
+                  <th className="whitespace-nowrap px-3.5 py-2.5 text-center font-medium">Estado</th>
+                  <th className="whitespace-nowrap px-3.5 py-2.5 pr-5 text-right font-medium">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {totalFiltradas === 0 ? (
                   <tr>
-                    <td colSpan={11} className="align-top">
+                    <td colSpan={8} className="align-top">
                       {totalEnCarga === 0 ? (
                         <TablaClientesEstadoVacio
                           icon={School}
@@ -125,67 +107,6 @@ export default function ClienteTable({
                 )}
               </tbody>
             </table>
-          </div>
-
-          <div className="flex shrink-0 flex-col gap-3 border-t border-border bg-muted/10 px-4 py-3">
-            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                <span className="tabular-nums">
-                  Filas <strong className="text-foreground">{desde}</strong>–
-                  <strong className="text-foreground">{hasta}</strong>
-                  {" de "}
-                  <strong className="text-foreground">{totalFiltradas}</strong> visibles
-                </span>
-                <span className="hidden text-muted-foreground/70 sm:inline">·</span>
-                <span className="text-muted-foreground">
-                  Base: <span className="tabular-nums font-medium text-foreground">{totalEnCarga}</span>
-                </span>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs text-muted-foreground">Por página</span>
-                <Select value={String(tamañoPagina)} onValueChange={(v) => onTamañoPaginaChange(Number(v))}>
-                  <SelectTrigger className="h-8 w-[4.25rem] text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TAMAÑOS_PAGINA.map((n) => (
-                      <SelectItem key={n} value={String(n)}>
-                        {n}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className="flex items-center gap-1">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="size-8"
-                    disabled={pagina <= 1}
-                    aria-label="Anterior"
-                    onClick={() => onPaginaChange(pagina - 1)}
-                  >
-                    <ChevronLeft className="size-4" />
-                  </Button>
-                  <span className="min-w-[5.5rem] text-center text-xs tabular-nums text-muted-foreground">
-                    <span className="font-medium text-foreground">{pagina}</span>
-                    {" / "}
-                    {totalPaginas}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="size-8"
-                    disabled={pagina >= totalPaginas}
-                    aria-label="Siguiente"
-                    onClick={() => onPaginaChange(pagina + 1)}
-                  >
-                    <ChevronRight className="size-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
           </div>
         </>
       )}
@@ -230,9 +151,9 @@ function ClienteTableRow({
 
   return (
     <tr
-      className={cn("group transition-colors hover:bg-muted/20", !cliente.activo && "opacity-[0.72]")}
+      className={cn("group transition-colors hover:bg-surface-muted", !cliente.activo && "opacity-[0.72]")}
     >
-      <td className="max-w-[min(320px,40vw)] px-4 py-3.5">
+      <td className="max-w-[min(320px,40vw)] px-3.5 py-2.5">
         <Link
           to={`/clientes/detalle/${encodeURIComponent(cliente.id)}`}
           className="flex items-center gap-3 transition-all hover:translate-x-0.5 group/client"
@@ -248,7 +169,7 @@ function ClienteTableRow({
           </div>
         </Link>
       </td>
-      <td className="px-4 py-3.5 text-center">
+      <td className="px-3.5 py-2.5 text-center">
         {nivelTxt ? (
           <Badge variant="outline" className="max-w-[120px] truncate font-normal text-[10px] uppercase" title={nivelTxt}>
             {nivelTxt}
@@ -257,34 +178,20 @@ function ClienteTableRow({
           <span className="tabular-nums text-muted-foreground">—</span>
         )}
       </td>
-      <td className="max-w-[200px] px-4 py-3.5 text-muted-foreground">
-        <span className="line-clamp-2 text-xs leading-snug" title={ubi || undefined}>
-          {ubi || "—"}
-        </span>
-      </td>
-      <td className="max-w-[140px] px-4 py-3.5 text-muted-foreground">
+      <td className="max-w-[140px] px-3.5 py-2.5 text-muted-foreground">
         <span className="line-clamp-2 text-xs leading-snug" title={cliente.ugel || undefined}>
           {cliente.ugel || "—"}
         </span>
       </td>
-      <td className="px-4 py-3.5 text-center text-xs tabular-nums text-muted-foreground">
-        {cliente.codigoModularIiee || "—"}
-      </td>
-      <td
-        className="max-w-[108px] truncate px-4 py-3.5 text-xs tabular-nums whitespace-nowrap text-muted-foreground"
-        title={cliente.codigoRegional || undefined}
-      >
-        {cliente.codigoRegional || "—"}
-      </td>
-      <td className="max-w-[140px] break-all px-4 py-3.5 text-xs text-muted-foreground">{cliente.email || "—"}</td>
-      <td className="px-4 py-3.5 tabular-nums text-muted-foreground">{cliente.telefono || "—"}</td>
-      <td className="px-4 py-3.5 text-center tabular-nums text-muted-foreground">{cliente.ordenesTotalesRelacionadas}</td>
-      <td className="px-4 py-3.5 text-center">
+      <td className="max-w-[140px] break-all px-3.5 py-2.5 text-xs text-muted-foreground">{cliente.email || "—"}</td>
+      <td className="px-3.5 py-2.5 tabular-nums text-muted-foreground">{cliente.telefono || "—"}</td>
+      <td className="px-3.5 py-2.5 text-center tabular-nums text-muted-foreground">{cliente.ordenesTotalesRelacionadas}</td>
+      <td className="px-3.5 py-2.5 text-center">
         <Badge variant={cliente.activo ? "default" : "secondary"} className="text-[10px] font-normal">
           {cliente.activo ? "Activo" : "Desactiv."}
         </Badge>
       </td>
-      <td className="px-4 py-3.5 text-right">
+      <td className="px-3.5 py-2.5 text-right">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:bg-muted hover:text-foreground">

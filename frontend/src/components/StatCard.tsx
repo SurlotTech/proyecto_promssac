@@ -19,24 +19,26 @@ const tones: Record<NonNullable<StatCardProps["tone"]>, string> = {
 
 const StatCard = ({ label, value, delta, icon: Icon, tone = "neutral" }: StatCardProps) => {
   return (
-    <div className="group rounded-xl border border-border bg-card/40 backdrop-blur-md p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            {label}
-          </p>
-          <p className="mt-2 text-2xl font-bold text-foreground sm:text-3xl">{value}</p>
-          {delta && (
-            <p className="mt-1 text-xs font-medium text-success">{delta}</p>
-          )}
-        </div>
+    <div className="group rounded-xl border border-border bg-card/40 backdrop-blur-lg p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+      <div className="flex items-center gap-3">
         <div
           className={cn(
-            "flex h-11 w-11 items-center justify-center rounded-lg transition-transform duration-200 group-hover:scale-110",
+            "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-105",
             tones[tone]
           )}
         >
           <Icon className="h-5 w-5" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-xs font-medium text-muted-foreground/90">
+            {label}
+          </p>
+          <p className="text-xl font-bold text-foreground tracking-tight mt-0.5">
+            {value}
+          </p>
+          {delta && (
+            <p className="mt-0.5 text-xs font-medium text-success">{delta}</p>
+          )}
         </div>
       </div>
     </div>

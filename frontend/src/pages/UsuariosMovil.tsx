@@ -3,10 +3,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { MoreHorizontal, User, X, Search } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -41,8 +40,8 @@ type ActivoDialogState = {
 const UsuariosMovil = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [incluirInactivos, setIncluirInactivos] = useState(false);
-  const { data: users = [], isLoading, isError } = useMobileUsersQuery(incluirInactivos);
+  const [estadoFiltro, setEstadoFiltro] = useState<"activos" | "inactivos">("activos");
+  const { data: users = [], isLoading, isError } = useMobileUsersQuery(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [activoDialog, setActivoDialog] = useState<ActivoDialogState>(null);
 
@@ -62,7 +61,7 @@ const UsuariosMovil = () => {
   const blockedCount = useMemo(() => users.filter((u) => u.estado !== "Activo").length, [users]);
 
   const filteredUsers = useMemo(() => {
-    let list = incluirInactivos ? users.filter((u) => u.estado !== "Activo") : users;
+    let list = estadoFiltro === "inactivos" ? users.filter((u) => u.estado !== "Activo") : users;
     const q = searchTerm.toLowerCase().trim();
     if (q) {
       list = list.filter(
@@ -74,7 +73,7 @@ const UsuariosMovil = () => {
       );
     }
     return list;
-  }, [users, searchTerm, incluirInactivos]);
+  }, [users, searchTerm, estadoFiltro]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-transparent animate-fade-in">
@@ -110,6 +109,35 @@ const UsuariosMovil = () => {
               />
               <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             </div>
+
+            <div className="flex items-center bg-transparent p-1 rounded-full border border-border h-12 px-1 shrink-0 transition-colors hover:bg-zinc-50/50">
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => setEstadoFiltro("activos")}
+                  className={cn(
+                    "rounded-full px-5 py-1.5 text-xs font-semibold transition-all h-8 flex items-center justify-center",
+                    estadoFiltro === "activos"
+                      ? "bg-background text-emerald-600 dark:text-emerald-400 shadow-sm border border-border/40"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  Activos
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEstadoFiltro("inactivos")}
+                  className={cn(
+                    "rounded-full px-5 py-1.5 text-xs font-semibold transition-all h-8 flex items-center justify-center",
+                    estadoFiltro === "inactivos"
+                      ? "bg-background text-destructive shadow-sm border border-border/40"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  Inactivos
+                </button>
+              </div>
+            </div>
           </div>
 
           {searchTerm && (
@@ -124,20 +152,8 @@ const UsuariosMovil = () => {
               </Button>
             </div>
           )}
-
-          <div className="flex items-center gap-2 pt-1">
-            <Checkbox
-              id="incluir-inactivos-movil"
-              checked={incluirInactivos}
-              onCheckedChange={(v) => setIncluirInactivos(v === true)}
-            />
-            <Label htmlFor="incluir-inactivos-movil" className="text-xs text-muted-foreground cursor-pointer">
-              Mostrar usuarios desactivados ({blockedCount})
-            </Label>
-          </div>
         </div>
-
-        <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
+        <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm">
           {isError ? (
             <p className="p-6 text-sm text-destructive">No se pudo cargar el listado. Revisa el backend e intenta de nuevo.</p>
           ) : isLoading ? (
@@ -199,7 +215,7 @@ const UsuariosMovil = () => {
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-44 border-border bg-card/40 backdrop-blur-md shadow-md">
+                          <DropdownMenuContent align="end" className="w-44 border-border bg-card/40 backdrop-blur-lg shadow-md">
                             <DropdownMenuItem
                               className="cursor-pointer"
                               onClick={() => navigate(`/usuarios/movil/${user.id}/editar`)}

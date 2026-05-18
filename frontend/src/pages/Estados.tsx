@@ -159,7 +159,7 @@ const Estados = () => {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-transparent animate-fade-in">
-      <div className="flex flex-wrap items-center justify-between border-b border-border bg-card/40 backdrop-blur-md px-4 py-3 sm:px-6">
+      <div className="flex flex-wrap items-center justify-between px-4 py-3 sm:px-6">
         <h1 className="text-xl font-bold tracking-tight text-foreground">Estados</h1>
         <div className="flex flex-wrap items-center gap-2">
           <Button size="sm" className="h-9 gap-1.5 font-medium shadow-glow" onClick={() => openCreate()}>
@@ -184,7 +184,7 @@ const Estados = () => {
           </div>
 
           <div className="overflow-hidden rounded-xl border border-border shadow-sm">
-            <div className="overflow-x-auto bg-card/40 backdrop-blur-md">
+            <div className="overflow-x-auto bg-card/40 backdrop-blur-lg">
               {isLoading ? (
                 <p className="p-8 text-center text-muted-foreground">Cargando…</p>
               ) : isError ? (

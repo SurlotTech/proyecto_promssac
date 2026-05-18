@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom";
 
 import {
   Download,
-  FileUp,
+  FileSpreadsheet,
   Plus,
   Route,
   Send,
   TrendingUp,
   Truck,
+  Upload,
   Users,
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
@@ -40,9 +41,8 @@ const defaultFilters: Filters = {
   dateTo: "",
 };
 
-const PAGE_SIZE = 6;
-
 const Rutas = () => {
+  const [pageSize, setPageSize] = useState(10);
   const qc = useQueryClient();
   const navigate = useNavigate();
 
@@ -117,13 +117,13 @@ const Rutas = () => {
   );
 
   const totalFiltered = filteredRoutes.length;
-  const totalPages = Math.max(1, Math.ceil(totalFiltered / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / pageSize));
   const currentPage = Math.min(page, totalPages);
 
   const paginatedRoutes = useMemo(() => {
-    const start = (currentPage - 1) * PAGE_SIZE;
-    return filteredRoutes.slice(start, start + PAGE_SIZE);
-  }, [filteredRoutes, currentPage]);
+    const start = (currentPage - 1) * pageSize;
+    return filteredRoutes.slice(start, start + pageSize);
+  }, [filteredRoutes, currentPage, pageSize]);
 
   useEffect(() => {
     setPage(1);
@@ -172,27 +172,27 @@ const Rutas = () => {
         subtitle="Planifica y monitorea las rutas de entrega."
         actions={
           <>
-            <Button variant="outline" size="sm" className="h-9 gap-2">
+            <Button variant="outline" size="sm" className="h-9 gap-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5 transition-colors">
+              <FileSpreadsheet className="size-4 shrink-0" />
+              <span className="hidden sm:inline">Plantilla</span>
+            </Button>
+            <Button variant="outline" size="sm" className="h-9 gap-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5 transition-colors">
+              <Upload className="size-4 shrink-0" />
+              <span className="hidden sm:inline">Importar</span>
+            </Button>
+            <Button variant="outline" size="sm" className="h-9 gap-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5 transition-colors">
               <Download className="size-4 shrink-0" />
               <span className="hidden sm:inline">Exportar</span>
-            </Button>
-            <Button variant="outline" size="sm" className="h-9 gap-2">
-              <FileUp className="size-4 shrink-0" />
-              <span className="hidden sm:inline">Importar</span>
             </Button>
             <Button
               type="button"
               variant="outline"
               size="sm"
-              className="h-9 gap-2"
+              className="h-9 gap-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5 transition-colors"
               onClick={() => setAssignRouteOpen(true)}
             >
               <Send className="size-4 shrink-0" />
               <span className="hidden sm:inline">Asignar ruta</span>
-            </Button>
-            <Button variant="outline" size="sm" className="h-9 gap-2">
-              <Download className="size-4 shrink-0" />
-              <span className="hidden sm:inline">Exportar</span>
             </Button>
             <Button
               size="sm"
@@ -206,7 +206,7 @@ const Rutas = () => {
           </>
         }
       />
-      <div className="space-y-5 p-4 sm:p-6 lg:p-8">
+      <div className="space-y-4 p-4 pt-1 sm:p-6 sm:pt-2 lg:p-8 lg:pt-2">
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <StatCard
             label="Total de rutas"
@@ -235,7 +235,7 @@ const Rutas = () => {
         />
 
         {filteredRoutes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/40 backdrop-blur-md py-16 text-center">
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/40 backdrop-blur-lg py-16 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
               <Route className="h-8 w-8 text-muted-foreground" />
             </div>
@@ -286,9 +286,10 @@ const Rutas = () => {
               currentPage={currentPage}
               totalPages={totalPages}
               totalFiltered={totalFiltered}
-              pageSize={PAGE_SIZE}
+              pageSize={pageSize}
               onPageChange={setPage}
               label="rutas"
+              onPageSizeChange={setPageSize}
             />
           </>
         )}

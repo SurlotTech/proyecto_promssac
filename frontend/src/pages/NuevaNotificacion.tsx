@@ -105,7 +105,7 @@ const NuevaNotificacion = () => {
   );
 
   return (
-    <div className="flex h-full flex-col animate-fade-in">
+    <div className="animate-fade-in">
       {/* Breadcrumb Header */}
       <div className="flex items-center gap-2 px-6 py-4 text-sm font-medium text-muted-foreground border-b border-border/50">
         <Link to="/configuracion/notificaciones" className="hover:text-primary transition-colors">
@@ -115,18 +115,18 @@ const NuevaNotificacion = () => {
         <span className="text-foreground font-semibold">Nueva notificación</span>
       </div>
 
-      <div className="flex flex-1 overflow-hidden p-6">
-        <div className="flex w-full flex-col gap-6 lg:flex-row overflow-y-auto pr-2 custom-scrollbar">
+      <div className="p-6">
+        <div className="flex w-full flex-col gap-6 lg:flex-row">
           {/* Main Content (Left) */}
           <main className="flex-1 space-y-6">
             {/* Name Section */}
-            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-md p-5 shadow-sm space-y-3">
+            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg p-5 shadow-sm space-y-3">
               <Label className="text-sm uppercase tracking-wider text-muted-foreground">NOMBRE</Label>
               <Input className="bg-transparent border-border/100 h-11 text-sm" />
             </div>
 
             {/* Email Personalization */}
-            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm overflow-hidden">
+            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm overflow-hidden">
               <div className="px-5 py-4 border-b border-border flex items-center justify-between">
                 <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">PERSONALIZACIÓN DE EMAIL</h3>
                 <Button variant="link" className="text-primary text-sm h-auto p-0 font-bold">
@@ -162,7 +162,7 @@ const NuevaNotificacion = () => {
                               className="flex items-center justify-between cursor-pointer"
                             >
                               <span>{key.label}</span>
-                              <span className="text-xs font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{key.value}</span>
+                              <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{key.value}</span>
                             </DropdownMenuItem>
                           ))}
                         </DropdownMenuContent>
@@ -199,7 +199,7 @@ const NuevaNotificacion = () => {
                             className="flex items-center justify-between cursor-pointer"
                           >
                             <span>{key.label}</span>
-                            <span className="text-xs font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{key.value}</span>
+                            <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{key.value}</span>
                           </DropdownMenuItem>
                         ))}
                       </DropdownMenuContent>
@@ -235,7 +235,7 @@ const NuevaNotificacion = () => {
                             className="flex items-center justify-between cursor-pointer"
                           >
                             <span>{key.label}</span>
-                            <span className="text-xs font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{key.value}</span>
+                            <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{key.value}</span>
                           </DropdownMenuItem>
                         ))}
                       </DropdownMenuContent>
@@ -258,7 +258,7 @@ const NuevaNotificacion = () => {
 
           {/* Sidebar (Right) */}
           <aside className="w-full shrink-0 space-y-6 lg:w-96">
-            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-md p-5 shadow-sm space-y-6">
+            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg p-5 shadow-sm space-y-6">
               {/* Type and Substatus */}
               <div className="space-y-4">
                 <div className="space-y-2">

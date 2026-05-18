@@ -245,7 +245,7 @@ const EditarUsuario = () => {
 
       <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
         <div className="mx-auto max-w-6xl space-y-6">
-          <section className="max-w-2xl overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
+          <section className="max-w-2xl overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm">
             <FormSectionTitle>Información del usuario</FormSectionTitle>
             <div className="space-y-4 p-5">
               <div className="space-y-2">
@@ -324,7 +324,7 @@ const EditarUsuario = () => {
 
           <section
             id="eu-permisos-section"
-            className="flex flex-col overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm"
+            className="flex flex-col overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm"
           >
             <button
               type="button"

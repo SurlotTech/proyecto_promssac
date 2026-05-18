@@ -104,7 +104,7 @@ const Notificaciones = () => {
 
   if (showSentNotifications) {
     return (
-      <div className="flex h-full flex-col animate-fade-in">
+      <div className="animate-fade-in">
         <PageHeader
           title="Notificaciones Enviadas"
           subtitle="Historial de todas las notificaciones enviadas a tus clientes."
@@ -124,7 +124,7 @@ const Notificaciones = () => {
           <div className="flex w-full flex-col gap-6 lg:flex-row">
             {/* Sidebar Filters */}
             <aside className="w-full shrink-0 space-y-6 lg:w-80">
-              <div className="rounded-xl border border-border bg-card/40 backdrop-blur-md p-5 shadow-sm">
+              <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg p-5 shadow-sm">
                 <div className="mb-4 flex items-center gap-2 border-b border-border pb-4">
                   <Filter className="size-4 text-primary" />
                   <h3 className="text-sm font-semibold uppercase tracking-wider">
@@ -182,7 +182,7 @@ const Notificaciones = () => {
 
             {/* Main Table */}
             <main className="flex-1 space-y-6">
-              <div className="rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm overflow-hidden">
+              <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-sm">
                     <thead>
@@ -240,7 +240,7 @@ const Notificaciones = () => {
                                   <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-40 border-border bg-card/40 backdrop-blur-md shadow-md">
+                              <DropdownMenuContent align="end" className="w-40 border-border bg-card/40 backdrop-blur-lg shadow-md">
                                 <DropdownMenuItem className="cursor-pointer">
                                   <Mail className="mr-2 h-4 w-4" /> Ver mensaje
                                 </DropdownMenuItem>
@@ -274,7 +274,7 @@ const Notificaciones = () => {
   }
 
   return (
-    <div className="flex h-full flex-col animate-fade-in">
+    <div className="animate-fade-in">
       <PageHeader
         title="Notificaciones"
         subtitle="Agrega notificaciones para cada uno de los estados de tus despachos y para tus clientes finales."
@@ -307,7 +307,7 @@ const Notificaciones = () => {
         <div className="flex w-full flex-col gap-6 lg:flex-row">
           {/* Main Content (Left) */}
           <main className="flex-1 space-y-6">
-            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm overflow-hidden">
+            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead>
@@ -336,7 +336,7 @@ const Notificaciones = () => {
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-40 border-border bg-card/40 backdrop-blur-md shadow-md">
+                            <DropdownMenuContent align="end" className="w-40 border-border bg-card/40 backdrop-blur-lg shadow-md">
                               <DropdownMenuItem className="cursor-pointer">
                                 <Edit2 className="mr-2 h-4 w-4" /> Editar
                               </DropdownMenuItem>
@@ -371,7 +371,7 @@ const Notificaciones = () => {
           <aside className="w-full shrink-0 space-y-4 lg:w-80">
             
             {/* Card 1: Email Activo */}
-            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-md p-5 shadow-sm flex flex-col gap-4">
+            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg p-5 shadow-sm flex flex-col gap-4">
               <div className="flex items-center justify-between border-b border-border pb-3">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                   Estado del Servicio
@@ -393,7 +393,7 @@ const Notificaciones = () => {
             </div>
 
             {/* Card 2: Total de Notificaciones */}
-            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-md p-5 shadow-sm flex flex-col gap-4">
+            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg p-5 shadow-sm flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                   Total Configurado
@@ -411,7 +411,7 @@ const Notificaciones = () => {
             </div>
 
             {/* Card 3: Notificaciones Enviadas */}
-            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-md p-5 shadow-sm flex flex-col gap-4">
+            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg p-5 shadow-sm flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                   Enviadas (Este mes)

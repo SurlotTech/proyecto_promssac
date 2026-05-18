@@ -26,7 +26,7 @@ const FleetDeviceList = ({
   );
 
   return (
-    <div className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-card/40 backdrop-blur-md">
+    <div className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-card/40 backdrop-blur-lg">
       <div className="shrink-0 space-y-3 border-b border-border/60 p-3 sm:p-4 bg-surface-muted/50">
         <p className="text-xs text-muted-foreground">
           <span className="font-semibold text-foreground">{devices.length}</span> dispositivo
@@ -67,7 +67,7 @@ const FleetDeviceList = ({
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <p className="truncate font-semibold text-foreground">{d.plate}</p>
-                        <p className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">
+                        <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
                           {d.imei}
                         </p>
                       </div>

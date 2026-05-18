@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -126,14 +126,14 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    font-family: 'Poppins', system-ui, sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply tracking-tight;
     font-weight: 600;
   }
+
 }
 
 @layer components {
@@ -200,4 +200,39 @@
   .fleet-map-popup-inner {
     padding: 10px 12px 12px;
   }
+}
+
+/* Deshabilitar backdrop blurs grandes — backdrop-blur-sm (4px) se permite */
+.backdrop-blur,
+.backdrop-blur-lg,
+.backdrop-blur-lg,
+.backdrop-blur-xl,
+.backdrop-blur-2xl,
+.backdrop-blur-3xl {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Tarjetas con fondo semi-transparente + blur sutil para efecto glass */
+.bg-card\/40,
+.bg-card\/30,
+.bg-card\/50 {
+  background-color: hsl(var(--card) / 0.82) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+/* Blur sutil en todas las cards y contenedores de tabla */
+.card {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  background-color: hsl(var(--card) / 0.88);
+}
+
+/* Deshabilitar fondos de hover en todas las filas de las tablas globalmente */
+tr:hover {
+  background-color: transparent !important;
+}
+tr[data-state=selected]:hover {
+  background-color: hsl(var(--muted) / 0.3) !important;
 }

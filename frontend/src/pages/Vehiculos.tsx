@@ -27,9 +27,8 @@ import { cn, errorMessageFromUnknown } from "@/lib/utils";
 import { vehiclesApi } from "@/services/vehicles.api";
 import { toast } from "sonner";
 
-const PAGE_SIZE = 8;
-
 const Vehiculos = () => {
+  const [pageSize, setPageSize] = useState(10);
   const queryClient = useQueryClient();
   const { data: allVehicles = [], isLoading, isError, error } = useVehiclesQuery();
 
@@ -59,13 +58,13 @@ const Vehiculos = () => {
   }, [filters, allVehicles]);
 
   const totalFiltered = filtered.length;
-  const totalPages = Math.max(1, Math.ceil(totalFiltered / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / pageSize));
   const currentPage = Math.min(page, totalPages);
 
   const paginated = useMemo(() => {
-    const start = (currentPage - 1) * PAGE_SIZE;
-    return filtered.slice(start, start + PAGE_SIZE);
-  }, [filtered, currentPage]);
+    const start = (currentPage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, currentPage, pageSize]);
 
   useEffect(() => {
     setPage(1);
@@ -118,12 +117,7 @@ const Vehiculos = () => {
         subtitle="Gestiona tu flota, asigna conductores y monitorea el estado en tiempo real."
         actions={
           <>
-            <Button variant="outline" size="sm" className="h-9">
-              <Download className="mr-2 h-4 w-4" /> Exportar
-            </Button>
-            <Button variant="outline" size="sm" className="h-9">
-              <Upload className="mr-2 h-4 w-4" /> Importar
-            </Button>
+
             <Button
               size="sm"
               onClick={() => setCreateOpen(true)}
@@ -135,7 +129,7 @@ const Vehiculos = () => {
         }
       />
 
-      <div className="space-y-5 p-4 sm:p-6 lg:p-8">
+      <div className="space-y-4 p-4 pt-1 sm:p-6 sm:pt-2 lg:p-8 lg:pt-2">
         {/* KPIs */}
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <StatCard
@@ -174,30 +168,32 @@ const Vehiculos = () => {
             setFilters({ search: "", type: "all", status: "all" })
           }
           toolbarRight={
-            <div className="hidden shrink-0 items-center gap-1 rounded-lg border border-border/70 bg-white p-1 sm:inline-flex">
+            <div className="hidden shrink-0 items-center gap-1 rounded-xl border border-border/70 bg-white p-1 sm:inline-flex h-10 shadow-sm animate-fade-in">
               <button
                 type="button"
                 onClick={() => setView("table")}
+                title="Vista de Tabla"
                 className={cn(
-                  "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                  "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
                   view === "table"
                     ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                 )}
               >
-                <List className="size-4 shrink-0" /> Tabla
+                <List className="size-[18px] shrink-0" />
               </button>
               <button
                 type="button"
                 onClick={() => setView("grid")}
+                title="Vista de Tarjetas"
                 className={cn(
-                  "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                  "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
                   view === "grid"
                     ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                 )}
               >
-                <LayoutGrid className="size-4 shrink-0" /> Tarjetas
+                <LayoutGrid className="size-[18px] shrink-0" />
               </button>
             </div>
           }
@@ -206,7 +202,7 @@ const Vehiculos = () => {
         {/* Contenido */}
         <>
           {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/40 backdrop-blur-md py-16 text-center">
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/40 backdrop-blur-lg py-16 text-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
                 <Truck className="h-8 w-8 text-muted-foreground" />
               </div>
@@ -249,9 +245,10 @@ const Vehiculos = () => {
                 currentPage={currentPage}
                 totalPages={totalPages}
                 totalFiltered={totalFiltered}
-                pageSize={PAGE_SIZE}
+                pageSize={pageSize}
                 onPageChange={setPage}
                 label="vehículos"
+                onPageSizeChange={setPageSize}
               />
             </>
           )}

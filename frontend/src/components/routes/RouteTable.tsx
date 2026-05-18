@@ -21,20 +21,20 @@ interface Props {
 
 const RouteTable = ({ routes, onSelect, onEdit, onDelete, vehicleTypeByPlate = {} }: Props) => {
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
+    <div className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm">
       <div className="overflow-x-auto scrollbar-thin">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-border bg-surface-muted text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              <th className="px-4 py-3.5">Nombre de la ruta</th>
-              <th className="px-4 py-3.5">Vehículo</th>
-              <th className="px-4 py-3.5">Conductor</th>
-              <th className="px-4 py-3.5">Despachos</th>
-              <th className="px-4 py-3.5">Fecha entrega</th>
-              <th className="px-4 py-3.5">Creado en</th>
-              <th className="px-4 py-3.5 text-right">Recaudación</th>
-              <th className="px-4 py-3.5 text-center">Estado</th>
-              <th className="px-4 py-3.5 text-right">Acciones</th>
+            <tr className="border-b border-border bg-surface-muted text-left text-xs font-medium tracking-wider text-muted-foreground/80">
+              <th className="px-3.5 py-2.5">Nombre de la ruta</th>
+              <th className="px-3.5 py-2.5">Vehículo</th>
+              <th className="px-3.5 py-2.5">Conductor</th>
+              <th className="px-3.5 py-2.5">Despachos</th>
+              <th className="px-3.5 py-2.5">Fecha entrega</th>
+              <th className="px-3.5 py-2.5">Creado en</th>
+              <th className="px-3.5 py-2.5 text-right">Recaudación</th>
+              <th className="px-3.5 py-2.5 text-center">Estado</th>
+              <th className="px-3.5 py-2.5 text-right">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -48,20 +48,20 @@ const RouteTable = ({ routes, onSelect, onEdit, onDelete, vehicleTypeByPlate = {
                   key={r.id}
                   className="group transition-colors hover:bg-surface-muted"
                 >
-                  <td className="px-4 py-4">
+                  <td className="px-3.5 py-2.5">
                       <button
                         onClick={() => onSelect(r)}
                         className="flex items-center gap-2 text-left transition-all hover:translate-x-0.5 group/name"
                       >
-                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-soft text-primary transition-colors group-hover/name:bg-primary group-hover/name:text-white">
-                          <MapPin className="h-4 w-4" />
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-soft text-primary transition-colors group-hover/name:bg-primary group-hover/name:text-white">
+                          <MapPin className="h-3.5 w-3.5" />
                         </div>
                         <div>
-                          <p className="font-semibold text-foreground truncate max-w-[200px] transition-colors group-hover/name:text-primary group-hover/name:underline underline-offset-4">{r.name}</p>
+                          <p className="font-medium text-foreground truncate max-w-[200px] transition-colors group-hover/name:text-primary group-hover/name:underline underline-offset-4">{r.name}</p>
                         </div>
                       </button>
                   </td>
-                  <td className="px-4 py-4">
+                  <td className="px-3.5 py-2.5">
                     <div className="min-w-0">
                       <p className="font-semibold leading-tight text-foreground">{r.vehiclePlate}</p>
                       <p className="mt-0.5 text-xs font-normal text-muted-foreground">
@@ -69,18 +69,18 @@ const RouteTable = ({ routes, onSelect, onEdit, onDelete, vehicleTypeByPlate = {
                       </p>
                     </div>
                   </td>
-                  <td className="px-4 py-4 text-foreground">
+                  <td className="px-3.5 py-2.5 text-foreground">
                     {r.mobileUser || <span className="text-muted-foreground">— Sin asignar</span>}
                   </td>
-                  <td className="px-4 py-4 align-top">
+                  <td className="px-3.5 py-2.5 align-top">
                     <div className="min-w-[9rem] max-w-[12rem]">
                       <div className="flex items-center justify-between gap-3 text-xs font-medium tabular-nums">
                         <span className="text-foreground">
                           {r.dispatchCompleted}/{r.dispatchTotal}
                         </span>
-                        <span className="text-muted-foreground">{dispatchPct}%</span>
+                        <span className="text-xs text-muted-foreground">{dispatchPct}%</span>
                       </div>
-                      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                      <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-muted">
                         <div
                           className={cn(
                             "h-full rounded-full transition-all",
@@ -91,9 +91,9 @@ const RouteTable = ({ routes, onSelect, onEdit, onDelete, vehicleTypeByPlate = {
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-4 text-foreground">{r.deliveryDate}</td>
-                  <td className="px-4 py-4 text-muted-foreground text-xs">{r.createdAt}</td>
-                  <td className="px-4 py-4 text-right align-top">
+                  <td className="px-3.5 py-2.5 text-foreground">{r.deliveryDate}</td>
+                  <td className="px-3.5 py-2.5 text-muted-foreground text-xs">{r.createdAt}</td>
+                  <td className="px-3.5 py-2.5 text-right align-top">
                     <p className="font-semibold tabular-nums text-foreground">
                       {formatRouteCurrency(r.currentCollection)}
                     </p>
@@ -101,10 +101,10 @@ const RouteTable = ({ routes, onSelect, onEdit, onDelete, vehicleTypeByPlate = {
                       de {formatRouteCurrency(r.totalCollection)} · {pct}%
                     </p>
                   </td>
-                  <td className="px-4 py-4 text-center align-middle">
+                  <td className="px-3.5 py-2.5 text-center align-middle">
                     <RouteStatusBadge status={r.status} />
                   </td>
-                  <td className="px-4 py-4 text-right" onClick={(e) => e.stopPropagation()}>
+                  <td className="px-3.5 py-2.5 text-right" onClick={(e) => e.stopPropagation()}>
                     <RouteActionsMenu
                       route={r}
                       onSelect={onSelect}

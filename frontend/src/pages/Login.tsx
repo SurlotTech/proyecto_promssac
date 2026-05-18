@@ -97,7 +97,7 @@ const Login = () => {
                   onChange={(e) => setContrasena(e.target.value)}
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
-                  className="pl-11 pr-11 h-12 rounded-xl bg-zinc-50 border-zinc-200 transition-colors focus:bg-white focus:ring-primary/20 text-foreground font-mono"
+                  className="pl-11 pr-11 h-12 rounded-xl bg-zinc-50 border-zinc-200 transition-colors focus:bg-white focus:ring-primary/20 text-foreground"
                   required
                 />
                 <button

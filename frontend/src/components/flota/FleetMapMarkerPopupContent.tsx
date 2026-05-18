@@ -20,7 +20,7 @@ const FleetMapMarkerPopupContent = ({ device: d }: Props) => {
     <div className="fleet-map-popup-inner text-[13px] leading-snug text-foreground">
       <p className="pr-6 text-base font-bold tracking-tight">{d.plate}</p>
       {d.alias ? <p className="mt-0.5 truncate text-xs text-muted-foreground">{d.alias}</p> : null}
-      <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">{d.imei}</p>
+      <p className="mt-0.5 text-[11px] text-muted-foreground">{d.imei}</p>
 
       <div className="mt-2">
         <span
@@ -37,9 +37,9 @@ const FleetMapMarkerPopupContent = ({ device: d }: Props) => {
 
       <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 border-t border-border/50 pt-3 text-xs">
         <dt className="text-muted-foreground">Velocidad</dt>
-        <dd className="font-mono font-medium tabular-nums">{speedStr}</dd>
+        <dd className="font-medium tabular-nums">{speedStr}</dd>
         <dt className="text-muted-foreground">Coordenadas</dt>
-        <dd className="font-mono tabular-nums">
+        <dd className="tabular-nums">
           {d.lat.toFixed(5)}, {d.lng.toFixed(5)}
         </dd>
         <dt className="text-muted-foreground">Batería</dt>

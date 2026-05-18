@@ -46,7 +46,7 @@ export const PermissionGroupCard = ({
   const isAllActive = activeCount === group.permissions.length;
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
+    <div className="flex flex-col overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm">
       <div
         className="flex cursor-pointer select-none items-center justify-between border-b border-border bg-muted/30 p-4"
         onClick={() => setExpanded(!expanded)}
@@ -232,7 +232,7 @@ const NuevoRol = () => {
                 id="rol-clave"
                 value={clave}
                 onChange={(e) => setClave(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
-                className="border-border/80 bg-transparent font-mono text-sm"
+                className="border-border/80 bg-transparent text-sm"
                 placeholder="ej. logistica_norte"
                 autoComplete="off"
               />

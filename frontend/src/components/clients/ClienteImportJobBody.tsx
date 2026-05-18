@@ -35,7 +35,7 @@ export default function ClienteImportJobBody({ job }: Props) {
         Cada vez que termina una tanda, los registros nuevos ya aparecen en la tabla detrás sin esperar a que acabe todo el archivo.
       </p>
       <div className="grid min-h-0 flex-1 gap-3 sm:grid-cols-2">
-        <div className="flex min-h-0 flex-col rounded-lg border border-border bg-card/40 backdrop-blur-md p-3 shadow-sm">
+        <div className="flex min-h-0 flex-col rounded-lg border border-border bg-card/40 backdrop-blur-lg p-3 shadow-sm">
           <h4 className="mb-2 shrink-0 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Recién insertados (recientes arriba)
           </h4>

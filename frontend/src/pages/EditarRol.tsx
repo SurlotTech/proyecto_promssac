@@ -168,7 +168,7 @@ const EditarRol = () => {
           <div className="grid max-w-xl gap-4">
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">Clave del rol</Label>
-              <Input value={clave} disabled className="border-border/80 bg-muted/40 font-mono text-sm" />
+              <Input value={clave} disabled className="border-border/80 bg-muted/40 text-sm" />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="er-nombre" className="text-xs text-muted-foreground">

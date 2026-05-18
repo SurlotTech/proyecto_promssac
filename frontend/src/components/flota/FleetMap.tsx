@@ -31,7 +31,7 @@ function MapCoordsHUD() {
     },
   });
   return (
-    <div className="pointer-events-none absolute bottom-3 left-3 z-[500] rounded-md bg-black/80 px-2 py-1 font-mono text-[10px] tabular-nums text-white shadow-md">
+    <div className="pointer-events-none absolute bottom-3 left-3 z-[500] rounded-md bg-black/80 px-2 py-1 text-[10px] tabular-nums text-white shadow-md">
       {txt}
     </div>
   );

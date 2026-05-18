@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Bell,
@@ -14,7 +14,7 @@ import {
   Download,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useOrdersQuery } from "@/hooks/useOperationsQueries";
+import { useOrdersQuery, useEstadosHijosPorClaveQuery } from "@/hooks/useOperationsQueries";
 import { orderStatusMeta } from "@/domain/orders";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -34,13 +34,51 @@ const Alertas = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  const [selectedStatus, setSelectedStatus] = useState("todos");
+  const [selectedSubstatus, setSelectedSubstatus] = useState("todos");
+
+  const statusToName: Record<string, string> = {
+    entregado: "Entregado",
+    no_entregado: "No entregado",
+    in_route: "En ruta",
+    pending: "Pendiente",
+  };
+
+  const { data: pendingSubs = [] } = useEstadosHijosPorClaveQuery("Pendiente");
+  const { data: inRouteSubs = [] } = useEstadosHijosPorClaveQuery("En ruta");
+  const { data: entregadoSubs = [] } = useEstadosHijosPorClaveQuery("Entregado");
+  const { data: noEntregadoSubs = [] } = useEstadosHijosPorClaveQuery("No entregado");
+
+  const substatusOptions = useMemo(() => {
+    if (selectedStatus !== "todos") {
+      const activeName = statusToName[selectedStatus];
+      if (activeName === "Pendiente") return pendingSubs.map((s) => s.nombre);
+      if (activeName === "En ruta") return inRouteSubs.map((s) => s.nombre);
+      if (activeName === "Entregado") return entregadoSubs.map((s) => s.nombre);
+      if (activeName === "No entregado") return noEntregadoSubs.map((s) => s.nombre);
+      return [];
+    }
+    return [
+      ...pendingSubs.map((s) => s.nombre),
+      ...inRouteSubs.map((s) => s.nombre),
+      ...entregadoSubs.map((s) => s.nombre),
+      ...noEntregadoSubs.map((s) => s.nombre),
+    ];
+  }, [selectedStatus, pendingSubs, inRouteSubs, entregadoSubs, noEntregadoSubs]);
+
+  useEffect(() => {
+    if (selectedSubstatus !== "todos" && !substatusOptions.includes(selectedSubstatus)) {
+      setSelectedSubstatus("todos");
+    }
+  }, [selectedStatus, substatusOptions, selectedSubstatus]);
+
   const totalItems = orders.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentOrders = orders.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <div className="flex h-full flex-col animate-fade-in">
+    <div className="animate-fade-in">
       <PageHeader
         title="Alertas"
         subtitle="Monitorea y gestiona las alertas operativas en tiempo real."
@@ -56,7 +94,7 @@ const Alertas = () => {
         <div className="flex w-full flex-col gap-6 lg:flex-row">
           {/* Sidebar Filters */}
           <aside className="w-full shrink-0 space-y-6 lg:w-80">
-            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-md p-5 shadow-sm">
+            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg p-5 shadow-sm">
               <div className="mb-4 flex items-center gap-2 border-b border-border pb-4">
                 <Filter className="size-4 text-primary" />
                 <h3 className="text-sm font-semibold uppercase tracking-wider">
@@ -82,7 +120,7 @@ const Alertas = () => {
                   <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Estado actual
                   </label>
-                  <Select defaultValue="todos">
+                  <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                     <SelectTrigger className="bg-background/50">
                       <SelectValue placeholder="Seleccionar" />
                     </SelectTrigger>
@@ -100,30 +138,17 @@ const Alertas = () => {
                   <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Subestado actual
                   </label>
-                  <Select defaultValue="todos">
+                  <Select value={selectedSubstatus} onValueChange={setSelectedSubstatus}>
                     <SelectTrigger className="bg-background/50">
                       <SelectValue placeholder="Seleccionar" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="todos">Todos</SelectItem>
-                      <SelectItem value="Pendiente">
-                        Pendiente
-                      </SelectItem>
-                      <SelectItem value="Recepcionado conforme">
-                        Recepcionado conforme
-                      </SelectItem>
-                      <SelectItem value="Entrega tercero">
-                        Entrega tercero
-                      </SelectItem>
-                      <SelectItem value="Entrega UGEL">
-                        Entrega UGEL
-                      </SelectItem>
-                      <SelectItem value="Devolución">
-                        Devolución
-                      </SelectItem>
-                      <SelectItem value="En ruta">
-                        En ruta
-                      </SelectItem>
+                      {substatusOptions.map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {s}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -174,7 +199,7 @@ const Alertas = () => {
                 value={activeTab}
                 className="mt-0 focus-visible:outline-none focus-visible:ring-0"
               >
-                <div className="rounded-xl border border-border bg-card/40 backdrop-blur-md shadow-sm overflow-hidden">
+                <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                       <thead>
@@ -220,7 +245,7 @@ const Alertas = () => {
                                 <td className="px-4 py-4">
                                   <Link
                                     to={`/ordenes/detalle/${order.id}`}
-                                    className="font-mono font-bold text-primary hover:underline"
+                                    className="font-bold text-primary hover:underline"
                                   >
                                     #{order.id}
                                   </Link>

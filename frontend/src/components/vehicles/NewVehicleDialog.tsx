@@ -43,7 +43,18 @@ const NewVehicleDialog = ({ open, onOpenChange, onCreated }: Props) => {
     setStatus("active");
   };
 
-  const canSubmit = plate.trim().length > 0 && type.trim().length > 0;
+  const handlePlateChange = (val: string) => {
+    const clean = val.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+    const limited = clean.slice(0, 6);
+    if (limited.length > 3) {
+      setPlate(`${limited.slice(0, 3)}-${limited.slice(3)}`);
+    } else {
+      setPlate(limited);
+    }
+  };
+
+  const isPlateValid = /^[A-Z0-9]{3}-[A-Z0-9]{3}$/.test(plate);
+  const canSubmit = isPlateValid && type.trim().length > 0;
 
   const handleSave = async () => {
     if (!canSubmit) return;
@@ -107,10 +118,15 @@ const NewVehicleDialog = ({ open, onOpenChange, onCreated }: Props) => {
                 <Input
                   id="plate"
                   value={plate}
-                  onChange={(e) => setPlate(e.target.value.toUpperCase())}
+                  onChange={(e) => handlePlateChange(e.target.value)}
                   placeholder="Ej: BFS-748"
                   className={cn(inputClass, "w-full")}
                 />
+                {plate.length > 0 && !isPlateValid && (
+                  <p className="mt-1.5 text-xs text-red-500">
+                    La placa debe tener exactamente 6 caracteres alfanuméricos (ej: AUF-429)
+                  </p>
+                )}
               </div>
 
               <div className="grid gap-5 sm:grid-cols-2">

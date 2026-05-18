@@ -31,7 +31,7 @@ interface Props {
 }
 
 const pillTrigger =
-  "h-12 w-full min-w-0 shrink rounded-full border-border/100 bg-transparent px-4 py-0 shadow-none transition-colors hover:bg-zinc-50 focus:ring-2 focus:ring-ring focus:ring-offset-2 data-[state=open]:bg-zinc-50 sm:w-fit sm:max-w-[min(100%,18rem)] [&>div]:mr-2";
+  "h-10 w-full min-w-0 shrink rounded-full border-border/100 bg-transparent px-3.5 py-0 shadow-none transition-colors hover:bg-zinc-50 focus:ring-2 focus:ring-ring focus:ring-offset-2 data-[state=open]:bg-zinc-50 sm:w-fit sm:max-w-[min(100%,18rem)] [&>div]:mr-2";
 
 const RouteFilters = ({
   filters,
@@ -54,12 +54,12 @@ const RouteFilters = ({
     <div className="space-y-3">
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:flex-nowrap lg:gap-2">
         <div className="relative min-w-0 flex-1 lg:max-w-lg">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Buscar por nombre de ruta..."
             value={filters.search}
             onChange={(e) => onChange({ ...filters, search: e.target.value })}
-            className="h-12 rounded-full border-border/100 bg-transparent pl-10 shadow-none transition-colors hover:bg-zinc-50 focus-visible:ring-offset-0"
+            className="h-10 text-sm rounded-full border-border/100 bg-transparent pl-9 shadow-none transition-colors hover:bg-zinc-50 focus-visible:ring-offset-0"
           />
         </div>
 
@@ -70,7 +70,7 @@ const RouteFilters = ({
           >
             <SelectTrigger className={pillTrigger}>
               <div className="flex items-center gap-2">
-                <Truck className="size-4 shrink-0 text-foreground/80" aria-hidden strokeWidth={1.75} />
+                <Truck className="size-3.5 shrink-0 text-foreground/80" aria-hidden strokeWidth={1.75} />
                 <span className="min-w-0 truncate text-left text-sm">
                   <SelectValue placeholder="Vehículos" />
                 </span>
@@ -91,8 +91,8 @@ const RouteFilters = ({
           >
             <SelectTrigger className={pillTrigger}>
               <div className="flex items-center gap-2">
-                <User className="size-4 shrink-0 text-foreground/80" aria-hidden strokeWidth={1.75} />
-                <span className="min-w-0 truncate text-left text-sm">
+                <User className="size-3.5 shrink-0 text-foreground/80" aria-hidden strokeWidth={1.75} />
+                <span className="min-w-0 truncate text-left text-sm font-medium">
                   <SelectValue placeholder="Conductor" />
                 </span>
               </div>
