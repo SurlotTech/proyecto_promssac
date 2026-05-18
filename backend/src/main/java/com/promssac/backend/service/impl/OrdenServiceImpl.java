@@ -8,6 +8,7 @@ import com.promssac.backend.exception.ResourceNotFoundException;
 import com.promssac.backend.model.dto.request.OrderAssignBulkRequest;
 import com.promssac.backend.model.dto.request.OrderCompleteRequest;
 import com.promssac.backend.model.dto.request.OrderCreateRequest;
+import com.promssac.backend.model.dto.request.OrderStatusPatchRequest;
 import com.promssac.backend.model.dto.response.OrderResponse;
 import com.promssac.backend.model.entity.Cliente;
 import com.promssac.backend.model.entity.Orden;
@@ -215,6 +216,23 @@ public class OrdenServiceImpl implements OrdenService {
         o.setActualizadoEn(Instant.now());
         Orden guardada = ordenRepository.save(o);
         return toOrderResponse(guardada);
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse actualizarEstado(String numeroOrden, OrderStatusPatchRequest request) {
+        String numero = numeroOrden.trim();
+        Orden o = ordenRepository
+                .findByNumeroOrden(numero)
+                .orElseThrow(() -> new ResourceNotFoundException("Orden", numero));
+
+        if (request.getEstado() != null && !request.getEstado().isBlank()) {
+            o.setEstado(request.getEstado().trim());
+        }
+        o.setSubestado(trimToNull(request.getSubestado()));
+        o.setActualizadoEn(Instant.now());
+
+        return toOrderResponse(ordenRepository.save(o));
     }
 
     @Override

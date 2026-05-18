@@ -58,6 +58,8 @@ import {
 } from "@/lib/orderCreationDraft";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { ordersApi } from "@/services/orders.api";
+import { comentariosApi, type ComentarioDto } from "@/services/comentarios.api";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { customFieldLabels, type CustomFieldKey } from "@/lib/completarOrden/constants";
@@ -323,6 +325,7 @@ const DetalleOrden = () => {
     status: "" as OrderStatus | "",
     substatus: "",
   });
+  const [savingStatus, setSavingStatus] = useState(false);
 
   const statusToName: Record<string, string> = {
     entregado: "Entregado",
@@ -338,6 +341,20 @@ const DetalleOrden = () => {
   const [camposOpen, setCamposOpen] = useState(true);
   const [itemsOpen, setItemsOpen] = useState(true);
   const [comentariosOpen, setComentariosOpen] = useState(false);
+
+  const [comentarios, setComentarios] = useState<ComentarioDto[]>([]);
+  const [comentarioTexto, setComentarioTexto] = useState("");
+  const [comentarioArchivo, setComentarioArchivo] = useState<File | null>(null);
+  const [comentarioGuardando, setComentarioGuardando] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (comentariosOpen && order?.id) {
+      comentariosApi.list(order.id)
+        .then(setComentarios)
+        .catch(() => toast.error("Error al cargar comentarios."));
+    }
+  }, [comentariosOpen, order?.id]);
 
   const goToCompletarDatos = useCallback(() => {
     if (!order) return;
@@ -370,6 +387,23 @@ const DetalleOrden = () => {
       toast.success("ID copiado al portapapeles");
     } catch {
       toast.error("No se pudo copiar");
+    }
+  };
+
+  const handleGuardarComentario = async () => {
+    if (!order?.id || !comentarioTexto.trim()) return;
+    setComentarioGuardando(true);
+    try {
+      const nuevo = await comentariosApi.create(order.id, comentarioTexto, comentarioArchivo || undefined);
+      setComentarios((prev) => [...prev, nuevo]);
+      setComentarioTexto("");
+      setComentarioArchivo(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      toast.success("Comentario guardado.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Error al guardar.");
+    } finally {
+      setComentarioGuardando(false);
     }
   };
 
@@ -711,20 +745,56 @@ const DetalleOrden = () => {
                 <div className="h-px bg-slate-100 mx-4" />
                 <CollapsibleContent>
                   <div className="space-y-4 p-4">
-                    <p className="text-xs text-muted-foreground">
-                      La bandeja colaborativa aún no está conectada al backend; aquí podrás dejar observaciones cuando el servicio esté disponible.
-                    </p>
+                    {comentarios.length > 0 && (
+                      <div className="max-h-48 space-y-3 overflow-y-auto">
+                        {comentarios.map((c) => (
+                          <div key={c.id} className="rounded-lg border border-border/60 bg-muted/20 p-3 text-sm">
+                            <p className="text-foreground whitespace-pre-wrap">{c.texto}</p>
+                            {c.archivoUrl && (
+                              <a href={c.archivoUrl} target="_blank" rel="noopener noreferrer"
+                                className="mt-1 inline-block text-xs text-primary underline">
+                                Ver archivo adjunto
+                              </a>
+                            )}
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              {c.creadoPor} · {c.creadoEn}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     <Textarea
                       placeholder="Tu comentario…"
-                      className="min-h-[120px] resize-none bg-white border-slate-200 text-sm focus-visible:ring-1 focus-visible:ring-ring rounded-xl placeholder:text-muted-foreground"
-                      disabled
+                      value={comentarioTexto}
+                      onChange={(e) => setComentarioTexto(e.target.value)}
+                      className="min-h-[100px] resize-none bg-white border-slate-200 text-sm focus-visible:ring-1 focus-visible:ring-ring rounded-xl placeholder:text-muted-foreground"
                     />
-                    <div className="flex gap-2 pt-1 opacity-60">
-                      <Button variant="outline" size="sm" className="flex-1" type="button" disabled>
-                        Adjuntar
+                    <div className="flex gap-2 pt-1">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*,.pdf"
+                        className="hidden"
+                        onChange={(e) => setComentarioArchivo(e.target.files?.[0] || null)}
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        {comentarioArchivo ? comentarioArchivo.name.slice(0, 20) : "Adjuntar"}
                       </Button>
-                      <Button variant="outline" size="sm" className="flex-[1.5]" type="button" disabled>
-                        Guardar comentario
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-[1.5]"
+                        type="button"
+                        disabled={!comentarioTexto.trim() || comentarioGuardando}
+                        onClick={() => void handleGuardarComentario()}
+                      >
+                        {comentarioGuardando ? "Guardando…" : "Guardar comentario"}
                       </Button>
                     </div>
                   </div>
@@ -807,6 +877,7 @@ const DetalleOrden = () => {
               variant="outline"
               type="button"
               onClick={() => setModifyStatusOpen(false)}
+              disabled={savingStatus}
               className="h-10 px-5 font-semibold border-zinc-300 text-zinc-600 hover:bg-white"
             >
               Cancelar
@@ -814,14 +885,23 @@ const DetalleOrden = () => {
             <Button
               type="button"
               className="h-10 px-5 font-semibold"
+              disabled={!modifyForm.status || savingStatus}
               onClick={() => {
-                toast.info(
-                  "El backend todavía no expone PATCH de orden; hasta entonces cambia estado con los flujos existentes de operación o soporte técnico.",
-                );
-                setModifyStatusOpen(false);
+                if (!order?.id) return;
+                setSavingStatus(true);
+                ordersApi.patchEstado(order.id, {
+                  estado: modifyForm.status || undefined,
+                  subestado: modifyForm.substatus || undefined,
+                }).then(() => {
+                  void refetch();
+                  toast.success("Estado actualizado.");
+                  setModifyStatusOpen(false);
+                }).catch((e: unknown) => {
+                  toast.error(e instanceof Error ? e.message : "Error al actualizar.");
+                }).finally(() => setSavingStatus(false));
               }}
             >
-              Guardar cambios
+              {savingStatus ? "Guardando…" : "Guardar cambios"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,6 +1,6 @@
 import type { Order } from "@/domain/orders";
 import { normalizeFechaRutaForApi } from "@/lib/fechaRutaApi";
-import { apiDelete, apiGet, apiPost, apiPostNoContent, apiPut } from "@/lib/api";
+import { apiDelete, apiGet, apiPatchJson, apiPost, apiPostNoContent, apiPut } from "@/lib/api";
 import { endpoints } from "./endpoints";
 
 export interface OrderCreateInput {
@@ -129,6 +129,11 @@ export const ordersApi = {
 
   completarDatos(input: OrderCompleteInput): Promise<Order> {
     return apiPost<Order, OrderCompleteInput>(`${endpoints.orders}/completar-datos`, input);
+  },
+
+  patchEstado(numeroOrden: string, body: { estado?: string; subestado?: string }): Promise<Order> {
+    return apiPatchJson<Order, { estado?: string; subestado?: string }>(
+      `${endpoints.orders}/${encodeURIComponent(numeroOrden)}/estado`, body);
   },
 
   listProductLines(numeroOrden: string): Promise<OrderProductLineDto[]> {

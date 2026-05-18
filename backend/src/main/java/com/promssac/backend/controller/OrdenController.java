@@ -4,6 +4,7 @@ import com.promssac.backend.model.dto.request.OrderAssignBulkRequest;
 import com.promssac.backend.model.dto.request.OrderCompleteRequest;
 import com.promssac.backend.model.dto.request.OrderCreateRequest;
 import com.promssac.backend.model.dto.request.OrderProductLineCreateRequest;
+import com.promssac.backend.model.dto.request.OrderStatusPatchRequest;
 import com.promssac.backend.model.dto.response.OrderProductLineResponse;
 import com.promssac.backend.model.dto.response.OrderResponse;
 import com.promssac.backend.service.OrdenProductoService;
@@ -17,6 +18,7 @@ import org.springframework.validation.annotation.Validated;
 import java.util.UUID;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -77,6 +79,12 @@ public class OrdenController {
     @PostMapping("/completar-datos")
     public ResponseEntity<OrderResponse> completarDatos(@Valid @RequestBody OrderCompleteRequest request) {
         return ResponseEntity.ok(ordenService.completarDatos(request));
+    }
+
+    @PatchMapping("/{numeroOrden}/estado")
+    public ResponseEntity<OrderResponse> actualizarEstado(
+            @PathVariable String numeroOrden, @Valid @RequestBody OrderStatusPatchRequest request) {
+        return ResponseEntity.ok(ordenService.actualizarEstado(numeroOrden, request));
     }
 
     @PostMapping("/asignacion-masiva")

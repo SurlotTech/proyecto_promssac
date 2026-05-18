@@ -121,3 +121,13 @@ export async function apiDelete(path: string): Promise<void> {
   const res = await fetch(`${base}${path}`, { method: "DELETE", headers: authHeaders() });
   if (!res.ok) throw new Error(await parseError(res));
 }
+
+export async function apiPostFormData<T>(path: string, formData: FormData): Promise<T> {
+  const res = await fetch(`${base}${path}`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: formData,
+  });
+  if (!res.ok) throw new Error(await parseError(res));
+  return res.json() as Promise<T>;
+}
