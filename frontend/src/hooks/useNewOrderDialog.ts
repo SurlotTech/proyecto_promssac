@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
 import { toast } from "sonner";
 import type { OrderRouteOption } from "@/domain/orders";
 import { errorMessageFromUnknown } from "@/lib/utils";
@@ -16,7 +15,6 @@ import { ordersApi, type OrderCreateInput } from "@/services/orders.api";
 export interface NewOrderFormState {
   orderNumber: string;
   routeId: string;
-  fechaRuta: string;
   autoCode: boolean;
 }
 
@@ -24,7 +22,6 @@ function emptyForm(): NewOrderFormState {
   return {
     orderNumber: `ORD-${Date.now().toString(36).toUpperCase()}`,
     routeId: "",
-    fechaRuta: format(new Date(), "yyyy-MM-dd"),
     autoCode: true,
   };
 }
@@ -45,8 +42,7 @@ function buildCreateInput(form: NewOrderFormState): OrderCreateInput {
     : form.orderNumber.trim();
   return {
     numeroOrden: numero,
-    fechaRuta: form.fechaRuta,
-    ...(form.routeId ? { rutaId: form.routeId } : {}),
+    rutaId: form.routeId,
   };
 }
 
@@ -62,8 +58,7 @@ export function useNewOrderDialog(open: boolean) {
   }, [open]);
 
   const orderOk = form.autoCode || form.orderNumber.trim().length > 0;
-  const fechaOk = Boolean(form.fechaRuta?.trim());
-  const canSubmit = orderOk && fechaOk;
+  const canSubmit = orderOk && form.routeId.trim().length > 0;
 
   const createMutation = useMutation({
     mutationFn: (input: OrderCreateInput) => ordersApi.create(input),
@@ -118,8 +113,6 @@ export function useNewOrderDialog(open: boolean) {
   return {
     form,
     setForm,
-    orderOk,
-    fechaOk,
     canSubmit,
     isPending: createMutation.isPending,
     saveOnly,

@@ -48,7 +48,7 @@ import {
   useOrderDetailQuery,
   useOrderProductLinesQuery,
   useRoutesQuery,
-  useSubestadosByEstadoQuery,
+  useEstadosHijosPorClaveQuery,
 } from "@/hooks/useOperationsQueries";
 import {
   persistOrderDraft,
@@ -324,8 +324,14 @@ const DetalleOrden = () => {
     substatus: "",
   });
 
-  const { data: substatusesFromApi = [] } = useSubestadosByEstadoQuery(
-    modifyForm.status || undefined,
+  const statusToName: Record<string, string> = {
+    entregado: "Entregado",
+    no_entregado: "No entregado",
+    in_route: "En ruta",
+    pending: "Pendiente",
+  };
+  const { data: substatusesFromApi = [] } = useEstadosHijosPorClaveQuery(
+    statusToName[modifyForm.status] || undefined,
   );
 
   const [resumenOpen, setResumenOpen] = useState(true);
@@ -787,7 +793,7 @@ const DetalleOrden = () => {
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                Lista maestra de subestados:{" "}
+                Lista maestra de estados:{" "}
                 <Link to="/configuracion/subestados" className="font-medium text-primary underline">
                   Configuración
                 </Link>

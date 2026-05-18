@@ -5,16 +5,15 @@ import { endpoints } from "./endpoints";
 
 export interface OrderCreateInput {
   numeroOrden: string;
-  /** ISO `yyyy-MM-dd` o fecha de ruta en UI `dd/MM/yyyy` (se normaliza al enviar). */
-  fechaRuta: string;
-  rutaId?: string;
-  vehiculoId?: string;
+  rutaId: string;
+  fechaRuta?: string;
   estado?: string;
   subestado?: string;
   clienteId?: string;
   contactoNombre?: string;
   contactoIdentificador?: string;
   esUltimoDespacho?: boolean;
+  vehiculoId?: string;
 }
 
 export interface OrderAssignBulkInput {
@@ -91,9 +90,9 @@ export interface OrderCompleteInput {
 function buildOrderCreateJson(input: OrderCreateInput): Record<string, unknown> {
   const body: Record<string, unknown> = {
     numeroOrden: input.numeroOrden.trim(),
-    fechaRuta: normalizeFechaRutaForApi(input.fechaRuta),
+    rutaId: input.rutaId.trim(),
   };
-  if (input.rutaId?.trim()) body.rutaId = input.rutaId.trim();
+  if (input.fechaRuta?.trim()) body.fechaRuta = normalizeFechaRutaForApi(input.fechaRuta);
   if (input.vehiculoId?.trim()) body.vehiculoId = input.vehiculoId.trim();
   if (input.estado?.trim()) body.estado = input.estado.trim();
   if (input.subestado?.trim()) body.subestado = input.subestado.trim();

@@ -31,6 +31,8 @@ interface Props {
   onPriorityChange: (v: RoutePriority) => void;
   cod: boolean;
   onCodChange: (v: boolean) => void;
+  minDate?: string;
+  maxDate?: string;
 }
 
 const StepDatosOrden = ({
@@ -44,6 +46,8 @@ const StepDatosOrden = ({
   onPriorityChange,
   cod,
   onCodChange,
+  minDate,
+  maxDate,
 }: Props) => {
   return (
     <div className="space-y-6">
@@ -69,6 +73,8 @@ const StepDatosOrden = ({
             dateTo={deliveryTo}
             onRangeChange={onDeliveryRangeChange}
             className="w-full"
+            minDate={minDate}
+            maxDate={maxDate}
           />
         </div>
 

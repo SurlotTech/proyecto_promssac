@@ -18,7 +18,7 @@ import OrderTable from "@/components/orders/OrderTable";
 import NewOrderDialog from "@/components/orders/NewOrderDialog";
 import { Button } from "@/components/ui/button";
 import type { Order } from "@/domain/orders";
-import { useOrdersQuery, useRoutesQuery, useSubestadosByEstadoQuery } from "@/hooks/useOperationsQueries";
+import { useOrdersQuery, useRoutesQuery, useEstadosHijosPorClaveQuery } from "@/hooks/useOperationsQueries";
 import { toast } from "sonner";
 import RoutesPaginationBar from "@/components/routes/RoutesPaginationBar";
 import { persistOrderDraft, type OrderCreationDraft, type OrderCompletarLocationState } from "@/lib/orderCreationDraft";
@@ -51,8 +51,14 @@ const Ordenes = () => {
 
   const [filters, setFilters] = useState<OrderFiltersState>(defaultOrderFilters);
 
-  const { data: substatusesFromApi = [] } = useSubestadosByEstadoQuery(
-    filters.status !== "all" ? filters.status : undefined,
+  const statusToName: Record<string, string> = {
+    entregado: "Entregado",
+    no_entregado: "No entregado",
+    in_route: "En ruta",
+    pending: "Pendiente",
+  };
+  const { data: substatusesFromApi = [] } = useEstadosHijosPorClaveQuery(
+    statusToName[filters.status] || undefined,
   );
   const orderSubstatusOptions = useMemo(
     () => substatusesFromApi.map((s) => s.nombre),
@@ -101,7 +107,7 @@ const Ordenes = () => {
   const stats = useMemo(() => {
     const total = allOrders.length;
     const inRoute = allOrders.filter((o) => o.status === "in_route").length;
-    const pending = allOrders.filter((o) => o.status === "in_route").length;
+    const pending = allOrders.filter((o) => o.status === "pending").length;
     const delivered = allOrders.filter((o) => o.status === "entregado").length;
     return { total, inRoute, pending, delivered };
   }, [allOrders]);

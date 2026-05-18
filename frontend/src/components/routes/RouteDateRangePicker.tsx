@@ -34,9 +34,11 @@ interface Props {
   dateTo: string;
   onRangeChange: (dateFrom: string, dateTo: string) => void;
   className?: string;
+  minDate?: string;
+  maxDate?: string;
 }
 
-const RouteDateRangePicker = ({ dateFrom, dateTo, onRangeChange, className }: Props) => {
+const RouteDateRangePicker = ({ dateFrom, dateTo, onRangeChange, className, minDate, maxDate }: Props) => {
   const [open, setOpen] = useState(false);
 
   const selected = useMemo((): DateRange | undefined => {
@@ -141,6 +143,8 @@ const RouteDateRangePicker = ({ dateFrom, dateTo, onRangeChange, className }: Pr
             }
           }}
           showOutsideDays={true}
+          fromDate={minDate ? parseLocalYmd(minDate) : undefined}
+          toDate={maxDate ? parseLocalYmd(maxDate) : undefined}
           formatters={{
             formatWeekdayName: (date) => {
               const d = date.getDay();

@@ -152,7 +152,6 @@ public class OrdenServiceImpl implements OrdenService {
 
         Orden o = new Orden();
         o.setNumeroOrden(numero);
-        o.setFechaRuta(request.getFechaRuta());
 
         String estado = StringUtils.hasText(request.getEstado()) ? request.getEstado().trim() : ESTADO_DEFECTO;
         o.setEstado(estado);
@@ -169,13 +168,14 @@ public class OrdenServiceImpl implements OrdenService {
 
         o.setEsUltimoDespacho(Boolean.TRUE.equals(request.getEsUltimoDespacho()));
 
-        Ruta ruta = null;
-        if (request.getRutaId() != null) {
-            ruta = rutaRepository
-                    .findWithVehiculoById(request.getRutaId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Ruta", request.getRutaId()));
-            o.setRuta(ruta);
+        if (request.getRutaId() == null) {
+            throw new BusinessException("Debe asignar una ruta a la orden.");
         }
+        Ruta ruta = rutaRepository
+                .findWithVehiculoById(request.getRutaId())
+                .orElseThrow(() -> new ResourceNotFoundException("Ruta", request.getRutaId()));
+        o.setRuta(ruta);
+        o.setFechaRuta(ruta.getFechaEntrega());
 
         Vehiculo vehiculo = null;
         if (request.getVehiculoId() != null) {

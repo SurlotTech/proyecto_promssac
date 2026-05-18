@@ -63,7 +63,7 @@ const systemGroup: NavItem = {
   label: "Configuración",
   icon: Settings,
   subItems: [
-    { to: "/configuracion/subestados", label: "Subestados" },
+    { to: "/configuracion/subestados", label: "Estados" },
     { to: "/configuracion/alertas/parametros", label: "Conf. Alertas" },
     { to: "/configuracion/notificaciones", label: "Notificaciones" },
   ],
@@ -355,13 +355,13 @@ const Sidebar = ({ open, onClose, isCollapsed, onToggleCollapse }: SidebarProps)
                       <ChevronLeft className="h-4 w-4" />
                     )}
                   </div>
-                  {!isCollapsed && (
+                </button>
+              </TooltipTrigger>
+              {!isCollapsed && (
                 <TooltipContent side="right" className="bg-[#212121] border-zinc-800 text-white">
                   Contraer navegación
                 </TooltipContent>
               )}
-                </button>
-              </TooltipTrigger>
               {isCollapsed && (
                 <TooltipContent side="right" className="bg-[#212121] border-zinc-800 text-white">
                   Expandir navegación

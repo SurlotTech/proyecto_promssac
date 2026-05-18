@@ -43,38 +43,25 @@ const NewOrderDialogForm = ({ form, setForm, routeOptions }: Props) => (
         />
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="order-route-date" className="text-[0.8rem] font-medium text-slate-700">
-            Fecha de ruta <span className="text-red-500">*</span>
-          </Label>
-          <Input
-            id="order-route-date"
-            type="date"
-            value={form.fechaRuta}
-            onChange={(e) => setForm((f) => ({ ...f, fechaRuta: e.target.value }))}
-            className={cn(orderInputClass, "w-full tabular-nums block shadow-none")}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label className="text-[0.8rem] font-medium text-slate-700">Asignar a ruta</Label>
-          <Select
-            value={form.routeId || undefined}
-            onValueChange={(v) => setForm((f) => ({ ...f, routeId: v }))}
-          >
-            <SelectTrigger className={`${selectTriggerClass} shadow-none`}>
-              <SelectValue placeholder="Seleccionar ruta" />
-            </SelectTrigger>
-            <SelectContent align="start" className="rounded-xl border-slate-200 shadow-lg">
-              {routeOptions.map((r) => (
-                <SelectItem key={r.id} value={r.id} className="text-sm font-medium text-slate-700 focus:bg-slate-50">
-                  {r.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      <div className="space-y-2">
+        <Label className="text-[0.8rem] font-medium text-slate-700">
+          Asignar a ruta <span className="text-red-500">*</span>
+        </Label>
+        <Select
+          value={form.routeId || undefined}
+          onValueChange={(v) => setForm((f) => ({ ...f, routeId: v }))}
+        >
+          <SelectTrigger className={`${selectTriggerClass} shadow-none`}>
+            <SelectValue placeholder="Seleccionar ruta" />
+          </SelectTrigger>
+          <SelectContent align="start" className="rounded-xl border-slate-200 shadow-lg">
+            {routeOptions.map((r) => (
+              <SelectItem key={r.id} value={r.id} className="text-sm font-medium text-slate-700 focus:bg-slate-50">
+                {r.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </section>
   </>

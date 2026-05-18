@@ -7,9 +7,11 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class SubestadoResponse {
+public class EstadoResponse {
     private String id;
     private String nombre;
-    private String estadoPadre;
+    private String parentId;
+    private String parentNombre;
     private Boolean activo;
+    private Boolean esPadre;
 }

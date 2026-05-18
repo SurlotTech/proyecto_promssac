@@ -9,13 +9,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class SubestadoWriteRequest {
-
-    @NotBlank
-    @Size(max = 200)
+public class EstadoWriteRequest {
+    @NotBlank @Size(max = 200)
     private String nombre;
 
-    @NotBlank
-    @Size(max = 40)
-    private String estadoPadre;
+    private String parentId;
 }

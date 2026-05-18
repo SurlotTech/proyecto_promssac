@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { fleetApi, mobileUsersApi, ordersApi, routesApi, vehiclesApi, webRolesApi, webUsersApi, clientsApi } from "@/services";
-import { subestadosApi } from "@/services/subestados.api";
+import { estadosApi } from "@/services/estados.api";
 
 export function useVehiclesQuery() {
   return useQuery({
@@ -152,18 +152,18 @@ export function useClientOrdersQuery(clientId: string | undefined) {
   });
 }
 
-export function useSubestadosQuery(incluirInactivos: boolean = false) {
+export function useEstadosPadresQuery(incluirInactivos: boolean = false) {
   return useQuery({
-    queryKey: ["subestados", incluirInactivos],
-    queryFn: () => subestadosApi.list(incluirInactivos),
+    queryKey: ["estados", "padres", incluirInactivos],
+    queryFn: () => estadosApi.listarPadres(incluirInactivos),
   });
 }
 
-export function useSubestadosByEstadoQuery(estado: string | undefined) {
+export function useEstadosHijosPorClaveQuery(nombrePadre: string | undefined) {
   return useQuery({
-    queryKey: ["subestados", "por-estado", estado],
-    queryFn: () => subestadosApi.listByEstado(estado!),
-    enabled: Boolean(estado),
+    queryKey: ["estados", "hijos", "nombre", nombrePadre],
+    queryFn: () => estadosApi.listarHijosPorNombrePadre(nombrePadre!),
+    enabled: Boolean(nombrePadre),
   });
 }
 

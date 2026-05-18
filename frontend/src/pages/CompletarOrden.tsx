@@ -13,9 +13,28 @@ import StepDireccion from "@/components/completarOrden/steps/StepDireccion";
 import StepPersonalizados from "@/components/completarOrden/steps/StepPersonalizados";
 import type { CustomFieldKey } from "@/lib/completarOrden/constants";
 import { useCompletarOrdenForm } from "@/hooks/useCompletarOrdenForm";
+import { useEffect, useMemo } from "react";
+import { useRoutesQuery } from "@/hooks/useOperationsQueries";
 
 const CompletarOrden = () => {
   const f = useCompletarOrdenForm();
+  const { data: routeCatalog = [] } = useRoutesQuery();
+
+  const routeDateConstraint = useMemo(() => {
+    if (!f.draft?.routeId) return undefined;
+    const ruta = routeCatalog.find((r) => r.id === f.draft.routeId);
+    if (!ruta?.deliveryDate) return undefined;
+    const parts = ruta.deliveryDate.split("/");
+    if (parts.length !== 3) return undefined;
+    const iso = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
+    return iso;
+  }, [f.draft?.routeId, routeCatalog]);
+
+  useEffect(() => {
+    if (routeDateConstraint && !f.deliveryFrom && !f.deliveryTo) {
+      f.onDeliveryRangeChange(routeDateConstraint, routeDateConstraint);
+    }
+  }, [routeDateConstraint]);
 
   if (!f.draft || f.hydratingOrder) {
     return (
@@ -43,6 +62,8 @@ const CompletarOrden = () => {
             onPriorityChange={f.setPriority}
             cod={f.cod}
             onCodChange={f.setCod}
+            minDate={routeDateConstraint}
+            maxDate={routeDateConstraint}
           />
         );
       case 1:

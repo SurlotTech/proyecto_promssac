@@ -23,8 +23,7 @@ import PerfilUsuario from "./pages/PerfilUsuario.tsx";
 import RolesUsuario from "./pages/RolesUsuario.tsx";
 import NuevoRol from "./pages/NuevoRol.tsx";
 import EditarRol from "./pages/EditarRol.tsx";
-import Subestados from "./pages/Subestados.tsx";
-import NuevoSubestado from "./pages/NuevoSubestado.tsx";
+import Estados from "./pages/Estados.tsx";
 import Alertas from "./pages/Alertas.tsx";
 import Clientes from "./pages/Clientes.tsx";
 import DetalleCliente from "./pages/DetalleCliente.tsx";
@@ -35,7 +34,7 @@ import EnlaceCliente from "./pages/EnlaceCliente.tsx";
 import DetalleImportacion from "./pages/DetalleImportacion.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
-import Login from "./pages/Login";
+import Login from "./pages/Login.tsx";
 
 const queryClient = new QueryClient();
 
@@ -84,13 +83,12 @@ const AppRoutes = () => (
       <Route path="/usuarios/movil" element={<PermissionRoute permission="a2"><UsuariosMovil /></PermissionRoute>} />
       <Route path="/usuarios/movil/nuevo" element={<PermissionRoute permission="a2-2"><NuevoUsuarioMovil /></PermissionRoute>} />
       <Route path="/usuarios/movil/:id/editar" element={<PermissionRoute permission="a2"><NuevoUsuarioMovil /></PermissionRoute>} />
-      <Route path="/configuracion/subestados" element={<PermissionRoute permission="a4"><Subestados /></PermissionRoute>} />
-      <Route path="/configuracion/subestados/nuevo" element={<PermissionRoute permission="a4"><NuevoSubestado /></PermissionRoute>} />
+      <Route path="/configuracion/subestados" element={<PermissionRoute permission="a4"><Estados /></PermissionRoute>} />
+      <Route path="/config/subestados" element={<Navigate to="/configuracion/subestados" replace />} />
       <Route path="/configuracion/alertas" element={<PermissionRoute permission="g6"><Alertas /></PermissionRoute>} />
       <Route path="/configuracion/alertas/parametros" element={<PermissionRoute permission="a4"><ConfiguracionAlertas /></PermissionRoute>} />
       <Route path="/configuracion/notificaciones" element={<PermissionRoute permission="a4"><Notificaciones /></PermissionRoute>} />
       <Route path="/configuracion/notificaciones/nueva" element={<PermissionRoute permission="a4"><NuevaNotificacion /></PermissionRoute>} />
-      <Route path="/config/subestados" element={<Navigate to="/configuracion/subestados" replace />} />
       <Route path="/usuarios/roles" element={<PermissionRoute permission="a2"><RolesUsuario /></PermissionRoute>} />
       <Route path="/usuarios/roles/nuevo" element={<PermissionRoute permission="a2"><NuevoRol /></PermissionRoute>} />
       <Route path="/usuarios/roles/:id/editar" element={<PermissionRoute permission="a2"><EditarRol /></PermissionRoute>} />
