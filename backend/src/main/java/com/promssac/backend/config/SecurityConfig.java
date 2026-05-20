@@ -38,7 +38,7 @@ public class SecurityConfig {
         http
             .headers(headers -> headers
                 .contentSecurityPolicy(csp -> csp.policyDirectives(
-                    "default-src 'self'; script-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"))
+                    "default-src 'self'; script-src 'self'; connect-src 'self' ws: wss:; object-src 'none'; base-uri 'self'; form-action 'self'"))
                 .frameOptions(frame -> frame.deny())
             )
             .cors(Customizer.withDefaults())
@@ -46,6 +46,7 @@ public class SecurityConfig {
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/auth/**").permitAll()
+                .requestMatchers("/ws/**", "/ws").permitAll()
                 .requestMatchers("/api/v1/**").authenticated()
                 .anyRequest().permitAll()
             )

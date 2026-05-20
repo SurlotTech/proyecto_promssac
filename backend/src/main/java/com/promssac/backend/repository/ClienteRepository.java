@@ -1,5 +1,6 @@
 package com.promssac.backend.repository;
 
+import com.promssac.backend.model.dto.response.ClienteAutocompleteItem;
 import com.promssac.backend.model.entity.Cliente;
 import java.util.Collection;
 import java.util.List;
@@ -33,4 +34,23 @@ public interface ClienteRepository extends JpaRepository<Cliente, UUID> {
             LIMIT 10
             """)
     List<Cliente> searchByNombre(@Param("query") String query);
+
+    @Query("""
+            SELECT new com.promssac.backend.model.dto.response.ClienteAutocompleteItem(
+                CAST(c.id AS string), c.email, c.nombre,
+                COALESCE(c.nombreApellidosDirectorIiee, ''), COALESCE(c.codigoModularIiee, '')
+            )
+            FROM Cliente c
+            WHERE c.activo = true
+              AND c.email IS NOT NULL
+              AND (
+                  LOWER(c.email) LIKE LOWER(CONCAT('%', :q, '%'))
+                  OR LOWER(c.nombre) LIKE LOWER(CONCAT('%', :q, '%'))
+                  OR LOWER(COALESCE(c.nombreApellidosDirectorIiee, '')) LIKE LOWER(CONCAT('%', :q, '%'))
+              )
+            ORDER BY c.nombre ASC
+            LIMIT 8
+            """)
+    List<ClienteAutocompleteItem> autocompleteEmail(@Param("q") String q);
 }
+

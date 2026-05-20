@@ -30,9 +30,6 @@ function validateForm(form: NewOrderFormState): string | null {
   if (!(form.autoCode || form.orderNumber.trim().length > 0)) {
     return "Indica un número de orden o activa código automático.";
   }
-  if (!form.fechaRuta?.trim()) {
-    return "Indica la fecha de ruta.";
-  }
   return null;
 }
 

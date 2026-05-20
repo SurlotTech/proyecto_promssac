@@ -4,6 +4,9 @@ import { VitePWA } from "vite-plugin-pwa";
 import path from "path";
 
 export default defineConfig({
+  define: {
+    global: "globalThis",
+  },
   server: {
     host: "::",
     port: 3030,
@@ -19,6 +22,10 @@ export default defineConfig({
             proxyRes.headers['access-control-allow-origin'] = '*';
           });
         },
+      },
+      "/ws": {
+        target: "http://127.0.0.1:8080",
+        ws: true,
       },
     },
   },

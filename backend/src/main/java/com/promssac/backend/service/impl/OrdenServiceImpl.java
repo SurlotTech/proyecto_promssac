@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.promssac.backend.exception.BusinessException;
 import com.promssac.backend.exception.ResourceNotFoundException;
+import com.promssac.backend.model.dto.request.NotificationSendRequest;
 import com.promssac.backend.model.dto.request.OrderAssignBulkRequest;
 import com.promssac.backend.model.dto.request.OrderCompleteRequest;
 import com.promssac.backend.model.dto.request.OrderCreateRequest;
@@ -20,7 +21,9 @@ import com.promssac.backend.repository.OrdenRepository;
 import com.promssac.backend.repository.RutaRepository;
 import com.promssac.backend.repository.UsuarioMovilRepository;
 import com.promssac.backend.repository.VehiculoRepository;
+import com.promssac.backend.service.MailerSendService;
 import com.promssac.backend.service.OrdenService;
+import com.promssac.backend.integration.mailersend.EmailTemplateRenderer;
 import com.promssac.backend.validation.CorreoOpcionalValidator;
 import com.promssac.backend.validation.GeoCoordinateValidator;
 import java.math.BigDecimal;
@@ -64,6 +67,8 @@ public class OrdenServiceImpl implements OrdenService {
     private final RutaRepository rutaRepository;
     private final VehiculoRepository vehiculoRepository;
     private final UsuarioMovilRepository usuarioMovilRepository;
+    private final MailerSendService mailerSendService;
+    private final EmailTemplateRenderer templateRenderer;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -226,13 +231,55 @@ public class OrdenServiceImpl implements OrdenService {
                 .findByNumeroOrden(numero)
                 .orElseThrow(() -> new ResourceNotFoundException("Orden", numero));
 
+        String estadoAnterior = o.getEstado();
+
         if (request.getEstado() != null && !request.getEstado().isBlank()) {
             o.setEstado(request.getEstado().trim());
         }
         o.setSubestado(trimToNull(request.getSubestado()));
         o.setActualizadoEn(Instant.now());
 
-        return toOrderResponse(ordenRepository.save(o));
+        Orden guardada = ordenRepository.save(o);
+
+        String estadoNuevo = guardada.getEstado();
+        if (estadoCambio(estadoAnterior, estadoNuevo)
+                && StringUtils.hasText(guardada.getContactoEmail())) {
+            notificarCambioEstado(guardada, estadoAnterior, estadoNuevo);
+        }
+
+        return toOrderResponse(guardada);
+    }
+
+    private boolean estadoCambio(String anterior, String nuevo) {
+        if (anterior == null || anterior.isBlank()) return false;
+        return !anterior.trim().equalsIgnoreCase(nuevo != null ? nuevo.trim() : "");
+    }
+
+    private void notificarCambioEstado(Orden orden, String estadoAnterior, String estadoNuevo) {
+        try {
+            EmailTemplateRenderer.NotificacionContenido contenido =
+                    templateRenderer.construirContenidoCambioEstado(orden, estadoAnterior, estadoNuevo);
+
+            NotificationSendRequest req = new NotificationSendRequest();
+            req.setDestinatarioEmail(orden.getContactoEmail().trim());
+            req.setDestinatarioNombre(contenido.nombreContacto());
+            req.setAsunto(contenido.asunto());
+            req.setContenidoHtml(contenido.html());
+            req.setContenidoPlano(contenido.plano());
+            req.setTipo(estadoNuevo);
+            req.setOrdenCodigo(orden.getNumeroOrden());
+
+            mailerSendService.enviar(req);
+
+            log.info("Notificacion enviada a {} por cambio de estado de orden {}: {} -> {}",
+                    orden.getContactoEmail(), orden.getNumeroOrden(), estadoAnterior, estadoNuevo);
+        } catch (Exception e) {
+            log.warn("No se pudo notificar cambio de estado de orden {}: {}",
+                    orden.getNumeroOrden(), e.getMessage());
+            throw new BusinessException(
+                    "No se pudo enviar la notificacion de cambio de estado. "
+                    + "El cambio de estado no se ha aplicado.");
+        }
     }
 
     @Override

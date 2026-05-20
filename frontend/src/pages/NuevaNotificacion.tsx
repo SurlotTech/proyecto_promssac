@@ -4,15 +4,14 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import {
   ChevronRight,
-  Info,
-  Key,
   Eye,
   Save,
-  X,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -28,6 +27,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { notificacionesApi, type ClienteAutocompleteItem } from "@/services/notifications.api";
 
 const SPECIAL_KEYS = [
   { label: "Nombre de contacto", value: ":contact_name:" },
@@ -41,25 +41,13 @@ const NuevaNotificacion = () => {
   const [asunto, setAsunto] = useState(":company_name: Cambio de estado orden #:code:");
   const [cuerpo, setCuerpo] = useState("<p>Estimado <strong>:contact_name:</strong>,</p><p>A continuación se muestra el estado de su despacho.</p>");
   const [piePagina, setPiePagina] = useState("");
-  const [showCustomFields, setShowCustomFields] = useState(false);
-  const [selectedFields, setSelectedFields] = useState<string[]>([]);
   const [notifType, setNotifType] = useState("entregado");
-
-  const CUSTOM_FIELD_OPTIONS = [
-    "DIRECTOR",
-    "CAJA M",
-    "CAJA S",
-    "CAJA AC",
-    "ACTA DE ENTREGA",
-    "GUIA DE REMISION",
-    "GUÍA DE TRANSPORTISTA"
-  ];
-
-  const toggleField = (field: string) => {
-    setSelectedFields(prev => 
-      prev.includes(field) ? prev.filter(f => f !== field) : [...prev, field]
-    );
-  };
+  const [destinatarioEmail, setDestinatarioEmail] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sendResult, setSendResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [suggestions, setSuggestions] = useState<ClienteAutocompleteItem[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   const asuntoRef = useRef<HTMLInputElement>(null);
   const cuerpoRef = useRef<ReactQuill>(null);
@@ -103,6 +91,66 @@ const NuevaNotificacion = () => {
     }),
     []
   );
+
+  const handleEmailChange = (value: string) => {
+    setDestinatarioEmail(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (value.length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const items = await notificacionesApi.buscarClientes(value);
+        setSuggestions(items);
+        setShowSuggestions(items.length > 0);
+      } catch {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }, 250);
+  };
+
+  const selectSuggestion = (item: ClienteAutocompleteItem) => {
+    setDestinatarioEmail(item.email);
+    setShowSuggestions(false);
+  };
+
+  const handleSend = async () => {
+    if (!destinatarioEmail.trim()) {
+      setSendResult({ success: false, message: "Debe ingresar un email de destinatario." });
+      return;
+    }
+    setSending(true);
+    setSendResult(null);
+    try {
+      const contenidoPlano = cuerpoRef.current
+        ?.getEditor()
+        ?.getText()
+        .trim();
+      const contenidoHtml = cuerpo;
+      const pieHtml = piePagina;
+
+      const htmlCompleto = contenidoHtml + (pieHtml ? `<br/><br/>${pieHtml}` : "");
+      const planoCompleto = (contenidoPlano || "")
+        + (piePaginaRef.current?.getEditor()?.getText()?.trim()
+          ? "\n\n" + piePaginaRef.current!.getEditor()!.getText().trim()
+          : "");
+
+      const res = await notificacionesApi.enviar({
+        destinatarioEmail: destinatarioEmail.trim(),
+        asunto,
+        contenidoPlano: planoCompleto || undefined,
+        contenidoHtml: htmlCompleto || undefined,
+      });
+      setSendResult({ success: true, message: `Email enviado con ID: ${res.messageId}` });
+    } catch (err: any) {
+      setSendResult({ success: false, message: err.message || "Error al enviar el email." });
+    } finally {
+      setSending(false);
+    }
+  };
 
   return (
     <div className="animate-fade-in">
@@ -307,66 +355,60 @@ const NuevaNotificacion = () => {
 
               {/* Notification Targets */}
               <div className="space-y-4 pt-2 border-t border-border">
-                <CheckboxItem id="target-cliente" label="Activar notificación a cliente" checked />
-                <CheckboxItem id="target-interna" label="Activar notificación interna" />
-                <CheckboxItem 
-                  id="target-campos" 
-                  label="Activar notificación a campos personalizados" 
-                  checked={showCustomFields}
-                  onCheckedChange={setShowCustomFields}
-                />
-
-                {showCustomFields && (
-                  <div className="space-y-2 pt-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                    <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Campo personalizado de notificación</Label>
-                    
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <div className="flex flex-wrap gap-1.5 p-2 min-h-10 border border-border rounded-md bg-transparent cursor-pointer hover:border-primary/50 transition-colors">
-                          {selectedFields.length === 0 && (
-                            <span className="text-sm text-muted-foreground ml-1">Seleccionar campos...</span>
-                          )}
-                          {selectedFields.map(field => (
-                            <div key={field} className="flex items-center gap-1 bg-muted px-2 py-0.5 rounded-md text-[11px] font-bold text-gray-500 uppercase">
-                              {field}
-                              <button 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleField(field);
-                                }}
-                                className="hover:text-primary"
-                              >
-                                <X className="size-3" />
-                              </button>
-                            </div>
-                          ))}
+                <div className="space-y-2 relative">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email destinatario</Label>
+                  <Input
+                    type="email"
+                    placeholder="cliente@ejemplo.com"
+                    value={destinatarioEmail}
+                    onChange={(e) => handleEmailChange(e.target.value)}
+                    onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                    className="bg-transparent border-border h-11 text-sm"
+                  />
+                  {showSuggestions && suggestions.length > 0 && (
+                    <div className="absolute z-50 w-full mt-1 rounded-md border border-border bg-card shadow-lg max-h-56 overflow-y-auto">
+                      {suggestions.map((item) => (
+                        <div
+                          key={item.id}
+                          className="px-3 py-2.5 cursor-pointer hover:bg-muted/60 border-b border-border/50 last:border-b-0"
+                          onMouseDown={(e) => { e.preventDefault(); selectSuggestion(item); }}
+                        >
+                          <p className="text-sm font-medium truncate">{item.email}</p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {item.director && `${item.director} — `}{item.nombreIiee}
+                            {item.codigoModular && ` [${item.codigoModular}]`}
+                          </p>
                         </div>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="w-[300px]">
-                        {CUSTOM_FIELD_OPTIONS.map(option => (
-                          <DropdownMenuItem 
-                            key={option}
-                            onClick={() => toggleField(option)}
-                            className="flex items-center justify-between cursor-pointer"
-                          >
-                            <span className={cn(
-                              "text-sm font-medium",
-                              selectedFields.includes(option) ? "text-primary" : "text-foreground"
-                            )}>
-                              {option}
-                            </span>
-                            {selectedFields.includes(option) && <X className="size-3 text-primary rotate-45" />}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
-              <Button className="w-full bg-primary text-white hover:bg-primary-hover shadow-glow h-11 font-bold">
-                <Save className="size-4 mr-2" />
-                Guardar
+              {sendResult && (
+                <div className={cn(
+                  "flex items-center gap-2 rounded-md p-3 text-sm",
+                  sendResult.success
+                    ? "bg-success/10 text-success border border-success/20"
+                    : "bg-destructive/10 text-destructive border border-destructive/20"
+                )}>
+                  {sendResult.success ? <CheckCircle2 className="size-4 shrink-0" /> : <AlertCircle className="size-4 shrink-0" />}
+                  <span>{sendResult.message}</span>
+                </div>
+              )}
+
+              <Button
+                className="w-full bg-primary text-white hover:bg-primary-hover shadow-glow h-11 font-bold"
+                onClick={handleSend}
+                disabled={sending}
+              >
+                {sending ? (
+                  <Loader2 className="size-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="size-4 mr-2" />
+                )}
+                {sending ? "Enviando..." : "Guardar y enviar"}
               </Button>
             </div>
           </aside>
@@ -375,17 +417,5 @@ const NuevaNotificacion = () => {
     </div>
   );
 };
-
-const CheckboxItem = ({ id, label, checked, onCheckedChange }: { id: string; label: string; checked?: boolean; onCheckedChange?: (checked: boolean) => void }) => (
-  <div className="flex items-center space-x-2.5">
-    <Checkbox 
-      id={id} 
-      checked={checked} 
-      onCheckedChange={(val) => onCheckedChange?.(val as boolean)}
-      className="border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground" 
-    />
-    <Label htmlFor={id} className="text-sm font-medium cursor-pointer">{label}</Label>
-  </div>
-);
 
 export default NuevaNotificacion;

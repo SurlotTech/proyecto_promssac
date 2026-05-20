@@ -5,6 +5,7 @@ import com.promssac.backend.model.dto.request.ClientBulkImportRequest;
 import com.promssac.backend.model.dto.request.ClientWriteRequest;
 import com.promssac.backend.model.dto.response.ClientBulkImportResponse;
 import com.promssac.backend.model.dto.response.ClientResponse;
+import com.promssac.backend.model.dto.response.ClienteAutocompleteItem;
 import com.promssac.backend.model.dto.response.OrderResponse;
 import com.promssac.backend.service.ClienteService;
 import jakarta.validation.Valid;
@@ -42,6 +43,12 @@ public class ClienteController {
     public ResponseEntity<List<ClientResponse>> buscar(
             @RequestParam(name = "q") String query) {
         return ResponseEntity.ok(clienteService.buscarPorNombre(query));
+    }
+
+    @GetMapping("/autocomplete-email")
+    public ResponseEntity<List<ClienteAutocompleteItem>> autocompleteEmail(
+            @RequestParam(name = "q") String query) {
+        return ResponseEntity.ok(clienteService.autocompleteEmail(query));
     }
 
     @GetMapping("/{id}")

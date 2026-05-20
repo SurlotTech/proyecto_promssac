@@ -1,7 +1,6 @@
 package com.promssac.backend.model.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -18,7 +17,7 @@ public class OrderCreateRequest {
     @Size(max = 64)
     private String numeroOrden;
 
-    @NotNull
+    /** Opcional: si no se envía, se deriva de la ruta asignada. */
     private LocalDate fechaRuta;
 
     private UUID rutaId;
@@ -31,7 +30,6 @@ public class OrderCreateRequest {
     @Size(max = 120)
     private String subestado;
 
-    /** Catálogo de clientes; el nombre en respuestas sale de {@link com.promssac.backend.model.entity.Cliente#getNombre()}. */
     private UUID clienteId;
 
     @Size(max = 120)

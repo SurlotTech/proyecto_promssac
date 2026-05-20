@@ -8,6 +8,7 @@ import com.promssac.backend.model.dto.request.ClientWriteRequest;
 import com.promssac.backend.model.dto.response.ClientBulkImportFailureResponse;
 import com.promssac.backend.model.dto.response.ClientBulkImportResponse;
 import com.promssac.backend.model.dto.response.ClientResponse;
+import com.promssac.backend.model.dto.response.ClienteAutocompleteItem;
 import com.promssac.backend.model.dto.response.OrderResponse;
 import com.promssac.backend.model.entity.Cliente;
 import com.promssac.backend.repository.ClienteRepository;
@@ -141,6 +142,14 @@ public class ClienteServiceImpl implements ClienteService {
         return clienteRepository.searchByNombre(q).stream()
                 .map(this::toResponseSinOrdenes)
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ClienteAutocompleteItem> autocompleteEmail(String query) {
+        String q = (query == null ? "" : query).trim();
+        if (q.isEmpty()) return List.of();
+        return clienteRepository.autocompleteEmail(q);
     }
 
     @Override

@@ -1,32 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
-  Bell,
   Mail,
   Plus,
-  History,
   Send,
-  UserX,
-  Info,
-  ChevronRight,
-  ChevronLeft,
-  Edit2,
-  Trash2,
   CheckCircle2,
-  Activity,
   Filter,
   Search,
   Calendar,
   Contact,
   FileText,
   MoreHorizontal,
-  Eye,
-  Pencil
+  Loader2,
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,404 +23,329 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { notificacionesApi, type NotificacionEnviadaListResponse, type NotificacionPage } from "@/services/notifications.api";
+import { useEmailStatus } from "@/hooks/useEmailStatus";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
-const mockNotificationsSent = [
-  {
-    id: "1",
-    codigoOrden: "ORD-2026-001",
-    estado: "Enviado",
-    tipoNotificacion: "Confirmación de entrega",
-    contacto: "cliente@ejemplo.com",
-    fechaEnvio: "08 May 2026",
-  },
-  {
-    id: "2",
-    codigoOrden: "ORD-2026-002",
-    estado: "Entregado",
-    tipoNotificacion: "Despacho en camino",
-    contacto: "+56912345678",
-    fechaEnvio: "07 May 2026",
-  },
-  {
-    id: "3",
-    codigoOrden: "ORD-2026-003",
-    estado: "Enviado",
-    tipoNotificación: "Notificación de próxima entrega",
-    contacto: "cliente2@ejemplo.com",
-    fechaEnvio: "06 May 2026",
-  },
-  {
-    id: "4",
-    codigoOrden: "ORD-2026-004",
-    estado: "Fallido",
-    tipoNotificacion: "Confirmación de entrega",
-    contacto: "cliente3@ejemplo.com",
-    fechaEnvio: "05 May 2026",
-  },
-  {
-    id: "5",
-    codigoOrden: "ORD-2026-005",
-    estado: "Entregado",
-    tipoNotificacion: "Despacho en camino",
-    contacto: "+56987654321",
-    fechaEnvio: "04 May 2026",
-  },
-];
+const PAGE_SIZE = 20;
 
 const Notificaciones = () => {
-  const [showSentNotifications, setShowSentNotifications] = useState(false);
+  const [notificaciones, setNotificaciones] = useState<NotificacionEnviadaListResponse[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [totalEnviadas, setTotalEnviadas] = useState<number | null>(null);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [selectedNotif, setSelectedNotif] = useState<NotificacionEnviadaListResponse | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+  const { activo: emailActivo, conectado, error: wsError } = useEmailStatus();
 
-  const mockNotifications = [
-    {
-      id: "1",
-      titulo: "Notificación de próxima entrega",
-      descripcion: "Avisa al cliente que su pedido está pronto a ser gestionado.",
-      ultimaActualizacion: "02 May 2026",
-    },
-    {
-      id: "2",
-      titulo: "Despacho en camino",
-      descripcion: "Informa al cliente que su despacho ha salido a ruta.",
-      ultimaActualizacion: "01 May 2026",
-    },
-    {
-      id: "3",
-      titulo: "Confirmación de entrega",
-      descripcion: "Confirma al cliente la entrega exitosa de su pedido.",
-      ultimaActualizacion: "28 Abr 2026",
-    },
-  ];
+  useEffect(() => {
+    setLoading(true);
+    notificacionesApi.listar(page, PAGE_SIZE)
+      .then((data: NotificacionPage) => {
+        setNotificaciones(data.content);
+        setTotalEnviadas(data.totalElements);
+        setTotalPages(data.totalPages);
+      })
+      .catch(() => setNotificaciones([]))
+      .finally(() => setLoading(false));
+  }, [page]);
 
-  if (showSentNotifications) {
-    return (
-      <div className="animate-fade-in">
-        <PageHeader
-          title="Notificaciones Enviadas"
-          subtitle="Historial de todas las notificaciones enviadas a tus clientes."
-          actions={
-            <Button
-              variant="outline"
-              className="gap-2 border-primary/20 hover:bg-primary/5 text-primary"
-              onClick={() => setShowSentNotifications(false)}
-            >
-              <ChevronLeft className="size-4" />
-              Volver
-            </Button>
-          }
-        />
+  const handleVerMensaje = async (notif: NotificacionEnviadaListResponse) => {
+    if (notif.contenido) {
+      setSelectedNotif(notif);
+      return;
+    }
+    setLoadingDetail(true);
+    try {
+      const detalle = await notificacionesApi.detalle(notif.id);
+      setSelectedNotif(detalle);
+    } catch {
+      setSelectedNotif(notif);
+    } finally {
+      setLoadingDetail(false);
+    }
+  };
 
-        <div className="flex flex-1 overflow-hidden p-4 sm:p-6 lg:p-8">
-          <div className="flex w-full flex-col gap-6 lg:flex-row">
-            {/* Sidebar Filters */}
-            <aside className="w-full shrink-0 space-y-6 lg:w-80">
-              <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg p-5 shadow-sm">
-                <div className="mb-4 flex items-center gap-2 border-b border-border pb-4">
-                  <Filter className="size-4 text-primary" />
-                  <h3 className="text-sm font-semibold uppercase tracking-wider">
-                    Filtros
-                  </h3>
-                </div>
+  const formatFecha = (iso: string) => {
+    const d = new Date(iso);
+    return d.toLocaleDateString("es-PE", { day: "2-digit", month: "short", year: "numeric" });
+  };
 
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Fecha de envío
-                    </label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        placeholder="Seleccionar fecha"
-                        className="pl-10 bg-background/50"
-                      />
-                    </div>
-                  </div>
+  return (
+    <div className="animate-fade-in">
+      <PageHeader
+        title="Notificaciones Enviadas"
+        subtitle="Historial de todas las notificaciones enviadas a tus clientes."
+        actions={
+          <Button
+            size="sm"
+            className="gap-2 bg-[#f43f3e] hover:bg-[#d93534] text-white px-6 shadow-md transition-all hover:scale-105 active:scale-95"
+            asChild
+          >
+            <Link to="/configuracion/notificaciones/nueva">
+              <Plus className="size-4" />
+              Nueva notificación
+            </Link>
+          </Button>
+        }
+      />
 
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Código de orden
-                    </label>
-                    <div className="relative">
-                      <FileText className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        placeholder="ORD-2026-XXX"
-                        className="pl-10 bg-background/50"
-                      />
-                    </div>
-                  </div>
+      <div className="flex flex-1 overflow-hidden p-4 sm:p-6 lg:p-8">
+        <div className="flex w-full flex-col gap-6 lg:flex-row">
+          {/* Sidebar */}
+          <aside className="w-full shrink-0 space-y-5 lg:w-80">
 
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Contacto
-                    </label>
-                    <div className="relative">
-                      <Contact className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        placeholder="Email o teléfono"
-                        className="pl-10 bg-background/50"
-                      />
-                    </div>
-                  </div>
-
-                  <Button className="w-full bg-primary shadow-glow hover:bg-primary-hover mt-2">
-                    <Search className="mr-2 size-4" />
-                    Buscar
-                  </Button>
+            {/* Card 1: Estado del Servicio */}
+            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg p-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Estado del Servicio
+                </h3>
+                <div className={cn(
+                  "flex h-8 w-8 items-center justify-center rounded-full",
+                  wsError ? "bg-destructive/10 text-destructive"
+                    : conectado ? (emailActivo ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive")
+                    : "bg-muted/30 text-muted-foreground"
+                )}>
+                  <CheckCircle2 className="size-4" />
                 </div>
               </div>
-            </aside>
+              <div className="flex items-center gap-3 mt-3">
+                <div className="relative flex h-3 w-3">
+                  {conectado && emailActivo && (
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75"></span>
+                  )}
+                  <span className={cn(
+                    "relative inline-flex h-3 w-3 rounded-full",
+                    wsError ? "bg-destructive"
+                      : conectado ? (emailActivo ? "bg-success" : "bg-destructive")
+                      : "bg-muted-foreground animate-pulse"
+                  )}></span>
+                </div>
+                <p className="font-semibold text-sm">
+                  {wsError ? "Error de autenticación"
+                    : conectado ? (emailActivo ? "Email Activo" : "Email Inactivo")
+                    : "Conectando..."}
+                </p>
+              </div>
+            </div>
 
-            {/* Main Table */}
-            <main className="flex-1 space-y-6">
-              <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm overflow-hidden">
+            {/* Card 2: Total Enviadas */}
+            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg p-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Total Enviadas
+                </h3>
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-info/10 text-info">
+                  <Send className="size-4" />
+                </div>
+              </div>
+              <p className="text-3xl font-bold mt-2">{totalEnviadas !== null ? totalEnviadas : "—"}</p>
+              <p className="text-xs text-muted-foreground mt-1">Notificaciones en el historial</p>
+            </div>
+
+            {/* Filtros */}
+            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg p-4 shadow-sm">
+              <div className="mb-4 flex items-center gap-2 border-b border-border pb-3">
+                <Filter className="size-4 text-primary" />
+                <h3 className="text-xs font-semibold uppercase tracking-wider">Filtros</h3>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Fecha de envío
+                  </label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder="Seleccionar fecha"
+                      className="pl-10 bg-background/50"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Código de orden
+                  </label>
+                  <div className="relative">
+                    <FileText className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder="ORD-2026-XXX"
+                      className="pl-10 bg-background/50"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Contacto
+                  </label>
+                  <div className="relative">
+                    <Contact className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder="Email o teléfono"
+                      className="pl-10 bg-background/50"
+                    />
+                  </div>
+                </div>
+
+                <Button className="w-full bg-primary shadow-glow hover:bg-primary-hover mt-2">
+                  <Search className="mr-2 size-4" />
+                  Buscar
+                </Button>
+              </div>
+            </div>
+          </aside>
+
+          {/* Main Table */}
+          <main className="flex-1 space-y-6">
+            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm overflow-hidden">
+              {loading ? (
+                <div className="flex items-center justify-center py-16">
+                  <Loader2 className="size-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-sm">
                     <thead>
                       <tr className="border-b border-border bg-muted/30 text-[11px] uppercase tracking-wider text-muted-foreground">
                         <th className="px-4 py-4 font-semibold">Código de orden</th>
                         <th className="px-4 py-4 font-semibold">Estado</th>
-                        <th className="px-4 py-4 font-semibold">Tipo de notificación</th>
+                        <th className="px-4 py-4 font-semibold">Asunto</th>
                         <th className="px-4 py-4 font-semibold">Contacto</th>
                         <th className="px-4 py-4 font-semibold">Fecha de envío</th>
                         <th className="px-4 py-4 font-semibold w-10"></th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
-                      {mockNotificationsSent.map((notif) => (
-                        <tr
-                          key={notif.id}
-                          className="group hover:bg-muted/20 transition-colors"
-                        >
-                          <td className="px-4 py-4">
-                            <Link
-                              to={`/ordenes/detalle/${notif.codigoOrden}`}
-                              className="font-medium text-primary hover:underline"
-                            >
-                              {notif.codigoOrden}
-                            </Link>
-                          </td>
-                          <td className="px-4 py-4">
-                            <span
-                              className={cn(
-                                "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border",
-                                notif.estado === "Entregado" &&
-                                  "bg-success/10 text-success border-success/20",
-                                notif.estado === "Enviado" &&
-                                  "bg-info/10 text-info border-info/20",
-                                notif.estado === "Fallido" &&
-                                  "bg-destructive/10 text-destructive border-destructive/20"
-                              )}
-                            >
-                              {notif.estado}
-                            </span>
-                          </td>
-                          <td className="px-4 py-4 text-muted-foreground">
-                            {notif.tipoNotificacion}
-                          </td>
-                          <td className="px-4 py-4 text-muted-foreground">
-                            {notif.contacto}
-                          </td>
-                          <td className="px-4 py-4 text-muted-foreground">
-                            {notif.fechaEnvio}
-                          </td>
-                           <td className="px-4 py-4 text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:bg-muted hover:text-foreground">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-40 border-border bg-card/40 backdrop-blur-lg shadow-md">
-                                <DropdownMenuItem className="cursor-pointer">
-                                  <Mail className="mr-2 h-4 w-4" /> Ver mensaje
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                      {notificaciones.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">
+                            No hay notificaciones enviadas aún.
                           </td>
                         </tr>
-                      ))}
+                      ) : (
+                        notificaciones.map((notif) => (
+                          <tr
+                            key={notif.id}
+                            className="group hover:bg-muted/20 transition-colors"
+                          >
+                            <td className="px-4 py-4">
+                              {notif.ordenCodigo ? (
+                                <Link
+                                  to={`/ordenes/detalle/${notif.ordenCodigo}`}
+                                  className="font-medium text-primary hover:underline"
+                                >
+                                  {notif.ordenCodigo}
+                                </Link>
+                              ) : (
+                                <span className="text-muted-foreground">—</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-4">
+                              <span
+                                className={cn(
+                                  "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border",
+                                  notif.estado === "ENVIADO" &&
+                                    "bg-success/10 text-success border-success/20",
+                                  notif.estado === "FALLIDO" &&
+                                    "bg-destructive/10 text-destructive border-destructive/20"
+                                )}
+                              >
+                                {notif.estado}
+                              </span>
+                            </td>
+                            <td className="px-4 py-4 text-muted-foreground">
+                              {notif.asunto}
+                            </td>
+                            <td className="px-4 py-4 text-muted-foreground">
+                              {notif.destinatarioEmail}
+                            </td>
+                            <td className="px-4 py-4 text-muted-foreground">
+                              {formatFecha(notif.enviadoEn)}
+                            </td>
+                            <td className="px-4 py-4 text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:bg-muted hover:text-foreground">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-40 border-border bg-card/40 backdrop-blur-lg shadow-md">
+                                  <DropdownMenuItem className="cursor-pointer" onClick={() => handleVerMensaje(notif)}>
+                                    <Mail className="mr-2 h-4 w-4" /> Ver mensaje
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
-                <div className="flex items-center justify-between border-t border-border p-4 bg-muted/10">
-                  <p className="text-xs text-muted-foreground">
-                    Mostrando <span className="font-semibold text-foreground">1-5</span> de <span className="font-semibold text-foreground">5</span> notificaciones
-                  </p>
-                  <div className="flex gap-1">
-                    <Button variant="outline" size="sm" disabled>
-                      Anterior
-                    </Button>
-                    <Button variant="outline" size="sm" disabled>
-                      Siguiente
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </main>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="animate-fade-in">
-      <PageHeader
-        title="Notificaciones"
-        subtitle="Agrega notificaciones para cada uno de los estados de tus despachos y para tus clientes finales."
-        actions={
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2 border-primary/20 hover:bg-primary/5 text-primary font-semibold"
-              onClick={() => setShowSentNotifications(true)}
-            >
-              <Send className="size-4" />
-              Notificaciones enviadas
-            </Button>
-            <Button
-              size="sm"
-              className="gap-2 bg-[#f43f3e] hover:bg-[#d93534] text-white px-6 shadow-md transition-all hover:scale-105 active:scale-95"
-              asChild
-            >
-              <Link to="/configuracion/notificaciones/nueva">
-                <Plus className="size-4" />
-                Nueva notificación
-              </Link>
-            </Button>
-          </div>
-        }
-      />
-
-      <div className="flex flex-1 overflow-hidden p-4 sm:p-6 lg:p-8">
-        <div className="flex w-full flex-col gap-6 lg:flex-row">
-          {/* Main Content (Left) */}
-          <main className="flex-1 space-y-6">
-            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead>
-                    <tr className="border-b border-border bg-muted/30 text-xs uppercase tracking-wider text-muted-foreground">
-                      <th className="px-4 py-4 font-semibold">Notificación</th>
-                      <th className="px-4 py-4 font-semibold">Última actualización</th>
-                      <th className="px-4 py-4 font-semibold text-right"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {mockNotifications.map((n) => (
-                      <tr key={n.id} className="group hover:bg-muted/20 transition-colors">
-                        <td className="px-4 py-4">
-                          <div className="space-y-1">
-                            <p className="text-base font-semibold text-primary">{n.titulo}</p>
-                            <p className="text-sm text-muted-foreground">{n.descripcion}</p>
-                          </div>
-                        </td>
-                        <td className="px-4 py-4 text-muted-foreground text-sm">
-                          {n.ultimaActualizacion}
-                        </td>
-                        <td className="px-4 py-4 text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:bg-muted hover:text-foreground">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-40 border-border bg-card/40 backdrop-blur-lg shadow-md">
-                              <DropdownMenuItem className="cursor-pointer">
-                                <Edit2 className="mr-2 h-4 w-4" /> Editar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive">
-                                <Trash2 className="mr-2 h-4 w-4" /> Eliminar
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              )}
               <div className="flex items-center justify-between border-t border-border p-4 bg-muted/10">
-                <p className="text-sm text-muted-foreground">
-                  Mostrando <span className="font-semibold text-foreground">1-3</span> de <span className="font-semibold text-foreground">3</span> notificaciones
+                <p className="text-xs text-muted-foreground">
+                  Página {page + 1} de {totalPages || 1} — {totalEnviadas ?? 0} notificaciones
                 </p>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" disabled>
+                <div className="flex gap-1">
+                  <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}>
                     Anterior
                   </Button>
-                  <Button variant="outline" size="sm" disabled>
+                  <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>
                     Siguiente
                   </Button>
                 </div>
               </div>
             </div>
           </main>
-
-          {/* Sidebar (Right) - Dashboard Indicators */}
-          <aside className="w-full shrink-0 space-y-4 lg:w-80">
-            
-            {/* Card 1: Email Activo */}
-            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg p-5 shadow-sm flex flex-col gap-4">
-              <div className="flex items-center justify-between border-b border-border pb-3">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                  Estado del Servicio
-                </h3>
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-success/10 text-success">
-                  <CheckCircle2 className="size-4" />
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="relative flex h-4 w-4">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75"></span>
-                  <span className="relative inline-flex h-4 w-4 rounded-full bg-success"></span>
-                </div>
-                <div>
-                  <p className="text-base font-semibold text-foreground">Email Activo</p>
-                  <p className="text-sm text-muted-foreground">Servicio funcionando correctamente</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Card 2: Total de Notificaciones */}
-            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg p-5 shadow-sm flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                  Total Configurado
-                </h3>
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <Bell className="size-4" />
-                </div>
-              </div>
-              <div>
-                <p className="text-4xl font-bold text-foreground">3</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Notificaciones disponibles en el sistema
-                </p>
-              </div>
-            </div>
-
-            {/* Card 3: Notificaciones Enviadas */}
-            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg p-5 shadow-sm flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                  Enviadas (Este mes)
-                </h3>
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-info/10 text-info">
-                  <Send className="size-4" />
-                </div>
-              </div>
-              <div>
-                <p className="text-4xl font-bold text-foreground">1,248</p>
-                <div className="mt-3 flex items-center gap-2 text-sm text-success font-medium bg-success/10 w-fit px-2 py-1 rounded-md">
-                  <Activity className="size-4" />
-                  <span>+12.5% vs mes anterior</span>
-                </div>
-              </div>
-            </div>
-
-          </aside>
         </div>
       </div>
+
+      <Dialog open={selectedNotif !== null} onOpenChange={(open) => { if (!open) setSelectedNotif(null); }}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-lg">{selectedNotif?.asunto}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 text-sm">
+            <div className="flex gap-4 text-muted-foreground">
+              <span><strong>Para:</strong> {selectedNotif?.destinatarioEmail}</span>
+              <span><strong>Estado:</strong> {selectedNotif?.estado}</span>
+              <span><strong>Fecha:</strong> {selectedNotif ? formatFecha(selectedNotif.enviadoEn) : ""}</span>
+            </div>
+            {selectedNotif?.ordenCodigo && (
+              <div className="text-muted-foreground">
+                <strong>Orden:</strong>{" "}
+                <Link to={`/ordenes/detalle/${selectedNotif.ordenCodigo}`} className="text-primary hover:underline">
+                  {selectedNotif.ordenCodigo}
+                </Link>
+              </div>
+            )}
+            <hr className="border-border" />
+            {loadingDetail ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="size-5 animate-spin text-muted-foreground" />
+              </div>
+            ) : selectedNotif?.contenido ? (
+              <div
+                className="prose prose-sm max-w-none dark:prose-invert [&_img]:max-w-full"
+                dangerouslySetInnerHTML={{ __html: selectedNotif.contenido }}
+              />
+            ) : (
+              <p className="text-muted-foreground italic">Sin contenido disponible.</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
