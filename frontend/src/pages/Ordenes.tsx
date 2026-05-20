@@ -219,7 +219,7 @@ const Ordenes = () => {
         />
 
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/40 backdrop-blur-lg px-6 py-16 text-center">
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/80 backdrop-blur-md px-6 py-16 text-center">
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-info-soft text-info">
               <Package className="h-7 w-7" />
             </div>

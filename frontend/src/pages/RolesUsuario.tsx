@@ -116,7 +116,7 @@ const RolesUsuario = () => {
           </div>
         </div>
 
-        <div className="flex max-h-[min(80vh,800px)] flex-col overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm">
+        <div className="flex max-h-[min(80vh,800px)] flex-col overflow-hidden rounded-xl border border-border/60 bg-card/80 backdrop-blur-md shadow-sm">
           <div className="flex-1 overflow-x-auto">
             <Table>
               <TableHeader className="bg-muted/40">
@@ -168,7 +168,7 @@ const RolesUsuario = () => {
                               <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48 border-border bg-card/40 backdrop-blur-lg shadow-md">
+                          <DropdownMenuContent align="end" className="w-48 border-border bg-card/80 backdrop-blur-md shadow-md">
                             <DropdownMenuItem
                               className="cursor-pointer"
                               onClick={() => navigate(`/usuarios/roles/${role.id}/editar`)}

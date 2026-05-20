@@ -249,7 +249,7 @@ const DetalleCliente = () => {
 
       <div className="flex flex-col gap-5 p-4 sm:p-6">
         {/* Fila 1: Información detallada */}
-        <div className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-border/60 bg-card/80 backdrop-blur-md shadow-sm">
           <div className="flex flex-col gap-1 border-b border-border/70 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <div className="flex items-center gap-3">
               <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-inner">
@@ -311,7 +311,7 @@ const DetalleCliente = () => {
         </div>
 
         {/* Fila 2: Ubicación en mapa */}
-        <div className="overflow-hidden rounded-xl border border-border bg-card/40 shadow-sm flex flex-col justify-center">
+        <div className="overflow-hidden rounded-xl border border-border/60 bg-card/80 shadow-sm flex flex-col justify-center">
           <ClienteMaplibreUbicacion
             sessionKey={cliente.id}
             mode="view"
@@ -321,7 +321,7 @@ const DetalleCliente = () => {
           />
         </div>
 
-        <div className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-border/60 bg-card/80 backdrop-blur-md shadow-sm">
           <div className="flex flex-col gap-1 border-b border-border/70 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <div className="flex items-center gap-3">
               <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-inner">
@@ -417,7 +417,7 @@ const DetalleCliente = () => {
       </div>
 
       <Dialog open={vincularDialogOpen} onOpenChange={setVincularDialogOpen}>
-        <DialogContent className="max-w-md rounded-2xl bg-white/95 backdrop-blur-lg border border-zinc-100 shadow-2xl p-6">
+        <DialogContent className="max-w-md rounded-2xl bg-white/95 backdrop-blur-md border border-zinc-100 shadow-2xl p-6">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-foreground flex items-center gap-2">
               <Link2 className="size-5 text-primary" />

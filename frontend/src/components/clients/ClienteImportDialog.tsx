@@ -127,7 +127,7 @@ export default function ClienteImportDialog({
             {parseSummary ? (
               <div
                 role="status"
-                className="flex shrink-0 gap-3 rounded-xl border border-border bg-card/40 backdrop-blur-lg px-3.5 py-3 shadow-sm dark:bg-card/40 backdrop-blur-lg"
+                className="flex shrink-0 gap-3 rounded-xl border border-border/60 bg-card/80 backdrop-blur-md px-3.5 py-3 shadow-sm dark:bg-card/80 backdrop-blur-md"
               >
                 <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-emerald-600 dark:text-emerald-400">
                   <CheckCircle2 className="size-5" aria-hidden />
@@ -140,7 +140,7 @@ export default function ClienteImportDialog({
             ) : (
               <div
                 role="status"
-                className="flex shrink-0 gap-3 rounded-xl border border-border bg-card/40 backdrop-blur-lg px-3.5 py-3 shadow-sm"
+                className="flex shrink-0 gap-3 rounded-xl border border-border/60 bg-card/80 backdrop-blur-md px-3.5 py-3 shadow-sm"
               >
                 <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-emerald-600 dark:text-emerald-400">
                   <CheckCircle2 className="size-5" aria-hidden />

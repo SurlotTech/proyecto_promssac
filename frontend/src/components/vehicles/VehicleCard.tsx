@@ -7,7 +7,7 @@ const VehicleCard = ({ v, onClick }: { v: Vehicle; onClick: () => void }) => {
   const Icon = vehicleTypeIcon[v.type];
   return (
     <div
-      className="group w-full rounded-xl border border-border bg-card/40 backdrop-blur-lg p-4 text-left shadow-sm transition-all"
+      className="group w-full rounded-xl border border-border/60 bg-card/80 backdrop-blur-md p-4 text-left shadow-sm transition-all"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">

@@ -248,7 +248,7 @@ const Estados = () => {
               <p className="col-span-full p-8 text-center text-muted-foreground">No hay estados.</p>
             ) : (
               filtered.map((padre) => (
-                <Card key={padre.id} className={cn("flex flex-col shadow-sm border-border/60 bg-card/40 backdrop-blur-md overflow-hidden transition-all", !padre.activo && "opacity-50 grayscale-[0.5]")}>
+                <Card key={padre.id} className={cn("flex flex-col shadow-sm border-border/60 bg-card/80 backdrop-blur-md overflow-hidden transition-all", !padre.activo && "opacity-50 grayscale-[0.5]")}>
                   <CardHeader className="flex flex-row items-center justify-between pb-3 pt-4 px-4 border-b border-border/40 space-y-0">
                     <div className="flex flex-col gap-1.5">
                       <span className="font-semibold text-base text-foreground leading-none">{padre.nombre}</span>

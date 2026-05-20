@@ -26,7 +26,7 @@ const FleetDeviceList = ({
   );
 
   return (
-    <div className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-card/40 backdrop-blur-lg">
+    <div className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-card/80 backdrop-blur-md">
       <div className="shrink-0 space-y-3 border-b border-border/60 p-3 sm:p-4 bg-surface-muted/50">
         <p className="text-xs text-muted-foreground">
           <span className="font-semibold text-foreground">{devices.length}</span> dispositivo

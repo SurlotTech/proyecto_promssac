@@ -42,7 +42,7 @@ const OrderTable = ({ orders, selectedIds, onSelectionChange, onView, onEdit }: 
   };
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm">
+    <div className="overflow-hidden rounded-xl border border-border/60 bg-card/80 backdrop-blur-md shadow-sm">
       <div className="overflow-x-auto scrollbar-thin">
         <table className="w-full min-w-[800px] text-sm">
           <thead>

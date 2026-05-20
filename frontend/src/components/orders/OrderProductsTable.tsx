@@ -27,7 +27,7 @@ export default function OrderProductsTable({
   onDeleteProduct,
 }: Props) {
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm">
+    <div className="overflow-hidden rounded-xl border border-border/60 bg-card/80 backdrop-blur-md shadow-sm">
       <div className="overflow-x-auto scrollbar-thin">
         <table className="w-full min-w-[720px] text-sm">
           <thead>
@@ -133,7 +133,7 @@ function ProductLineRow({ row: p, onEdit, onDelete }: RowProps) {
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-40 border-border bg-card/40 backdrop-blur-lg shadow-md">
+          <DropdownMenuContent align="end" className="w-40 border-border bg-card/80 backdrop-blur-md shadow-md">
             <DropdownMenuItem className="cursor-pointer" onClick={() => onEdit(p)}>
               <Pencil className="mr-2 h-4 w-4" /> Editar
             </DropdownMenuItem>

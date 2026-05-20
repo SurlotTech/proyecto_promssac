@@ -341,10 +341,10 @@ const DetalleRuta = () => {
 
         {/* Content Area */}
         <div className="flex-1 px-6 pb-6 overflow-hidden flex flex-col">
-          <TabsContent value="despachos" className="m-0 p-0 outline-none flex-1 flex flex-col bg-card/40 backdrop-blur-lg rounded-xl shadow-sm border border-border/50 overflow-hidden data-[state=inactive]:hidden">
+          <TabsContent value="despachos" className="m-0 p-0 outline-none flex-1 flex flex-col bg-card/80 backdrop-blur-md rounded-xl shadow-sm border border-border/50 overflow-hidden data-[state=inactive]:hidden">
               <div className="overflow-x-auto flex-1 scrollbar-thin">
                 <table className="w-full text-[13px] text-left border-collapse">
-                  <thead className="bg-muted/20 backdrop-blur-lg text-zinc-600 font-bold uppercase text-[11px] tracking-wider border-b border-border/40 sticky top-0 z-10">
+                  <thead className="bg-muted/20 backdrop-blur-md text-zinc-600 font-bold uppercase text-[11px] tracking-wider border-b border-border/40 sticky top-0 z-10">
                     <tr>
                       <th className="px-4 py-4">Pedido</th>
                       <th className="px-4 py-4">Estado</th>
@@ -445,7 +445,7 @@ const DetalleRuta = () => {
                                   <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-40 border-border bg-card/40 backdrop-blur-lg shadow-md">
+                              <DropdownMenuContent align="end" className="w-40 border-border bg-card/80 backdrop-blur-md shadow-md">
                                 <DropdownMenuItem asChild className="cursor-pointer">
                                   <Link to={`/ordenes/detalle/${encodeURIComponent(o.id)}`}>
                                     <Eye className="mr-2 h-4 w-4" /> Ver detalle
@@ -462,7 +462,7 @@ const DetalleRuta = () => {
               </div>
           </TabsContent>
 
-          <TabsContent value="mapa" className="m-0 p-0 outline-none flex-1 flex bg-card/40 backdrop-blur-lg rounded-xl shadow-sm border border-border/50 overflow-hidden data-[state=inactive]:hidden">
+          <TabsContent value="mapa" className="m-0 p-0 outline-none flex-1 flex bg-card/80 backdrop-blur-md rounded-xl shadow-sm border border-border/50 overflow-hidden data-[state=inactive]:hidden">
               <div className="w-[300px] border-r border-border/50 flex flex-col bg-transparent shrink-0 min-h-0">
                  <div className="flex-1 overflow-y-auto p-3 min-h-0">
                     {routeOrdersLoading ? (
@@ -530,7 +530,7 @@ const DetalleRuta = () => {
               </div>
               <div className="flex-1 relative h-full min-h-[320px]">
                  {selectedMapOrder && (
-                    <div className="absolute top-4 right-4 z-[10] max-w-[280px] bg-white/90 backdrop-blur-lg border border-border/40 shadow-xl rounded-2xl p-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="absolute top-4 right-4 z-[10] max-w-[280px] bg-white/90 backdrop-blur-md border border-border/40 shadow-xl rounded-2xl p-4 animate-in fade-in slide-in-from-top-2 duration-300">
                       <div className="flex items-start gap-3">
                         <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
                           <MapPin className="size-4 text-primary" />

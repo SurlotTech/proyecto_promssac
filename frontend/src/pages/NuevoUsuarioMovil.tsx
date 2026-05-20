@@ -281,7 +281,7 @@ const NuevoUsuarioMovil = () => {
 
       <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
         <div className="mx-auto max-w-6xl space-y-6 pb-8">
-          <section className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm">
+          <section className="overflow-hidden rounded-xl border border-border/60 bg-card/80 backdrop-blur-md shadow-sm">
             <FormSectionTitle>Usuario</FormSectionTitle>
             <div className="grid grid-cols-1 gap-6 p-5 lg:grid-cols-[1fr_280px] lg:items-start">
               <div className="space-y-4">
@@ -413,7 +413,7 @@ const NuevoUsuarioMovil = () => {
             </div>
           </section>
 
-          <section className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm">
+          <section className="overflow-hidden rounded-xl border border-border/60 bg-card/80 backdrop-blur-md shadow-sm">
             <FormSectionTitle>Identificador de vehículo</FormSectionTitle>
             <div className="p-5">
               <RadioGroup
@@ -434,7 +434,7 @@ const NuevoUsuarioMovil = () => {
                     "flex cursor-pointer flex-col gap-4 rounded-xl border p-4 transition-colors",
                     vehicleMode === "list"
                       ? "border-primary bg-primary/5 ring-1 ring-primary/20"
-                      : "border-border bg-card/40 backdrop-blur-lg hover:bg-muted/20",
+                      : "border-border bg-card/80 backdrop-blur-md hover:bg-muted/20",
                   )}
                 >
                   <div className="flex items-start gap-3">
@@ -477,7 +477,7 @@ const NuevoUsuarioMovil = () => {
                     "flex cursor-pointer flex-col gap-4 rounded-xl border p-4 transition-colors",
                     vehicleMode === "create"
                       ? "border-primary bg-primary/5 ring-1 ring-primary/20"
-                      : "border-border bg-card/40 backdrop-blur-lg hover:bg-muted/20",
+                      : "border-border bg-card/80 backdrop-blur-md hover:bg-muted/20",
                   )}
                 >
                   <div className="flex items-start gap-3">
@@ -530,7 +530,7 @@ const NuevoUsuarioMovil = () => {
             </div>
           </section>
 
-          <section className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm">
+          <section className="overflow-hidden rounded-xl border border-border/60 bg-card/80 backdrop-blur-md shadow-sm">
             <FormSectionTitle>Permisos</FormSectionTitle>
             <div className="space-y-4 p-5">
               <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/25 px-3 py-2.5">

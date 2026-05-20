@@ -62,7 +62,7 @@ const UsuariosMovil = () => {
   const blockedCount = useMemo(() => users.filter((u) => u.estado !== "Activo").length, [users]);
 
   const filteredUsers = useMemo(() => {
-    let list = estadoFiltro === "inactivos" ? users.filter((u) => u.estado !== "Activo") : users;
+    let list = estadoFiltro === "inactivos" ? users.filter((u) => u.estado !== "Activo") : users.filter((u) => u.estado === "Activo");
     const q = searchTerm.toLowerCase().trim();
     if (q) {
       list = list.filter(
@@ -156,7 +156,7 @@ const UsuariosMovil = () => {
             </div>
           )}
         </div>
-        <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm">
+        <div className="mt-4 overflow-hidden rounded-xl border border-border/60 bg-card/80 backdrop-blur-md shadow-sm">
           {isError ? (
             <p className="p-6 text-sm text-destructive">No se pudo cargar el listado. Revisa el backend e intenta de nuevo.</p>
           ) : isLoading ? (
@@ -218,7 +218,7 @@ const UsuariosMovil = () => {
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-44 border-border bg-card/40 backdrop-blur-lg shadow-md">
+                          <DropdownMenuContent align="end" className="w-44 border-border bg-card/80 backdrop-blur-md shadow-md">
                             <DropdownMenuItem
                               className="cursor-pointer"
                               onClick={() => navigate(`/usuarios/movil/${user.id}/editar`)}

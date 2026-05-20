@@ -19,7 +19,7 @@ const tones: Record<NonNullable<StatCardProps["tone"]>, string> = {
 
 const StatCard = ({ label, value, delta, icon: Icon, tone = "neutral" }: StatCardProps) => {
   return (
-    <div className="group rounded-xl border border-border bg-card/40 backdrop-blur-lg p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+    <div className="group rounded-xl border border-border/60 bg-card/80 backdrop-blur-md p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
       <div className="flex items-center gap-3">
         <div
           className={cn(

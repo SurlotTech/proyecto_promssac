@@ -61,7 +61,7 @@ function filterUsers(
   applied: FilterDraft,
   estadoFiltro: "activos" | "inactivos",
 ): WebUserListItem[] {
-  let list = estadoFiltro === "inactivos" ? users.filter((u) => u.estado !== "Activo") : users;
+  let list = estadoFiltro === "inactivos" ? users.filter((u) => u.estado !== "Activo") : users.filter((u) => u.estado === "Activo");
   const n = applied.nombre.toLowerCase().trim();
   const uq = applied.usuario.toLowerCase().trim();
   const rq = applied.rol.trim().toLowerCase();
@@ -278,7 +278,7 @@ const [draftFilters, setDraftFilters] = useState<FilterDraft>(emptyFilters);
 
         </div>
 
-        <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm">
+        <div className="mt-4 overflow-hidden rounded-xl border border-border/60 bg-card/80 backdrop-blur-md shadow-sm">
           {isError ? (
             <p className="p-6 text-sm text-destructive">No se pudo cargar el listado. Revisa el backend e intenta de nuevo.</p>
           ) : isLoading ? (
@@ -330,7 +330,7 @@ const [draftFilters, setDraftFilters] = useState<FilterDraft>(emptyFilters);
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48 border-border bg-card/40 backdrop-blur-lg shadow-md">
+                          <DropdownMenuContent align="end" className="w-48 border-border bg-card/80 backdrop-blur-md shadow-md">
                             <DropdownMenuItem
                               className="cursor-pointer"
                               onClick={() => navigate(`/usuarios/web/${user.id}/editar`)}
@@ -386,7 +386,7 @@ const [draftFilters, setDraftFilters] = useState<FilterDraft>(emptyFilters);
       </div>
 
       <Dialog open={rolModalUserId != null} onOpenChange={(open) => !open && closeRolModal()}>
-        <DialogContent className="sm:max-w-[550px] border-border bg-card/40 backdrop-blur-lg">
+        <DialogContent className="sm:max-w-[550px] border-border bg-card/80 backdrop-blur-md">
           <DialogHeader>
             <DialogTitle className="text-foreground">Cambiar rol de usuario</DialogTitle>
             <DialogDescription className="text-muted-foreground">

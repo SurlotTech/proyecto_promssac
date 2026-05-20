@@ -513,7 +513,7 @@ const DetalleOrden = () => {
         <aside className="w-full shrink-0 border-b border-border bg-transparent lg:w-96 xl:w-[400px] lg:border-b-0 lg:border-r">
           <div className="space-y-4 p-4">
             <Collapsible open={resumenOpen} onOpenChange={setResumenOpen}>
-              <section className="overflow-hidden rounded-l border border-border bg-card/40 backdrop-blur-lg shadow-sm">
+              <section className="overflow-hidden rounded-l border border-border/60 bg-card/80 backdrop-blur-md shadow-sm">
                 <div className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left">
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Resumen</h3>
                   <CollapsibleTrigger asChild>
@@ -634,7 +634,7 @@ const DetalleOrden = () => {
             </Collapsible>
 
             <Collapsible open={camposOpen} onOpenChange={setCamposOpen}>
-              <section className="overflow-hidden rounded-l border border-border bg-card/40 backdrop-blur-lg shadow-sm">
+              <section className="overflow-hidden rounded-l border border-border/60 bg-card/80 backdrop-blur-md shadow-sm">
                 <div className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left">
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                     Campos personalizados
@@ -668,7 +668,7 @@ const DetalleOrden = () => {
             </Collapsible>
 
             <Collapsible open={itemsOpen} onOpenChange={setItemsOpen}>
-              <section className="overflow-hidden rounded-l border border-border bg-card/40 backdrop-blur-lg shadow-sm">
+              <section className="overflow-hidden rounded-l border border-border/60 bg-card/80 backdrop-blur-md shadow-sm">
                 <div className="flex w-full flex-wrap items-center justify-between gap-2 px-4 py-3 text-left">
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Ítems</h3>
                   <CollapsibleTrigger asChild>
@@ -733,7 +733,7 @@ const DetalleOrden = () => {
             </Collapsible>
 
             <Collapsible open={comentariosOpen} onOpenChange={setComentariosOpen}>
-              <section className="overflow-hidden rounded-l border border-border bg-card/40 backdrop-blur-lg shadow-sm">
+              <section className="overflow-hidden rounded-l border border-border/60 bg-card/80 backdrop-blur-md shadow-sm">
                 <div className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left">
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Comentarios</h3>
                   <CollapsibleTrigger asChild>

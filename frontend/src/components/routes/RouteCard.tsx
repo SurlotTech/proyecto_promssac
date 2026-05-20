@@ -25,7 +25,7 @@ const RouteCard = ({ route: r, onSelect, onEdit, onDelete, vehicleTypeByPlate = 
 
   return (
     <div
-      className="group w-full rounded-xl border border-border bg-card/40 backdrop-blur-lg p-4 text-left shadow-sm transition-all"
+      className="group w-full rounded-xl border border-border/60 bg-card/80 backdrop-blur-md p-4 text-left shadow-sm transition-all"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex min-w-0 flex-1 items-start gap-3">

@@ -168,13 +168,13 @@ const NuevaNotificacion = () => {
           {/* Main Content (Left) */}
           <main className="flex-1 space-y-6">
             {/* Name Section */}
-            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg p-5 shadow-sm space-y-3">
+            <div className="rounded-xl border border-border/60 bg-card/80 backdrop-blur-md p-5 shadow-sm space-y-3">
               <Label className="text-sm uppercase tracking-wider text-muted-foreground">NOMBRE</Label>
               <Input className="bg-transparent border-border/100 h-11 text-sm" />
             </div>
 
             {/* Email Personalization */}
-            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm overflow-hidden">
+            <div className="rounded-xl border border-border/60 bg-card/80 backdrop-blur-md shadow-sm overflow-hidden">
               <div className="px-5 py-4 border-b border-border flex items-center justify-between">
                 <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">PERSONALIZACIÓN DE EMAIL</h3>
                 <Button variant="link" className="text-primary text-sm h-auto p-0 font-bold">
@@ -306,7 +306,7 @@ const NuevaNotificacion = () => {
 
           {/* Sidebar (Right) */}
           <aside className="w-full shrink-0 space-y-6 lg:w-96">
-            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg p-5 shadow-sm space-y-6">
+            <div className="rounded-xl border border-border/60 bg-card/80 backdrop-blur-md p-5 shadow-sm space-y-6">
               {/* Type and Substatus */}
               <div className="space-y-4">
                 <div className="space-y-2">
@@ -367,7 +367,7 @@ const NuevaNotificacion = () => {
                     className="bg-transparent border-border h-11 text-sm"
                   />
                   {showSuggestions && suggestions.length > 0 && (
-                    <div className="absolute z-50 w-full mt-1 rounded-md border border-border bg-card shadow-lg max-h-56 overflow-y-auto">
+                    <div className="absolute z-50 w-full mt-1 rounded-md border border-border/60 bg-card shadow-lg max-h-56 overflow-y-auto">
                       {suggestions.map((item) => (
                         <div
                           key={item.id}

@@ -45,7 +45,7 @@ const PerfilUsuario = () => {
 
       <div className="flex-1 overflow-auto p-4 sm:p-6">
         <div className="mx-auto max-w-6xl space-y-6">
-          <div className="max-w-2xl space-y-5 rounded-xl border border-border bg-card/40 backdrop-blur-lg p-5 shadow-sm">
+          <div className="max-w-2xl space-y-5 rounded-xl border border-border/60 bg-card/80 backdrop-blur-md p-5 shadow-sm">
             <h2 className="border-b border-border/50 pb-3 text-sm font-semibold text-info">Información de usuario</h2>
 
             <div className="space-y-6">
@@ -66,7 +66,7 @@ const PerfilUsuario = () => {
             </div>
           </div>
 
-          <div className="flex flex-col overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm">
+          <div className="flex flex-col overflow-hidden rounded-xl border border-border/60 bg-card/80 backdrop-blur-md shadow-sm">
             <button
               type="button"
               className="flex cursor-pointer select-none items-center justify-between border-b border-border p-4"

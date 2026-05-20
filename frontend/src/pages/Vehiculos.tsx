@@ -202,7 +202,7 @@ const Vehiculos = () => {
         {/* Contenido */}
         <>
           {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/40 backdrop-blur-lg py-16 text-center">
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/80 backdrop-blur-md py-16 text-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
                 <Truck className="h-8 w-8 text-muted-foreground" />
               </div>
