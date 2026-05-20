@@ -23,15 +23,12 @@ export default defineConfig({
           });
         },
       },
-      "/ws": {
-        target: "http://127.0.0.1:8080",
-        ws: true,
-      },
     },
   },
   plugins: [
     react(),
     VitePWA({
+      devOptions: { enabled: true, suppressWarnings: true },
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "logo.png"],
       manifest: {
@@ -62,6 +59,7 @@ export default defineConfig({
         ],
       },
       workbox: {
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
         runtimeCaching: [
           {

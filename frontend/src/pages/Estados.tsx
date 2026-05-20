@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight, MoreHorizontal, Plus } from "lucide-react";
+import { ChevronDown, ChevronRight, MoreHorizontal, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import PageHeader from "@/components/PageHeader";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
   DropdownMenu,
@@ -18,6 +18,11 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Card,
+  CardHeader,
+  CardContent,
+} from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -55,35 +60,42 @@ const estadoBadge = (nombre: string, esPadre: boolean) => {
 
 const Estados = () => {
   const queryClient = useQueryClient();
-  const [incluirInactivos, setIncluirInactivos] = useState(false);
+  const [estadoFiltro, setEstadoFiltro] = useState<"activos" | "inactivos">("activos");
   const [nombreFilter, setNombreFilter] = useState("");
-  const [expandedPadre, setExpandedPadre] = useState<string | null>(null);
+  const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
   const [hijosCache, setHijosCache] = useState<Record<string, EstadoDto[]>>({});
-  const [loadingHijos, setLoadingHijos] = useState(false);
+  const [loadingCards, setLoadingCards] = useState<Record<string, boolean>>({});
   const [createOpen, setCreateOpen] = useState(false);
   const [editRow, setEditRow] = useState<EstadoDto | null>(null);
   const [form, setForm] = useState({ nombre: "", parentId: "" });
 
-  const { data: padres = [], isLoading, isError } = useEstadosPadresQuery(incluirInactivos);
+  const { data: padres = [], isLoading, isError } = useEstadosPadresQuery(true);
+
+  const activeCount = useMemo(() => padres.filter((e) => e.activo).length, [padres]);
+  const inactiveCount = useMemo(() => padres.filter((e) => !e.activo).length, [padres]);
 
   const filtered = useMemo(() => {
-    if (!nombreFilter) return padres;
-    return padres.filter((e) => e.nombre.toLowerCase().includes(nombreFilter.toLowerCase()));
-  }, [padres, nombreFilter]);
+    let list = estadoFiltro === "inactivos" ? padres.filter((e) => !e.activo) : padres.filter((e) => e.activo);
+    if (nombreFilter) {
+      const q = nombreFilter.toLowerCase();
+      list = list.filter((e) => e.nombre.toLowerCase().includes(q));
+    }
+    return list;
+  }, [padres, nombreFilter, estadoFiltro]);
 
   const toggleExpand = async (padre: EstadoDto) => {
-    if (expandedPadre === padre.id) {
-      setExpandedPadre(null);
+    if (expandedCards[padre.id]) {
+      setExpandedCards((prev) => ({ ...prev, [padre.id]: false }));
       return;
     }
-    setExpandedPadre(padre.id);
+    setExpandedCards((prev) => ({ ...prev, [padre.id]: true }));
     if (!hijosCache[padre.id]) {
-      setLoadingHijos(true);
+      setLoadingCards((prev) => ({ ...prev, [padre.id]: true }));
       try {
         const hijos = await estadosApi.listarHijos(padre.id);
         setHijosCache((prev) => ({ ...prev, [padre.id]: hijos }));
       } catch { toast.error("Error al cargar subestados."); }
-      finally { setLoadingHijos(false); }
+      finally { setLoadingCards((prev) => ({ ...prev, [padre.id]: false })); }
     }
   };
 
@@ -113,7 +125,6 @@ const Estados = () => {
       queryClient.invalidateQueries({ queryKey: ["estados"] });
       setHijosCache({});
       setCreateOpen(false);
-      setExpandedPadre(null);
       toast.success("Creado.");
     },
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Error al crear."),
@@ -128,7 +139,6 @@ const Estados = () => {
       queryClient.invalidateQueries({ queryKey: ["estados"] });
       setHijosCache({});
       setEditRow(null);
-      setExpandedPadre(null);
       toast.success("Actualizado.");
     },
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Error al actualizar."),
@@ -159,14 +169,23 @@ const Estados = () => {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-transparent animate-fade-in">
-      <div className="flex flex-wrap items-center justify-between px-4 py-3 sm:px-6">
-        <h1 className="text-xl font-bold tracking-tight text-foreground">Estados</h1>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button size="sm" className="h-9 gap-1.5 font-medium shadow-glow" onClick={() => openCreate()}>
+      <PageHeader
+        title="Estados"
+        subtitle={
+          <>
+            Estados activos:{" "}
+            <span className="text-foreground">{isLoading ? "…" : activeCount}</span>
+            <span className="mx-2 text-border">|</span>
+            Estados inactivos:{" "}
+            <span className="text-foreground">{isLoading ? "…" : inactiveCount}</span>
+          </>
+        }
+        actions={
+          <Button size="sm" className="h-9 gap-1.5 font-medium shadow-glow bg-primary text-primary-foreground hover:bg-primary-hover" onClick={() => openCreate()}>
             <Plus className="size-4" /> Nuevo estado
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       <div className="flex-1 overflow-auto p-4 sm:p-6">
         <div className="space-y-3">
@@ -177,76 +196,121 @@ const Estados = () => {
               onChange={(e) => setNombreFilter(e.target.value)}
               className="h-10 w-full bg-transparent sm:max-w-xs"
             />
-            <div className="flex items-center gap-2">
-              <Checkbox id="incluir-inactivos" checked={incluirInactivos} onCheckedChange={(v) => setIncluirInactivos(v === true)} />
-              <Label htmlFor="incluir-inactivos" className="text-xs text-muted-foreground cursor-pointer">Mostrar inactivos</Label>
+            <div className="flex items-center bg-transparent p-1 rounded-md border border-border h-10 px-1 shrink-0 transition-colors hover:bg-zinc-50/50">
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => setEstadoFiltro("activos")}
+                  className={cn(
+                    "rounded-md px-5 py-1.5 text-xs font-semibold transition-all h-8 flex items-center justify-center",
+                    estadoFiltro === "activos"
+                      ? "bg-background text-emerald-600 dark:text-emerald-400 shadow-sm border border-border/40"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  Activos
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEstadoFiltro("inactivos")}
+                  className={cn(
+                    "rounded-md px-5 py-1.5 text-xs font-semibold transition-all h-8 flex items-center justify-center",
+                    estadoFiltro === "inactivos"
+                      ? "bg-background text-destructive shadow-sm border border-border/40"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  Inactivos
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-xl border border-border shadow-sm">
-            <div className="overflow-x-auto bg-card/40 backdrop-blur-lg">
-              {isLoading ? (
-                <p className="p-8 text-center text-muted-foreground">Cargando…</p>
-              ) : isError ? (
-                <p className="p-8 text-center text-destructive">Error al cargar.</p>
-              ) : filtered.length === 0 ? (
-                <p className="p-8 text-center text-muted-foreground">No hay estados.</p>
-              ) : (
-                <div className="divide-y divide-border">
-                  {filtered.map((padre) => (
-                    <div key={padre.id}>
-                      <div className={cn("flex items-center gap-3 px-4 py-3 hover:bg-muted/20", !padre.activo && "opacity-50")}>
-                        <button type="button" onClick={() => toggleExpand(padre)} className="text-muted-foreground hover:text-foreground">
-                          {expandedPadre === padre.id ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
-                        </button>
-                        <span className="flex-1 font-medium text-foreground">{padre.nombre}</span>
-                        {estadoBadge(padre.nombre, padre.esPadre)}
-                        <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => openCreate(padre.id)}>
-                          <Plus className="size-3 mr-1" /> Subestado
-                        </Button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="size-4" /></Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => openEdit(padre)}>Editar</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setActivoMut.mutate({ id: padre.id, activo: !padre.activo })}>
-                              {padre.activo ? "Desactivar" : "Activar"}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                      {expandedPadre === padre.id && (
-                        <div className="bg-muted/10 border-t border-border">
-                          {loadingHijos ? (
-                            <p className="px-12 py-4 text-sm text-muted-foreground">Cargando subestados…</p>
-                          ) : !hijosCache[padre.id] || hijosCache[padre.id].length === 0 ? (
-                            <p className="px-12 py-4 text-sm text-muted-foreground">Sin subestados. <button type="button" className="text-primary underline" onClick={() => openCreate(padre.id)}>Crear uno</button></p>
-                          ) : (
-                            hijosCache[padre.id].map((hijo) => (
-                              <div key={hijo.id} className={cn("flex items-center gap-3 px-4 py-2.5 pl-12 hover:bg-muted/10", !hijo.activo && "opacity-50")}>
-                                <span className="flex-1 text-sm text-muted-foreground">{hijo.nombre}</span>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-7 w-7"><MoreHorizontal className="size-3.5" /></Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => openEdit(hijo)}>Editar</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => setActivoMut.mutate({ id: hijo.id, activo: !hijo.activo })}>
-                                      {hijo.activo ? "Desactivar" : "Activar"}
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </div>
-                            ))
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
+          {nombreFilter && (
+            <div className="flex justify-end">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setNombreFilter("")}
+                className="h-8 text-xs text-muted-foreground hover:text-foreground"
+              >
+                <X className="mr-1 h-3.5 w-3.5" /> Limpiar filtros
+              </Button>
             </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-start">
+            {isLoading ? (
+              <p className="col-span-full p-8 text-center text-muted-foreground">Cargando…</p>
+            ) : isError ? (
+              <p className="col-span-full p-8 text-center text-destructive">Error al cargar.</p>
+            ) : filtered.length === 0 ? (
+              <p className="col-span-full p-8 text-center text-muted-foreground">No hay estados.</p>
+            ) : (
+              filtered.map((padre) => (
+                <Card key={padre.id} className={cn("flex flex-col shadow-sm border-border/60 bg-card/40 backdrop-blur-md overflow-hidden transition-all", !padre.activo && "opacity-50 grayscale-[0.5]")}>
+                  <CardHeader className="flex flex-row items-center justify-between pb-3 pt-4 px-4 border-b border-border/40 space-y-0">
+                    <div className="flex flex-col gap-1.5">
+                      <span className="font-semibold text-base text-foreground leading-none">{padre.nombre}</span>
+                      <div>{estadoBadge(padre.nombre, padre.esPadre)}</div>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 -mr-2"><MoreHorizontal className="size-4 text-muted-foreground" /></Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => openEdit(padre)}>Editar</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setActivoMut.mutate({ id: padre.id, activo: !padre.activo })}>
+                          {padre.activo ? "Desactivar" : "Activar"}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </CardHeader>
+                  
+                  <CardContent className="flex-1 p-0 flex flex-col bg-background/30">
+                    <div className="flex items-center justify-between px-4 py-2 bg-muted/10 border-b border-border/30">
+                      <button type="button" onClick={() => toggleExpand(padre)} className="flex items-center text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
+                        {expandedCards[padre.id] ? <ChevronDown className="size-3.5 mr-1" /> : <ChevronRight className="size-3.5 mr-1" />}
+                        {expandedCards[padre.id] ? "Ocultar subestados" : "Ver subestados"}
+                      </button>
+                      <Button size="sm" variant="ghost" className="h-7 text-xs px-2 text-primary hover:text-primary/80 hover:bg-primary/10" onClick={() => openCreate(padre.id)}>
+                        <Plus className="size-3 mr-1" /> Nuevo
+                      </Button>
+                    </div>
+                    
+                    {expandedCards[padre.id] && (
+                      <div className="flex-1 p-2 space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                        {loadingCards[padre.id] ? (
+                          <p className="p-4 text-xs text-center text-muted-foreground">Cargando subestados…</p>
+                        ) : !hijosCache[padre.id] || hijosCache[padre.id].length === 0 ? (
+                          <div className="p-4 text-center">
+                            <p className="text-xs text-muted-foreground mb-1">Sin subestados.</p>
+                            <button type="button" className="text-xs font-medium text-primary hover:underline" onClick={() => openCreate(padre.id)}>Crear el primero</button>
+                          </div>
+                        ) : (
+                          hijosCache[padre.id].map((hijo) => (
+                            <div key={hijo.id} className={cn("group flex items-center justify-between px-3 py-2 rounded-md hover:bg-muted/40 transition-colors", !hijo.activo && "opacity-50")}>
+                              <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">{hijo.nombre}</span>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"><MoreHorizontal className="size-3.5 text-muted-foreground" /></Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => openEdit(hijo)}>Editar</DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => setActivoMut.mutate({ id: hijo.id, activo: !hijo.activo })}>
+                                    {hijo.activo ? "Desactivar" : "Activar"}
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         </div>
       </div>

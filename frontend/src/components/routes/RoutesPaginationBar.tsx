@@ -28,24 +28,7 @@ const RoutesPaginationBar = ({
     </p>
 
     <div className="flex flex-wrap items-center gap-4">
-      {/* Selector de filas por página Shadcn UI */}
-      {onPageSizeChange && (
-        <div className="flex items-center gap-2 animate-fade-in">
-          <span className="text-xs font-semibold text-primary/70">Por página</span>
-          <Select value={String(pageSize)} onValueChange={(v) => onPageSizeChange(Number(v))}>
-            <SelectTrigger className="h-8 w-[4.25rem] text-xs bg-transparent border-2 border-primary/70 text-primary font-bold hover:bg-primary-soft/10 hover:border-primary transition-colors">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {[10, 25, 50, 100].map((n) => (
-                <SelectItem key={n} value={String(n)}>
-                  {n}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
+
 
       <nav className="flex flex-wrap items-center justify-end gap-1" aria-label={`Paginación de ${label}`}>
         {/* << Primera página */}

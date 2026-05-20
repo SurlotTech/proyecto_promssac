@@ -22,6 +22,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import RoutesPaginationBar from "@/components/routes/RoutesPaginationBar";
 import { cn } from "@/lib/utils";
 import { notificacionesApi, type NotificacionEnviadaListResponse, type NotificacionPage } from "@/services/notifications.api";
 import { useEmailStatus } from "@/hooks/useEmailStatus";
@@ -207,28 +208,28 @@ const Notificaciones = () => {
 
           {/* Main Table */}
           <main className="flex-1 space-y-6">
-            <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm overflow-hidden">
+            <div className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm">
               {loading ? (
                 <div className="flex items-center justify-center py-16">
                   <Loader2 className="size-6 animate-spin text-muted-foreground" />
                 </div>
               ) : (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto scrollbar-thin">
                   <table className="w-full text-left text-sm">
                     <thead>
-                      <tr className="border-b border-border bg-muted/30 text-[11px] uppercase tracking-wider text-muted-foreground">
-                        <th className="px-4 py-4 font-semibold">Código de orden</th>
-                        <th className="px-4 py-4 font-semibold">Estado</th>
-                        <th className="px-4 py-4 font-semibold">Asunto</th>
-                        <th className="px-4 py-4 font-semibold">Contacto</th>
-                        <th className="px-4 py-4 font-semibold">Fecha de envío</th>
-                        <th className="px-4 py-4 font-semibold w-10"></th>
+                      <tr className="border-b border-border bg-surface-muted text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        <th className="px-5 py-3.5">Código de orden</th>
+                        <th className="px-5 py-3.5">Estado</th>
+                        <th className="px-5 py-3.5">Asunto</th>
+                        <th className="px-5 py-3.5">Contacto</th>
+                        <th className="px-5 py-3.5">Fecha de envío</th>
+                        <th className="px-5 py-3.5 text-right"></th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
                       {notificaciones.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">
+                          <td colSpan={6} className="px-5 py-12 text-center text-muted-foreground">
                             No hay notificaciones enviadas aún.
                           </td>
                         </tr>
@@ -236,13 +237,13 @@ const Notificaciones = () => {
                         notificaciones.map((notif) => (
                           <tr
                             key={notif.id}
-                            className="group hover:bg-muted/20 transition-colors"
+                            className="group transition-colors hover:bg-surface-muted"
                           >
-                            <td className="px-4 py-4">
+                            <td className="px-5 py-4">
                               {notif.ordenCodigo ? (
                                 <Link
                                   to={`/ordenes/detalle/${notif.ordenCodigo}`}
-                                  className="font-medium text-primary hover:underline"
+                                  className="font-medium text-foreground hover:text-primary transition-colors underline-offset-4 group-hover:underline"
                                 >
                                   {notif.ordenCodigo}
                                 </Link>
@@ -250,10 +251,10 @@ const Notificaciones = () => {
                                 <span className="text-muted-foreground">—</span>
                               )}
                             </td>
-                            <td className="px-4 py-4">
+                            <td className="px-5 py-4">
                               <span
                                 className={cn(
-                                  "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border",
+                                  "inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide border",
                                   notif.estado === "ENVIADO" &&
                                     "bg-success/10 text-success border-success/20",
                                   notif.estado === "FALLIDO" &&
@@ -263,19 +264,19 @@ const Notificaciones = () => {
                                 {notif.estado}
                               </span>
                             </td>
-                            <td className="px-4 py-4 text-muted-foreground">
+                            <td className="px-5 py-4 text-foreground">
                               {notif.asunto}
                             </td>
-                            <td className="px-4 py-4 text-muted-foreground">
+                            <td className="px-5 py-4 text-muted-foreground">
                               {notif.destinatarioEmail}
                             </td>
-                            <td className="px-4 py-4 text-muted-foreground">
+                            <td className="px-5 py-4 text-muted-foreground">
                               {formatFecha(notif.enviadoEn)}
                             </td>
-                            <td className="px-4 py-4 text-right">
+                            <td className="px-5 py-4 text-right">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:bg-muted hover:text-foreground">
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground">
                                     <MoreHorizontal className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
@@ -293,20 +294,16 @@ const Notificaciones = () => {
                   </table>
                 </div>
               )}
-              <div className="flex items-center justify-between border-t border-border p-4 bg-muted/10">
-                <p className="text-xs text-muted-foreground">
-                  Página {page + 1} de {totalPages || 1} — {totalEnviadas ?? 0} notificaciones
-                </p>
-                <div className="flex gap-1">
-                  <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}>
-                    Anterior
-                  </Button>
-                  <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>
-                    Siguiente
-                  </Button>
-                </div>
-              </div>
             </div>
+
+            <RoutesPaginationBar
+              currentPage={page + 1}
+              totalPages={totalPages || 1}
+              totalFiltered={totalEnviadas ?? 0}
+              pageSize={PAGE_SIZE}
+              onPageChange={(p) => setPage(p - 1)}
+              label="notificaciones"
+            />
           </main>
         </div>
       </div>

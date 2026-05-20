@@ -245,7 +245,7 @@ const NuevoUsuarioMovil = () => {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-transparent animate-fade-in">
-      <header className="sticky top-0 z-10 flex flex-col gap-4 border-b border-border bg-card/95 px-4 py-4 backdrop-blur supports-[backdrop-filter]:bg-card/80 sm:flex-row sm:items-start sm:justify-between sm:px-6">
+      <header className="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-6">
         <div className="min-w-0 flex-1">
           <nav className="mb-2 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-sm text-muted-foreground">
             <button type="button" className="hover:text-foreground" onClick={goToList}>
@@ -280,7 +280,7 @@ const NuevoUsuarioMovil = () => {
       </header>
 
       <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
-        <div className="mx-auto max-w-6xl space-y-6 pb-28">
+        <div className="mx-auto max-w-6xl space-y-6 pb-8">
           <section className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm">
             <FormSectionTitle>Usuario</FormSectionTitle>
             <div className="grid grid-cols-1 gap-6 p-5 lg:grid-cols-[1fr_280px] lg:items-start">
@@ -594,21 +594,18 @@ const NuevoUsuarioMovil = () => {
               </div>
             </div>
           </section>
+          <div className="mt-6 flex justify-center">
+            <Button
+              size="lg"
+              className="min-w-[200px] rounded-full px-10 shadow-glow"
+              onClick={() => void handleSubmit()}
+              disabled={submitting}
+            >
+              {submitting ? (isEdit ? "Guardando…" : "Creando…") : isEdit ? "Guardar cambios" : "Crear usuario"}
+            </Button>
+          </div>
         </div>
       </div>
-
-      <footer className="sticky bottom-0 border-t border-border bg-card/95 px-4 py-4 backdrop-blur supports-[backdrop-filter]:bg-card/90 sm:px-6">
-        <div className="mx-auto flex max-w-6xl justify-center">
-          <Button
-            size="lg"
-            className="min-w-[200px] rounded-full px-10 shadow-glow"
-            onClick={() => void handleSubmit()}
-            disabled={submitting}
-          >
-            {submitting ? (isEdit ? "Guardando…" : "Creando…") : isEdit ? "Guardar cambios" : "Crear usuario"}
-          </Button>
-        </div>
-      </footer>
     </div>
   );
 };

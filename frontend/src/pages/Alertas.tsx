@@ -26,6 +26,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import RoutesPaginationBar from "@/components/routes/RoutesPaginationBar";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 const Alertas = () => {
@@ -197,40 +206,28 @@ const Alertas = () => {
             >
               <TabsContent
                 value={activeTab}
-                className="mt-0 focus-visible:outline-none focus-visible:ring-0"
+                className="mt-0 space-y-4 focus-visible:outline-none focus-visible:ring-0"
               >
                 <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm overflow-hidden">
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                      <thead>
-                        <tr className="border-b border-border bg-muted/30">
-                          <th className="px-4 py-4 font-semibold text-muted-foreground">
-                            Orden
-                          </th>
-                          <th className="px-4 py-4 font-semibold text-muted-foreground">
-                            Vehículo
-                          </th>
-                          <th className="px-4 py-4 font-semibold text-muted-foreground">
-                            Fecha / Hora
-                          </th>
-                          <th className="px-4 py-4 font-semibold text-muted-foreground text-center">
-                            Transición de Estado
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border">
+                    <Table>
+                      <TableHeader className="bg-muted/40">
+                        <TableRow className="hover:bg-transparent">
+                          <TableHead className="font-semibold text-foreground uppercase text-xs">Orden</TableHead>
+                          <TableHead className="font-semibold text-foreground uppercase text-xs">Vehículo</TableHead>
+                          <TableHead className="font-semibold text-foreground uppercase text-xs">Fecha / Hora</TableHead>
+                          <TableHead className="font-semibold text-foreground uppercase text-xs text-center">Transición de Estado</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
                         {isLoading ? (
-                          <tr>
-                            <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                              Cargando órdenes...
-                            </td>
-                          </tr>
+                          <TableRow>
+                            <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">Cargando órdenes...</TableCell>
+                          </TableRow>
                         ) : currentOrders.length === 0 ? (
-                          <tr>
-                            <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                              No hay órdenes registradas.
-                            </td>
-                          </tr>
+                          <TableRow>
+                            <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">No hay órdenes registradas.</TableCell>
+                          </TableRow>
                         ) : (
                           currentOrders.map((order) => {
                             const statusInfo = orderStatusMeta[order.status] || {
@@ -238,22 +235,22 @@ const Alertas = () => {
                               className: "bg-muted text-muted-foreground",
                             };
                             return (
-                              <tr
+                              <TableRow
                                 key={order.id}
-                                className="group hover:bg-muted/20 transition-colors"
+                                className="hover:bg-muted/30"
                               >
-                                <td className="px-4 py-4">
+                                <TableCell>
                                   <Link
                                     to={`/ordenes/detalle/${order.id}`}
                                     className="font-bold text-primary hover:underline"
                                   >
                                     #{order.id}
                                   </Link>
-                                </td>
-                                <td className="px-4 py-4 font-medium">
+                                </TableCell>
+                                <TableCell className="font-medium">
                                   {order.vehiclePlate || "Sin vehículo"}
-                                </td>
-                                <td className="px-4 py-4">
+                                </TableCell>
+                                <TableCell>
                                   <div className="flex flex-col">
                                     <span className="flex items-center gap-1.5 text-foreground">
                                       <Calendar className="size-3 text-muted-foreground" />
@@ -269,8 +266,8 @@ const Alertas = () => {
                                       </span>
                                     )}
                                   </div>
-                                </td>
-                                <td className="px-4 py-4">
+                                </TableCell>
+                                <TableCell>
                                   <div className="flex items-center justify-center gap-3">
                                     <div className="flex items-center gap-1.5 rounded-full bg-muted/20 px-2.5 py-1 text-[11px] font-medium text-muted-foreground border border-border/50">
                                       Pendiente
@@ -289,46 +286,23 @@ const Alertas = () => {
                                       {statusInfo.label}
                                     </div>
                                   </div>
-                                </td>
-                              </tr>
+                                </TableCell>
+                              </TableRow>
                             );
                           })
                         )}
-                      </tbody>
-                    </table>
-                  </div>
-                  <div className="flex items-center justify-between border-t border-border p-4 bg-muted/10">
-                    <p className="text-xs text-muted-foreground">
-                      Mostrando{" "}
-                      <span className="font-semibold text-foreground">
-                        {totalItems > 0 ? startIndex + 1 : 0} - {Math.min(startIndex + itemsPerPage, totalItems)}
-                      </span>{" "}
-                      de{" "}
-                      <span className="font-semibold text-foreground">
-                        {totalItems}
-                      </span>{" "}
-                      órdenes
-                    </p>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={currentPage === 1 || isLoading}
-                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                      >
-                        Anterior
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={currentPage === totalPages || totalPages === 0 || isLoading}
-                        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                      >
-                        Siguiente
-                      </Button>
-                    </div>
+                      </TableBody>
+                    </Table>
                   </div>
                 </div>
+                <RoutesPaginationBar
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalFiltered={totalItems}
+                  pageSize={itemsPerPage}
+                  onPageChange={setCurrentPage}
+                  label="alertas"
+                />
               </TabsContent>
             </Tabs>
           </main>

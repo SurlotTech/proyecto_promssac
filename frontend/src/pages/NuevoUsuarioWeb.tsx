@@ -33,7 +33,7 @@ const NuevoUsuarioWeb = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: roleOptions = [] } = useWebRoleOptionsQuery();
-  const [permissionsExpanded, setPermissionsExpanded] = useState(false);
+  const [permissionsExpanded, setPermissionsExpanded] = useState(true);
   const [permissionType, setPermissionType] = useState<"rol" | "personalizado">("rol");
   const [selectedRole, setSelectedRole] = useState("");
   const [fullName, setFullName] = useState("");
@@ -113,7 +113,7 @@ const NuevoUsuarioWeb = () => {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-transparent animate-fade-in">
-      <header className="sticky top-0 z-10 flex flex-col gap-4 border-b border-border bg-card/95 px-4 py-4 backdrop-blur supports-[backdrop-filter]:bg-card/80 sm:flex-row sm:items-start sm:justify-between sm:px-6">
+      <header className="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-6">
         <div className="min-w-0 flex-1">
           <nav className="mb-2 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-sm text-muted-foreground">
             <button type="button" className="hover:text-foreground" onClick={() => navigate("/usuarios/web")}>
