@@ -9,7 +9,7 @@ import {
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { cn } from "@/lib/utils";
-import { PROMSSAC_MAP_STYLES, type PromssacMapStyleKey } from "@/lib/promssacMapStyles";
+import { PROMSSAC_MAP_STYLES, type PromssacMapStyleKey, add3dBuildingsToMap } from "@/lib/promssacMapStyles";
 
 export type PromssacMapRef = {
   getMap: () => maplibregl.Map | null;
@@ -113,47 +113,8 @@ export const PromssacMap = forwardRef<PromssacMapRef, PromssacMapProps>(function
 
     const handleStyleLoad = () => {
       if (styleKey === "liberty") {
-        const layers = map.getStyle()?.layers;
-        const labelLayerId = layers?.find(
-          (layer) => layer.type === "symbol" && layer.layout && layer.layout["text-field"],
-        )?.id;
-
-        if (!map.getLayer("3d-buildings") && map.getSource("openmaptiles")) {
-          map.addLayer(
-            {
-              id: "3d-buildings",
-              source: "openmaptiles",
-              "source-layer": "building",
-              type: "fill-extrusion",
-              minzoom: 14,
-              paint: {
-                "fill-extrusion-color": "#aaa",
-                "fill-extrusion-height": [
-                  "interpolate",
-                  ["linear"],
-                  ["zoom"],
-                  14,
-                  0,
-                  14.05,
-                  ["get", "render_height"],
-                ],
-                "fill-extrusion-base": [
-                  "interpolate",
-                  ["linear"],
-                  ["zoom"],
-                  14,
-                  0,
-                  14.05,
-                  ["get", "render_min_height"],
-                ],
-                "fill-extrusion-opacity": 0.6,
-              },
-            },
-            labelLayerId,
-          );
-        }
+        add3dBuildingsToMap(map);
       }
-      
       map.easeTo({ pitch: styleKey === "liberty" ? 60 : 0, duration: 500 });
     };
 

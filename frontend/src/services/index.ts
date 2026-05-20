@@ -27,3 +27,5 @@ export { routesApi, type RouteWriteBody } from "./routes.api";
 export { ordersApi } from "./orders.api";
 export { fleetApi } from "./fleet.api";
 export { clientsApi } from "./clients.api";
+export { gpsApi } from "./gps.api";
+export type { UbicacionUsuario } from "./gps.api";

@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import Footer from "./Footer";
+import GpsTracker from "@/components/gps/GpsTracker";
 import bgImage from "../../assets/bg.png";
 
 const AppLayout = () => {
@@ -10,7 +11,9 @@ const AppLayout = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
-    <div className="flex h-dvh max-h-dvh min-h-0 w-full overflow-hidden bg-[#212121]">
+    <>
+      <GpsTracker />
+      <div className="flex h-dvh max-h-dvh min-h-0 w-full overflow-hidden bg-[#212121]">
       <Sidebar
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
@@ -30,6 +33,7 @@ const AppLayout = () => {
         </main>
       </div>
     </div>
+    </>
   );
 };
 
