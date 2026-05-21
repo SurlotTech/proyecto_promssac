@@ -105,9 +105,16 @@ const FleetDeviceList = ({
                       </span>
                     </div>
 
-                    <p className="mt-2 text-[11px] tabular-nums text-muted-foreground">
-                      {formatFleetDateTime(d.lastSeenIso, "EEEE d MMM yyyy HH:mm:ss")}
-                    </p>
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <span className="text-[11px] tabular-nums text-muted-foreground">
+                        {formatFleetDateTime(d.lastSeenIso, "EEEE d MMM yyyy HH:mm:ss")}
+                      </span>
+                      {d.speedKmh > 0 && (
+                        <span className="ml-auto text-[11px] font-semibold text-primary tabular-nums">
+                          {d.speedKmh.toFixed(1)} km/h
+                        </span>
+                      )}
+                    </div>
                   </button>
                 </li>
               ))}

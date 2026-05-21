@@ -19,9 +19,13 @@ function createFlotaMarkerEl() {
 }
 
 function buildPopupHTML(u: UbicacionUsuario) {
+  const velocidad = u.speedKmh != null && u.speedKmh > 0
+    ? `<p style="color:#2563eb;font-size:13px;font-weight:600;margin-top:2px">${u.speedKmh.toFixed(1)} km/h</p>`
+    : `<p style="color:#6b7280;font-size:12px;margin-top:2px">— km/h</p>`;
   return `<div style="font-size:14px">
     <p style="font-weight:600">${u.userName}</p>
     <p style="color:#6b7280;font-size:12px">Lat: ${u.lat.toFixed(6)} · Lng: ${u.lng.toFixed(6)}</p>
+    ${velocidad}
     <p style="color:#6b7280;font-size:12px">${u.lastSeenIso}</p>
   </div>`;
 }
@@ -223,6 +227,11 @@ const FlotaLiveMap = ({
                     </p>
                     <p className="text-[10px] text-muted-foreground">
                       {tiempoRelativo(u.lastSeenIso)}
+                      {u.speedKmh != null && u.speedKmh > 0 ? (
+                        <span className="ml-1.5 text-primary font-medium">{u.speedKmh.toFixed(1)} km/h</span>
+                      ) : (
+                        <span className="ml-1.5">— km/h</span>
+                      )}
                     </p>
                   </div>
                 </button>

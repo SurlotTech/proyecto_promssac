@@ -6,6 +6,7 @@ export interface UbicacionUsuario {
   lat: number;
   lng: number;
   lastSeenIso: string;
+  speedKmh?: number;
 }
 
 export const gpsApi = {
