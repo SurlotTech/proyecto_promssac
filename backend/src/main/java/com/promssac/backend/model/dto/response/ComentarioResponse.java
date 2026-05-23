@@ -11,6 +11,8 @@ public class ComentarioResponse {
     private String id;
     private String texto;
     private String archivoUrl;
+    private Double latitud;
+    private Double longitud;
     private String creadoPor;
     private String creadoEn;
 }

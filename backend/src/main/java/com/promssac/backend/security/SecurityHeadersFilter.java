@@ -24,7 +24,7 @@ public class SecurityHeadersFilter extends OncePerRequestFilter {
         response.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
         response.setHeader("X-Permitted-Cross-Domain-Policies", "none");
         response.setHeader("Permissions-Policy",
-                "camera=(), microphone=(), geolocation=(), payment=()");
+                "camera=(), microphone=(), payment=()");
         response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
 
         filterChain.doFilter(request, response);

@@ -60,6 +60,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ordersApi } from "@/services/orders.api";
 import { comentariosApi, type ComentarioDto } from "@/services/comentarios.api";
+import piexif from "piexifjs";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { customFieldLabels, type CustomFieldKey } from "@/lib/completarOrden/constants";
@@ -69,6 +70,62 @@ const EMPTY = "—";
 function textoSeguro(val: string | null | undefined): string {
   const t = val?.trim();
   return t ? t : EMPTY;
+}
+
+function binaryStringToFile(binary: string, name: string): File {
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new File([bytes], name, { type: "image/jpeg" });
+}
+
+async function injectarGpsEnExif(file: File, lat: number, lng: number): Promise<File> {
+  if (file.type !== "image/jpeg") return file;
+  const buf = await file.arrayBuffer();
+  let binary = "";
+  for (let i = 0; i < buf.byteLength; i++) binary += String.fromCharCode(new Uint8Array(buf)[i]);
+  const exifDict = piexif.load(binary);
+  exifDict.GPS = exifDict.GPS || {};
+  exifDict.GPS[piexif.GPSIFD.GPSLatitudeRef] = lat >= 0 ? "N" : "S";
+  exifDict.GPS[piexif.GPSIFD.GPSLatitude] = piexif.GPSHelper.degToDmsRational(Math.abs(lat));
+  exifDict.GPS[piexif.GPSIFD.GPSLongitudeRef] = lng >= 0 ? "E" : "W";
+  exifDict.GPS[piexif.GPSIFD.GPSLongitude] = piexif.GPSHelper.degToDmsRational(Math.abs(lng));
+  return binaryStringToFile(piexif.insert(piexif.dump(exifDict), binary), file.name);
+}
+
+async function overlayLocationOnImage(file: File, lat: number, lng: number): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(img.src);
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0);
+
+      const barHeight = Math.max(36, Math.round(img.height * 0.055));
+      const fontSize = Math.max(13, Math.round(img.width * 0.032));
+      const pad = Math.max(10, Math.round(img.width * 0.025));
+
+      ctx.fillStyle = "rgba(0,0,0,0.55)";
+      ctx.fillRect(0, img.height - barHeight, img.width, barHeight);
+
+      ctx.font = `bold ${fontSize}px system-ui, sans-serif`;
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillText(`📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}`, pad, img.height - barHeight / 2);
+
+      canvas.toBlob(async (blob) => {
+        if (!blob) { reject(new Error("Error al generar la imagen")); return; }
+        let result = new File([blob], file.name, { type: "image/jpeg" });
+        try { result = await injectarGpsEnExif(result, lat, lng); } catch { /* ok */ }
+        resolve(result);
+      }, "image/jpeg", 0.92);
+    };
+    img.onerror = () => { URL.revokeObjectURL(img.src); reject(new Error("Error al cargar la imagen")); };
+    img.src = URL.createObjectURL(file);
+  });
 }
 
 function formatIsoCreacion(iso: string | undefined): string | null {
@@ -346,7 +403,18 @@ const DetalleOrden = () => {
   const [comentarioTexto, setComentarioTexto] = useState("");
   const [comentarioArchivo, setComentarioArchivo] = useState<File | null>(null);
   const [comentarioGuardando, setComentarioGuardando] = useState(false);
+  const [comentarioUbicacion, setComentarioUbicacion] = useState<{lat: number; lng: number} | null>(null);
+  const [archivoModalOpen, setArchivoModalOpen] = useState(false);
+  const [archivoModalUrl, setArchivoModalUrl] = useState<string | null>(null);
+  const [archivoModalTipo, setArchivoModalTipo] = useState("");
+  const [archivoModalMeta, setArchivoModalMeta] = useState<{latitud: number | null; longitud: number | null; creadoPor: string; creadoEn: string} | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [manualUbicacionOpen, setManualUbicacionOpen] = useState(false);
+  const [manualLat, setManualLat] = useState("");
+  const [manualLng, setManualLng] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const ubicacionRef = useRef<{lat: number; lng: number} | null>(null);
+  const pendingFileRef = useRef<File | null>(null);
 
   useEffect(() => {
     if (comentariosOpen && order?.id) {
@@ -390,14 +458,129 @@ const DetalleOrden = () => {
     }
   };
 
+  const handleAdjuntarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleObtenerUbicacion = () => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        ubicacionRef.current = loc;
+        setComentarioUbicacion(loc);
+        toast.success("📍 Ubicación capturada");
+      },
+      () => {
+        toast.error("📍 No se pudo obtener ubicación. Puedes ingresarla manualmente.");
+        setManualUbicacionOpen(true);
+      },
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 0 },
+    );
+  };
+
+  const handleAplicarUbicacionManual = () => {
+    const lat = parseFloat(manualLat);
+    const lng = parseFloat(manualLng);
+    if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      toast.error("Coordenadas inválidas. Usa formato decimal (ej: -16.3988).");
+      return;
+    }
+    const loc = { lat, lng };
+    ubicacionRef.current = loc;
+    setComentarioUbicacion(loc);
+    setManualUbicacionOpen(false);
+    toast.success("📍 Ubicación ingresada manualmente");
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(file.type.startsWith("image/") ? URL.createObjectURL(file) : null);
+    setComentarioArchivo(file);
+    pendingFileRef.current = null;
+  };
+
+  const verArchivo = async (url: string, comentario: ComentarioDto) => {
+    try {
+      const token = localStorage.getItem("auth_token");
+      const res = await fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+      if (!res.ok) throw new Error("Error al cargar archivo");
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      setArchivoModalUrl(blobUrl);
+      setArchivoModalTipo(blob.type);
+      setArchivoModalMeta({ latitud: comentario.latitud, longitud: comentario.longitud, creadoPor: comentario.creadoPor, creadoEn: comentario.creadoEn });
+      setArchivoModalOpen(true);
+    } catch {
+      toast.error("No se pudo cargar el archivo.");
+    }
+  };
+
+  const cerrarArchivoModal = () => {
+    setArchivoModalOpen(false);
+    if (archivoModalUrl) URL.revokeObjectURL(archivoModalUrl);
+    setArchivoModalUrl(null);
+    setArchivoModalTipo("");
+    setArchivoModalMeta(null);
+  };
+
+  const capturarUbicacion = (timeout = 5000): Promise<{lat: number; lng: number} | null> => {
+    return new Promise((resolve) => {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => resolve(null),
+        { enableHighAccuracy: false, timeout, maximumAge: 15000 },
+      );
+    });
+  };
+
   const handleGuardarComentario = async () => {
     if (!order?.id || !comentarioTexto.trim()) return;
     setComentarioGuardando(true);
+
+    let fileParaSubir = comentarioArchivo;
+    let lat = comentarioUbicacion?.lat;
+    let lng = comentarioUbicacion?.lng;
+
+    if (fileParaSubir && lat == null) {
+      toast.loading("Obteniendo ubicación…", { id: "gps" });
+      const loc = await capturarUbicacion(6000);
+      if (loc) {
+        lat = loc.lat;
+        lng = loc.lng;
+        ubicacionRef.current = loc;
+        setComentarioUbicacion(loc);
+        toast.success("📍 Ubicación capturada", { id: "gps" });
+      } else {
+        toast.error("📍 No se pudo obtener ubicación (GPS no disponible)", { id: "gps" });
+      }
+    }
+
+    if (fileParaSubir && lat != null && fileParaSubir.type.startsWith("image/")) {
+      try {
+        fileParaSubir = await overlayLocationOnImage(fileParaSubir, lat, lng);
+      } catch { /* fallback */ }
+    }
+
     try {
-      const nuevo = await comentariosApi.create(order.id, comentarioTexto, comentarioArchivo || undefined);
+      const nuevo = await comentariosApi.create(
+        order.id,
+        comentarioTexto,
+        fileParaSubir || undefined,
+        lat,
+        lng,
+      );
       setComentarios((prev) => [...prev, nuevo]);
       setComentarioTexto("");
       setComentarioArchivo(null);
+      setComentarioUbicacion(null);
+      ubicacionRef.current = null;
+      pendingFileRef.current = null;
+      setPreviewUrl(null);
+      setManualUbicacionOpen(false);
+      setManualLat("");
+      setManualLng("");
       if (fileInputRef.current) fileInputRef.current.value = "";
       toast.success("Comentario guardado.");
     } catch (e) {
@@ -750,13 +933,29 @@ const DetalleOrden = () => {
                         {comentarios.map((c) => (
                           <div key={c.id} className="rounded-lg border border-border/60 bg-muted/20 p-3 text-sm">
                             <p className="text-foreground whitespace-pre-wrap">{c.texto}</p>
-                            {c.archivoUrl && (
-                              <a href={c.archivoUrl} target="_blank" rel="noopener noreferrer"
-                                className="mt-1 inline-block text-xs text-primary underline">
-                                Ver archivo adjunto
-                              </a>
-                            )}
-                            <p className="mt-1 text-xs text-muted-foreground">
+                            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                              {c.latitud != null && c.longitud != null && (
+                                <span className="inline-flex items-center gap-1 text-muted-foreground">
+                                  <MapPin className="size-3 text-primary" />
+                                  {c.latitud.toFixed(6)}, {c.longitud.toFixed(6)}
+                                  <a
+                                    href={`https://www.google.com/maps?q=${c.latitud},${c.longitud}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="ml-1 font-medium text-primary hover:underline"
+                                  >
+                                    Maps
+                                  </a>
+                                </span>
+                              )}
+                              {c.archivoUrl && (
+                                <button onClick={() => void verArchivo(c.archivoUrl!, c)}
+                                  className="font-medium text-primary hover:underline cursor-pointer">
+                                  Ver foto
+                                </button>
+                              )}
+                            </div>
+                            <p className="mt-1.5 text-[11px] text-muted-foreground">
                               {c.creadoPor} · {c.creadoEn}
                             </p>
                           </div>
@@ -769,23 +968,44 @@ const DetalleOrden = () => {
                       onChange={(e) => setComentarioTexto(e.target.value)}
                       className="min-h-[100px] resize-none bg-white border-slate-200 text-sm focus-visible:ring-1 focus-visible:ring-ring rounded-xl placeholder:text-muted-foreground"
                     />
+                    {previewUrl && (
+                      <div className="relative overflow-hidden rounded-lg border border-border/60">
+                        <img src={previewUrl} alt="Preview" className="max-h-48 w-full object-contain bg-black/5" />
+                      </div>
+                    )}
                     <div className="flex gap-2 pt-1">
                       <input
                         ref={fileInputRef}
                         type="file"
                         accept="image/*,.pdf"
                         className="hidden"
-                        onChange={(e) => setComentarioArchivo(e.target.files?.[0] || null)}
+                        onChange={(e) => void handleFileChange(e)}
                       />
                       <Button
                         variant="outline"
                         size="sm"
                         className="flex-1"
                         type="button"
-                        onClick={() => fileInputRef.current?.click()}
+                        onClick={handleAdjuntarClick}
                       >
                         {comentarioArchivo ? comentarioArchivo.name.slice(0, 20) : "Adjuntar"}
                       </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        type="button"
+                        onClick={handleObtenerUbicacion}
+                        className="px-2.5"
+                        title="Obtener ubicación"
+                      >
+                        <MapPin className="size-4 shrink-0" />
+                      </Button>
+                      {comentarioUbicacion && (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-green-50 px-2 py-1 text-[11px] text-green-700 border border-green-200 whitespace-nowrap">
+                          <MapPin className="size-3" />
+                          OK
+                        </span>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"
@@ -797,6 +1017,20 @@ const DetalleOrden = () => {
                         {comentarioGuardando ? "Guardando…" : "Guardar comentario"}
                       </Button>
                     </div>
+                    {manualUbicacionOpen && (
+                      <div className="flex items-center gap-2 pt-1">
+                        <input value={manualLat} onChange={(e) => setManualLat(e.target.value)}
+                          placeholder="Latitud (ej: -16.3988)"
+                          className="flex-1 h-8 rounded-md border border-slate-200 bg-white px-2 text-xs outline-none focus:border-primary" />
+                        <input value={manualLng} onChange={(e) => setManualLng(e.target.value)}
+                          placeholder="Longitud (ej: -71.5350)"
+                          className="flex-1 h-8 rounded-md border border-slate-200 bg-white px-2 text-xs outline-none focus:border-primary" />
+                        <Button variant="default" size="sm" type="button" onClick={handleAplicarUbicacionManual}
+                          className="h-8 text-xs px-3 whitespace-nowrap">
+                          Aplicar
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </CollapsibleContent>
               </section>
@@ -808,6 +1042,43 @@ const DetalleOrden = () => {
           <OrderTimeline order={order} />
         </main>
       </div>
+
+      <Dialog open={archivoModalOpen} onOpenChange={(open) => { if (!open) cerrarArchivoModal(); }}>
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto p-0 border-none shadow-2xl">
+          <DialogHeader className="border-b border-border bg-white p-4 sticky top-0 z-10 rounded-t-lg">
+            <DialogTitle className="text-base">Foto adjunta</DialogTitle>
+          </DialogHeader>
+          <div className="p-4 space-y-3">
+            {archivoModalMeta && (
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground bg-muted/30 rounded-lg px-3 py-2">
+                {archivoModalMeta.latitud != null && archivoModalMeta.longitud != null && (
+                  <span className="inline-flex items-center gap-1">
+                    <MapPin className="size-3 text-primary" />
+                    {archivoModalMeta.latitud.toFixed(6)}, {archivoModalMeta.longitud.toFixed(6)}
+                    <a href={`https://www.google.com/maps?q=${archivoModalMeta.latitud},${archivoModalMeta.longitud}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className="ml-1 font-medium text-primary hover:underline">
+                      Maps
+                    </a>
+                  </span>
+                )}
+                <span>{archivoModalMeta.creadoPor}</span>
+                <span>{archivoModalMeta.creadoEn}</span>
+              </div>
+            )}
+            {archivoModalTipo.startsWith("image/") ? (
+              <img src={archivoModalUrl!} alt="Foto adjunta" className="w-full rounded-lg" />
+            ) : archivoModalTipo === "application/pdf" ? (
+              <iframe src={archivoModalUrl!} className="w-full h-[70vh] rounded-lg" title="PDF" />
+            ) : (
+              <a href={archivoModalUrl!} download
+                className="inline-block text-primary underline">
+                Descargar archivo
+              </a>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={modifyStatusOpen} onOpenChange={setModifyStatusOpen}>
         <DialogContent className="overflow-hidden border-none p-0 shadow-2xl sm:max-w-lg">

@@ -39,6 +39,12 @@ public class ComentarioOrden {
     @Column(name = "creado_por", nullable = false, length = 200)
     private String creadoPor;
 
+    @Column(name = "latitud")
+    private Double latitud;
+
+    @Column(name = "longitud")
+    private Double longitud;
+
     @Column(name = "creado_en", nullable = false, updatable = false)
     private Instant creadoEn = Instant.now();
 }

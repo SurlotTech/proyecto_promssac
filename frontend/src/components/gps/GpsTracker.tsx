@@ -31,6 +31,18 @@ const GpsTracker = () => {
       }
     };
 
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        lastCoordsRef.current = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        };
+        enviar();
+      },
+      () => {},
+      { enableHighAccuracy: false, timeout: 5000, maximumAge: 30000 },
+    );
+
     watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
         eliminadoRef.current = false;

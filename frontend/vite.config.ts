@@ -10,7 +10,7 @@ export default defineConfig({
   server: {
     host: "::",
     port: 3030,
-    allowedHosts: ['.ngrok-free.dev', '.ngrok-free.app'],
+    allowedHosts: ['.ngrok-free.dev', '.ngrok-free.app', '.trycloudflare.com'],
     hmr: {
       overlay: false,
     },

@@ -55,7 +55,9 @@ public class ComentarioController {
     public ResponseEntity<ComentarioResponse> agregar(
             @PathVariable String numeroOrden,
             @RequestParam("texto") String texto,
-            @RequestParam(value = "archivo", required = false) MultipartFile archivo) throws IOException {
+            @RequestParam(value = "archivo", required = false) MultipartFile archivo,
+            @RequestParam(value = "latitud", required = false) Double latitud,
+            @RequestParam(value = "longitud", required = false) Double longitud) throws IOException {
 
         Orden orden = ordenRepository.findByNumeroOrden(numeroOrden.trim())
                 .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
@@ -64,6 +66,8 @@ public class ComentarioController {
         ComentarioOrden c = new ComentarioOrden();
         c.setOrden(orden);
         c.setTexto(texto.trim());
+        c.setLatitud(latitud);
+        c.setLongitud(longitud);
         c.setCreadoEn(Instant.now());
 
         var auth = SecurityContextHolder.getContext().getAuthentication();
@@ -90,6 +94,8 @@ public class ComentarioController {
         r.setId(c.getId().toString());
         r.setTexto(c.getTexto());
         r.setArchivoUrl(c.getArchivoUrl());
+        r.setLatitud(c.getLatitud());
+        r.setLongitud(c.getLongitud());
         r.setCreadoPor(c.getCreadoPor() != null ? c.getCreadoPor() : "");
         r.setCreadoEn(c.getCreadoEn().atZone(LIMA).format(UI_FORMAT));
         return r;
