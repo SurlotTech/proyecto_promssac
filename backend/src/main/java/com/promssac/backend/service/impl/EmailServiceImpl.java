@@ -1,21 +1,20 @@
 package com.promssac.backend.service.impl;
 
-import com.mailersend.sdk.MailerSend;
-import com.mailersend.sdk.MailerSendResponse;
-import com.mailersend.sdk.emails.Email;
-import com.mailersend.sdk.exceptions.MailerSendException;
-import com.promssac.backend.config.MailerSendProperties;
+import com.resend.Resend;
+import com.resend.core.exception.ResendException;
+import com.resend.services.emails.model.CreateEmailOptions;
+import com.resend.services.emails.model.CreateEmailResponse;
+import com.promssac.backend.config.ResendProperties;
 import com.promssac.backend.exception.BusinessException;
 import com.promssac.backend.exception.ResourceNotFoundException;
-import com.promssac.backend.integration.mailersend.EmailTemplateRenderer;
+import com.promssac.backend.integration.email.EmailTemplateRenderer;
 import com.promssac.backend.model.dto.request.NotificationSendRequest;
 import com.promssac.backend.model.dto.response.NotificationSendResponse;
 import com.promssac.backend.model.dto.response.NotificacionEnviadaListResponse;
 import com.promssac.backend.model.entity.NotificacionEnviada;
 import com.promssac.backend.repository.NotificacionEnviadaRepository;
 import com.promssac.backend.repository.NotificacionEnviadaRepository.NotificacionEnviadaResumen;
-import com.promssac.backend.service.MailerSendService;
-import jakarta.annotation.PostConstruct;
+import com.promssac.backend.service.EmailService;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -31,37 +30,27 @@ import org.springframework.util.StringUtils;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class MailerSendServiceImpl implements MailerSendService {
+public class EmailServiceImpl implements EmailService {
 
-    private final MailerSendProperties properties;
+    private static final String ESTADO_ENVIADO = "Enviado";
+    private static final String ESTADO_FALLIDO = "Fallido";
+
+    private final ResendProperties properties;
     private final EmailTemplateRenderer templateRenderer;
     private final NotificacionEnviadaRepository notificacionRepo;
     private final TransactionTemplate transactionTemplate;
 
-    @PostConstruct
-    void configurarTransactionTemplate() {
-        transactionTemplate.setPropagationBehavior(Propagation.REQUIRES_NEW.value());
-    }
-
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public NotificationSendResponse enviar(NotificationSendRequest request) {
-        validarConfiguracion();
-        Email email = armarEmail(request);
-        email.addRecipient(
-                StringUtils.hasText(request.getDestinatarioNombre()) ? request.getDestinatarioNombre() : "",
-                request.getDestinatarioEmail());
-        return despacharYRegistrar(email, request, request.getDestinatarioEmail());
+        return enviarATodos(request, List.of(request.getDestinatarioEmail()));
     }
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public NotificationSendResponse enviarATodos(NotificationSendRequest request, List<String> destinatarios) {
         validarConfiguracion();
-        Email email = armarEmail(request);
-        for (String dest : destinatarios) {
-            email.addRecipient("", dest);
-        }
+        CreateEmailOptions email = armarEmail(request, destinatarios);
         String receptorLog = String.join(", ", destinatarios);
         return despacharYRegistrar(email, request, receptorLog);
     }
@@ -81,60 +70,49 @@ public class MailerSendServiceImpl implements MailerSendService {
         return toListResponse(entity);
     }
 
-    private NotificacionEnviadaListResponse toListResponseFromResumen(NotificacionEnviadaResumen r) {
-        return NotificacionEnviadaListResponse.builder()
-                .id(r.getId().toString())
-                .destinatarioEmail(r.getDestinatarioEmail())
-                .destinatarioNombre(r.getDestinatarioNombre())
-                .asunto(r.getAsunto())
-                .messageId(r.getMessageId())
-                .estado(r.getEstado())
-                .tipo(r.getTipo())
-                .ordenCodigo(r.getOrdenCodigo())
-                .enviadoEn(r.getEnviadoEn())
-                .build();
+    private void validarConfiguracion() {
+        if (!properties.isConfigured()) {
+            throw new BusinessException("El token de Resend no esta configurado.");
+        }
     }
 
-    private Email armarEmail(NotificationSendRequest request) {
+    private CreateEmailOptions armarEmail(NotificationSendRequest request, List<String> destinatarios) {
         if (!StringUtils.hasText(request.getContenidoPlano())
                 && !StringUtils.hasText(request.getContenidoHtml())) {
             throw new BusinessException("Debe proporcionar contenido en texto plano o HTML.");
         }
 
-        MailerSend ms = buildClient();
-        Email email = ms.emails().createEmail();
-
-        email.setFrom(properties.getFromName(), properties.getFromEmail());
-        email.setSubject(request.getAsunto());
+        CreateEmailOptions.Builder builder = CreateEmailOptions.builder()
+                .from(properties.getFrom())
+                .subject(request.getAsunto())
+                .to(destinatarios);
 
         if (StringUtils.hasText(request.getContenidoPlano())) {
-            email.setPlain(request.getContenidoPlano());
+            builder.text(request.getContenidoPlano());
         }
         if (StringUtils.hasText(request.getContenidoHtml())) {
             String html = templateRenderer.renderizarNotificacion(request.getContenidoHtml());
-            email.setHtml(html);
+            builder.html(html);
         }
 
-        return email;
+        return builder.build();
     }
 
-    private NotificationSendResponse despacharYRegistrar(Email email, NotificationSendRequest request, String receptorLog) {
+    private NotificationSendResponse despacharYRegistrar(CreateEmailOptions email, NotificationSendRequest request, String receptorLog) {
         try {
-            MailerSendResponse response = buildClient().emails().send(email);
-            log.info("Email enviado a {} con messageId={}", receptorLog, response.messageId);
-            persistir(request, response.messageId, "ENVIADO");
-            return new NotificationSendResponse(response.messageId, "ENVIADO");
-        } catch (MailerSendException e) {
+            CreateEmailResponse response = new Resend(properties.getApiToken()).emails().send(email);
+            log.info("Email enviado a {} con messageId={}", receptorLog, response.getId());
+            persistir(request, response.getId(), ESTADO_ENVIADO);
+            return new NotificationSendResponse(response.getId(), ESTADO_ENVIADO);
+        } catch (ResendException e) {
             log.error("Error al enviar email a {}: {}", receptorLog, e.getMessage());
-            persistir(request, null, "FALLIDO");
+            persistir(request, null, ESTADO_FALLIDO);
             throw new BusinessException("Error al enviar el email: " + e.getMessage());
         }
     }
 
     private void persistir(NotificationSendRequest request, String messageId, String estado) {
-        // Usa REQUIRES_NEW para que el registro se confirme siempre,
-        // incluso si la transaccion llamante se revierte (ej: error de envio)
-        transactionTemplate.execute(status -> {
+        transactionTemplate.executeWithoutResult(status -> {
             NotificacionEnviada notif = new NotificacionEnviada();
             notif.setDestinatarioEmail(request.getDestinatarioEmail());
             notif.setDestinatarioNombre(request.getDestinatarioNombre());
@@ -147,8 +125,21 @@ public class MailerSendServiceImpl implements MailerSendService {
             notif.setTipo(request.getTipo());
             notif.setOrdenCodigo(request.getOrdenCodigo());
             notificacionRepo.save(notif);
-            return null;
         });
+    }
+
+    private NotificacionEnviadaListResponse toListResponseFromResumen(NotificacionEnviadaResumen r) {
+        return NotificacionEnviadaListResponse.builder()
+                .id(r.getId().toString())
+                .destinatarioEmail(r.getDestinatarioEmail())
+                .destinatarioNombre(r.getDestinatarioNombre())
+                .asunto(r.getAsunto())
+                .messageId(r.getMessageId())
+                .estado(r.getEstado())
+                .tipo(r.getTipo())
+                .ordenCodigo(r.getOrdenCodigo())
+                .enviadoEn(r.getEnviadoEn())
+                .build();
     }
 
     private NotificacionEnviadaListResponse toListResponse(NotificacionEnviada entity) {
@@ -164,17 +155,5 @@ public class MailerSendServiceImpl implements MailerSendService {
                 .ordenCodigo(entity.getOrdenCodigo())
                 .enviadoEn(entity.getEnviadoEn())
                 .build();
-    }
-
-    private MailerSend buildClient() {
-        MailerSend ms = new MailerSend();
-        ms.setToken(properties.getApiToken());
-        return ms;
-    }
-
-    private void validarConfiguracion() {
-        if (!StringUtils.hasText(properties.getApiToken())) {
-            throw new BusinessException("El token de MailerSend no esta configurado.");
-        }
     }
 }

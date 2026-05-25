@@ -1,6 +1,8 @@
 package com.promssac.backend.service;
 
+import com.promssac.backend.model.dto.request.RouteOrderBulkImportRequest;
 import com.promssac.backend.model.dto.request.RouteWriteRequest;
+import com.promssac.backend.model.dto.response.RouteOrderBulkImportResponse;
 import com.promssac.backend.model.dto.response.RouteResponse;
 import java.util.List;
 import java.util.UUID;
@@ -16,4 +18,6 @@ public interface RutaService {
     RouteResponse actualizar(UUID id, RouteWriteRequest request);
 
     void eliminar(UUID id);
+
+    RouteOrderBulkImportResponse importarLote(RouteOrderBulkImportRequest request);
 }

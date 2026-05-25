@@ -8,13 +8,10 @@ import {
   Clock,
   ChevronRight,
   CheckCircle2,
-  AlertCircle,
   Truck,
   Package,
-  Download,
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { useOrdersQuery, useEstadosHijosPorClaveQuery } from "@/hooks/useOperationsQueries";
+import { useAlertOrdersQuery } from "@/hooks/useOperationsQueries";
 import { orderStatusMeta } from "@/domain/orders";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -35,45 +32,32 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import RoutesPaginationBar from "@/components/routes/RoutesPaginationBar";
+import RouteDateRangePicker from "@/components/routes/RouteDateRangePicker";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 const Alertas = () => {
   const [activeTab, setActiveTab] = useState("alertas");
-  const { data: orders = [], isLoading } = useOrdersQuery();
+  const { data: orders = [], isLoading } = useAlertOrdersQuery();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   const [selectedStatus, setSelectedStatus] = useState("todos");
   const [selectedSubstatus, setSelectedSubstatus] = useState("todos");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [vehicleFilter, setVehicleFilter] = useState("");
+  const [orderSearch, setOrderSearch] = useState("");
 
-  const statusToName: Record<string, string> = {
-    entregado: "Entregado",
-    no_entregado: "No entregado",
-    in_route: "En ruta",
-    pending: "Pendiente",
-  };
-
-  const { data: pendingSubs = [] } = useEstadosHijosPorClaveQuery("Pendiente");
-  const { data: inRouteSubs = [] } = useEstadosHijosPorClaveQuery("En ruta");
-  const { data: entregadoSubs = [] } = useEstadosHijosPorClaveQuery("Entregado");
-  const { data: noEntregadoSubs = [] } = useEstadosHijosPorClaveQuery("No entregado");
-
-  const substatusOptions = useMemo(() => {
-    if (selectedStatus !== "todos") {
-      const activeName = statusToName[selectedStatus];
-      if (activeName === "Pendiente") return pendingSubs.map((s) => s.nombre);
-      if (activeName === "En ruta") return inRouteSubs.map((s) => s.nombre);
-      if (activeName === "Entregado") return entregadoSubs.map((s) => s.nombre);
-      if (activeName === "No entregado") return noEntregadoSubs.map((s) => s.nombre);
-      return [];
-    }
-    return [
-      ...pendingSubs.map((s) => s.nombre),
-      ...inRouteSubs.map((s) => s.nombre),
-      ...entregadoSubs.map((s) => s.nombre),
-      ...noEntregadoSubs.map((s) => s.nombre),
-    ];
-  }, [selectedStatus, pendingSubs, inRouteSubs, entregadoSubs, noEntregadoSubs]);
+  const substatusOptions = useMemo(
+    () => {
+      const subs = new Set<string>();
+      for (const o of orders) {
+        if (o.substatus) subs.add(o.substatus);
+      }
+      return Array.from(subs).sort();
+    },
+    [orders],
+  );
 
   useEffect(() => {
     if (selectedSubstatus !== "todos" && !substatusOptions.includes(selectedSubstatus)) {
@@ -81,22 +65,51 @@ const Alertas = () => {
     }
   }, [selectedStatus, substatusOptions, selectedSubstatus]);
 
-  const totalItems = orders.length;
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedStatus, selectedSubstatus, dateFrom, dateTo, vehicleFilter, orderSearch]);
+
+  const filteredOrders = useMemo(() => {
+    let list = orders;
+    if (selectedStatus !== "todos") {
+      list = list.filter((o) => o.status === selectedStatus);
+    }
+    if (selectedSubstatus !== "todos") {
+      list = list.filter((o) => o.substatus === selectedSubstatus);
+    }
+    if (dateFrom) {
+      list = list.filter((o) => {
+        const iso = o.routeDate.split("/").reverse().join("-");
+        return iso >= dateFrom;
+      });
+    }
+    if (dateTo) {
+      list = list.filter((o) => {
+        const iso = o.routeDate.split("/").reverse().join("-");
+        return iso <= dateTo;
+      });
+    }
+    const vf = vehicleFilter.trim().toLowerCase();
+    if (vf) {
+      list = list.filter((o) => o.vehiclePlate.toLowerCase().includes(vf));
+    }
+    const os = orderSearch.trim().toLowerCase();
+    if (os) {
+      list = list.filter((o) => o.id.toLowerCase().includes(os));
+    }
+    return list;
+  }, [orders, selectedStatus, selectedSubstatus, dateFrom, dateTo, vehicleFilter, orderSearch]);
+
+  const totalItems = filteredOrders.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentOrders = orders.slice(startIndex, startIndex + itemsPerPage);
+  const currentOrders = filteredOrders.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="animate-fade-in">
       <PageHeader
         title="Alertas"
         subtitle="Monitorea y gestiona las alertas operativas en tiempo real."
-        actions={
-          <Button variant="outline" size="sm" className="h-9 gap-2">
-            <Download className="size-4" />
-            Exportar
-          </Button>
-        }
       />
 
       <div className="flex flex-1 p-4 sm:p-6 lg:p-8">
@@ -116,13 +129,11 @@ const Alertas = () => {
                   <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Filtro de fecha
                   </label>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      placeholder="2026-02-02 - 2026-05-02"
-                      className="pl-10 bg-background/50"
-                    />
-                  </div>
+                  <RouteDateRangePicker
+                    dateFrom={dateFrom}
+                    dateTo={dateTo}
+                    onRangeChange={(from, to) => { setDateFrom(from); setDateTo(to); }}
+                  />
                 </div>
 
                 <div className="space-y-2">
@@ -171,6 +182,8 @@ const Alertas = () => {
                     <Input
                       placeholder="Ej: V-2024"
                       className="pl-10 bg-background/50"
+                      value={vehicleFilter}
+                      onChange={(e) => setVehicleFilter(e.target.value)}
                     />
                   </div>
                 </div>
@@ -184,13 +197,15 @@ const Alertas = () => {
                     <Input
                       placeholder="Ej: 10969"
                       className="pl-10 bg-background/50"
+                      value={orderSearch}
+                      onChange={(e) => setOrderSearch(e.target.value)}
                     />
                   </div>
                 </div>
 
                 <Button className="w-full bg-primary shadow-glow hover:bg-primary-hover mt-2">
                   <Search className="mr-2 size-4" />
-                  Buscar
+                  {filteredOrders.length} resultado{filteredOrders.length !== 1 ? "s" : ""}
                 </Button>
               </div>
             </div>
@@ -256,13 +271,10 @@ const Alertas = () => {
                                       <Calendar className="size-3 text-muted-foreground" />
                                       {order.routeDate}
                                     </span>
-                                    {order.createdAtIso && (
+                                    {order.createdAt && (
                                       <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                         <Clock className="size-3" />
-                                        {new Date(order.createdAtIso).toLocaleTimeString([], {
-                                          hour: "2-digit",
-                                          minute: "2-digit",
-                                        })}
+                                        {order.createdAt.slice(-5)}
                                       </span>
                                     )}
                                   </div>

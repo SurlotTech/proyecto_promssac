@@ -159,7 +159,14 @@ export function downloadPlantillaImportacionClientes() {
   });
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "REGIONAL");
-  XLSX.writeFile(wb, "plantilla_importacion_clientes.xlsx");
+  const buf = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+  const blob = new Blob([buf], { type: "application/octet-stream" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "plantilla_importacion_clientes.xlsx";
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 export function exportClientesVistaXlsx(rows: Client[], filename?: string) {
@@ -195,7 +202,14 @@ export function exportClientesVistaXlsx(rows: Client[], filename?: string) {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Clientes");
   const stamp = filename ?? `export_clientes_${new Date().toISOString().slice(0, 10)}.xlsx`;
-  XLSX.writeFile(wb, stamp);
+  const buf = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+  const blob = new Blob([buf], { type: "application/octet-stream" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = stamp;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function normalizeHeaderCell(v: unknown): string {

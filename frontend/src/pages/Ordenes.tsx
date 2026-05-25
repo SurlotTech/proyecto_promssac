@@ -20,7 +20,7 @@ import OrderTable from "@/components/orders/OrderTable";
 import NewOrderDialog from "@/components/orders/NewOrderDialog";
 import { Button } from "@/components/ui/button";
 import type { Order } from "@/domain/orders";
-import { useOrdersQuery, useRoutesQuery, useEstadosHijosPorClaveQuery } from "@/hooks/useOperationsQueries";
+import { useOrdersQuery } from "@/hooks/useOperationsQueries";
 import { toast } from "sonner";
 import RoutesPaginationBar from "@/components/routes/RoutesPaginationBar";
 import { persistOrderDraft, type OrderCreationDraft, type OrderCompletarLocationState } from "@/lib/orderCreationDraft";
@@ -31,7 +31,7 @@ function orderMatches(o: Order, f: OrderFiltersState): boolean {
   if (f.vehiclePlate !== "all" && o.vehiclePlate !== f.vehiclePlate) return false;
   if (f.lastDispatchOnly && !o.isLastDispatch) return false;
 
-  const iso = f.dateFilterType === "route" ? o.routeDateIso : o.createdAtIso;
+  const iso = f.dateFilterType === "route" ? (o as any).startDate : o.createdAtIso;
   if (f.dateFrom && iso < f.dateFrom) return false;
   if (f.dateTo && iso > f.dateTo) return false;
 
@@ -48,38 +48,19 @@ const Ordenes = () => {
   const [pageSize, setPageSize] = useState(10);
   const navigate = useNavigate();
   const { data: allOrders = [], isLoading, isError, error } = useOrdersQuery();
-  const { data: routeCatalog = [] } = useRoutesQuery();
 
   const [filters, setFilters] = useState<OrderFiltersState>(defaultOrderFilters);
 
-  const statusToName: Record<string, string> = {
-    entregado: "Entregado",
-    no_entregado: "No entregado",
-    in_route: "En ruta",
-    pending: "Pendiente",
-  };
-
-  const { data: pendingSubs = [] } = useEstadosHijosPorClaveQuery("Pendiente");
-  const { data: inRouteSubs = [] } = useEstadosHijosPorClaveQuery("En ruta");
-  const { data: entregadoSubs = [] } = useEstadosHijosPorClaveQuery("Entregado");
-  const { data: noEntregadoSubs = [] } = useEstadosHijosPorClaveQuery("No entregado");
-
-  const orderSubstatusOptions = useMemo(() => {
-    if (filters.status !== "all") {
-      const activeName = statusToName[filters.status];
-      if (activeName === "Pendiente") return pendingSubs.map((s) => s.nombre);
-      if (activeName === "En ruta") return inRouteSubs.map((s) => s.nombre);
-      if (activeName === "Entregado") return entregadoSubs.map((s) => s.nombre);
-      if (activeName === "No entregado") return noEntregadoSubs.map((s) => s.nombre);
-      return [];
-    }
-    return [
-      ...pendingSubs.map((s) => s.nombre),
-      ...inRouteSubs.map((s) => s.nombre),
-      ...entregadoSubs.map((s) => s.nombre),
-      ...noEntregadoSubs.map((s) => s.nombre),
-    ];
-  }, [filters.status, pendingSubs, inRouteSubs, entregadoSubs, noEntregadoSubs]);
+  const orderSubstatusOptions = useMemo(
+    () => {
+      const subs = new Set<string>();
+      for (const o of allOrders) {
+        if (o.substatus) subs.add(o.substatus);
+      }
+      return Array.from(subs).sort();
+    },
+    [allOrders],
+  );
 
   useEffect(() => {
     if (filters.substatus !== "all" && !orderSubstatusOptions.includes(filters.substatus)) {
@@ -96,12 +77,21 @@ const Ordenes = () => {
   const [createOrderOpen, setCreateOrderOpen] = useState(false);
 
   const orderRouteOptions = useMemo(
-    () =>
-      routeCatalog.map((r) => ({
-        id: r.id,
-        label: `${r.code} — ${r.name}`,
-      })),
-    [routeCatalog],
+    () => {
+      const seen = new Set<string>();
+      const result: { id: string; label: string }[] = [];
+      for (const o of allOrders) {
+        if (o.routeId && !seen.has(o.routeId)) {
+          seen.add(o.routeId);
+          const label = (o as any).routeCode && (o as any).routeName
+            ? `${(o as any).routeCode} — ${(o as any).routeName}`
+            : o.routeId;
+          result.push({ id: o.routeId, label });
+        }
+      }
+      return result;
+    },
+    [allOrders],
   );
 
   useEffect(() => {
@@ -144,11 +134,13 @@ const Ordenes = () => {
   };
 
   const handleEdit = (order: Order) => {
-    const ruta = order.routeId ? routeCatalog.find((r) => r.id === order.routeId) : undefined;
+    const routeLabel = ((order as any).routeCode && (order as any).routeName)
+      ? `${(order as any).routeCode} — ${(order as any).routeName}`
+      : null;
     const draft: OrderCreationDraft = {
       displayOrderId: order.id,
       routeId: order.routeId ?? "",
-      routeLabel: ruta ? `${ruta.code} — ${ruta.name}` : null,
+      routeLabel,
       autoCode: order.id.startsWith("ORD-AUTO-"),
     };
     persistOrderDraft(draft);

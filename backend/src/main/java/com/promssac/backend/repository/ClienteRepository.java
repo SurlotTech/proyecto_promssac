@@ -4,6 +4,7 @@ import com.promssac.backend.model.dto.response.ClienteAutocompleteItem;
 import com.promssac.backend.model.entity.Cliente;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -29,11 +30,21 @@ public interface ClienteRepository extends JpaRepository<Cliente, UUID> {
 
     @Query("""
             SELECT c FROM Cliente c
-            WHERE c.activo = true AND LOWER(c.nombre) LIKE LOWER(CONCAT('%', :query, '%'))
+            WHERE c.activo = true
+              AND (LOWER(c.nombre) LIKE LOWER(CONCAT('%', :query, '%'))
+                OR LOWER(COALESCE(c.codigoModularIiee, '')) LIKE LOWER(CONCAT('%', :query, '%'))
+                OR LOWER(COALESCE(c.nivelEducacion, '')) LIKE LOWER(CONCAT('%', :query, '%'))
+              )
             ORDER BY c.nombre ASC
             LIMIT 10
             """)
     List<Cliente> searchByNombre(@Param("query") String query);
+
+    @Query("SELECT c FROM Cliente c WHERE c.activo = true AND c.codigoModularIiee = :codigo ORDER BY c.nombre ASC LIMIT 1")
+    Optional<Cliente> findByCodigoModularIiee(@Param("codigo") String codigo);
+
+    @Query("SELECT c FROM Cliente c WHERE c.activo = true AND c.codigoModularIiee = :codigo AND LOWER(c.nivelEducacion) = LOWER(:nivel) ORDER BY c.nombre ASC LIMIT 1")
+    Optional<Cliente> findByCodigoModularIieeAndNivel(@Param("codigo") String codigo, @Param("nivel") String nivel);
 
     @Query("""
             SELECT new com.promssac.backend.model.dto.response.ClienteAutocompleteItem(

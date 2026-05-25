@@ -26,4 +26,7 @@ public interface UsuarioMovilRepository extends JpaRepository<UsuarioMovil, UUID
 
     @Query("SELECT u FROM UsuarioMovil u JOIN FETCH u.vehiculo v WHERE v.id IN :ids")
     List<UsuarioMovil> findByVehiculoIdInWithVehiculo(@Param("ids") Collection<UUID> ids);
+
+    @Query("SELECT u FROM UsuarioMovil u JOIN FETCH u.vehiculo v WHERE v.placa = :placa")
+    List<UsuarioMovil> findByVehiculoPlacaWithVehiculo(@Param("placa") String placa);
 }

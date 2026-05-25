@@ -9,6 +9,7 @@ export const endpoints = {
   vehiclesOpciones: `${V1}/vehiculos/opciones`,
   routes: `${V1}/rutas`,
   orders: `${V1}/ordenes`,
+  ordersAlertas: `${V1}/ordenes/alertas`,
   clients: `${V1}/clientes`,
   fleetDevices: `${V1}/flota/dispositivos`,
   fleetDevicesOnWayMap: `${V1}/flota/dispositivos/onway-map`,

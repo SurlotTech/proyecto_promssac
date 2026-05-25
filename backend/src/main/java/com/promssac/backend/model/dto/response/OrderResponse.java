@@ -2,6 +2,7 @@ package com.promssac.backend.model.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 import java.util.Map;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,33 +20,26 @@ public class OrderResponse {
     private String vehiclePlate;
     private String clientName;
 
-    /** UUID del cliente de catálogo vinculado, si la orden tiene {@code cliente_id}. */
     private String clientId;
     private String routeDate;
     private String contactName;
     private String contactIdentifier;
-    private String routeDateIso;
+    private String startDate;
+    private String endDate;
     private String createdAtIso;
 
     @JsonProperty("isLastDispatch")
     private Boolean lastDispatch;
 
-    /** UUID de la ruta asignada, si existe. */
     private String routeId;
+    private String routeCode;
+    private String routeName;
 
-    /** UUID del vehículo asignado a la orden, si existe. */
     private String vehicleId;
 
-    /**
-     * Nombre del conductor: preferentemente usuario móvil de la ruta ({@code conductor_movil}); si falta,
-     * nombre registrado en el vehículo.
-     */
     private String driverName;
-
-    /** Teléfono del usuario móvil vinculado al vehículo de la ruta (u orden). */
     private String driverPhone;
 
-    /** Datos del asistente &quot;Completar orden&quot; (si ya se guardaron). */
     private String contactPhone;
     private String contactEmail;
     private String addressLine;
@@ -60,4 +54,15 @@ public class OrderResponse {
     private String deliveryPriority;
     private Boolean cashOnDelivery;
     private Map<String, String> customFields;
+
+    private String clientAddress;
+    private Double clientLatitude;
+    private Double clientLongitude;
+    private String clientCodigoModular;
+    private String clientNivelEducacion;
+    private String clientDirectorName;
+    private String clientPhone;
+    private String clientEmail;
+
+    private List<OrderProductLineResponse> productLines;
 }

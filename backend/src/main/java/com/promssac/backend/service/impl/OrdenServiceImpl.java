@@ -5,25 +5,27 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.promssac.backend.exception.BusinessException;
 import com.promssac.backend.exception.ResourceNotFoundException;
-import com.promssac.backend.model.dto.request.NotificationSendRequest;
 import com.promssac.backend.model.dto.request.OrderAssignBulkRequest;
 import com.promssac.backend.model.dto.request.OrderCompleteRequest;
 import com.promssac.backend.model.dto.request.OrderCreateRequest;
 import com.promssac.backend.model.dto.request.OrderStatusPatchRequest;
+import com.promssac.backend.model.dto.response.AlertOrderResponse;
+import com.promssac.backend.model.dto.response.EnlaceResponse;
+import com.promssac.backend.model.dto.response.OrderProductLineResponse;
 import com.promssac.backend.model.dto.response.OrderResponse;
 import com.promssac.backend.model.entity.Cliente;
 import com.promssac.backend.model.entity.Orden;
+import com.promssac.backend.model.entity.OrdenProducto;
 import com.promssac.backend.model.entity.Ruta;
 import com.promssac.backend.model.entity.UsuarioMovil;
 import com.promssac.backend.model.entity.Vehiculo;
 import com.promssac.backend.repository.ClienteRepository;
+import com.promssac.backend.repository.OrdenProductoRepository;
 import com.promssac.backend.repository.OrdenRepository;
 import com.promssac.backend.repository.RutaRepository;
 import com.promssac.backend.repository.UsuarioMovilRepository;
 import com.promssac.backend.repository.VehiculoRepository;
-import com.promssac.backend.service.MailerSendService;
 import com.promssac.backend.service.OrdenService;
-import com.promssac.backend.integration.mailersend.EmailTemplateRenderer;
 import com.promssac.backend.validation.CorreoOpcionalValidator;
 import com.promssac.backend.validation.GeoCoordinateValidator;
 import java.math.BigDecimal;
@@ -54,6 +56,7 @@ public class OrdenServiceImpl implements OrdenService {
 
     private static final ZoneId LIMA = ZoneId.of("America/Lima");
     private static final DateTimeFormatter UI_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter UI_DATETIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     private static final int MAX_IN_UUID_LOTE = 750;
 
@@ -63,12 +66,11 @@ public class OrdenServiceImpl implements OrdenService {
                     .thenComparing(UsuarioMovil::getCreadoEn, Comparator.reverseOrder());
 
     private final OrdenRepository ordenRepository;
+    private final OrdenProductoRepository ordenProductoRepository;
     private final ClienteRepository clienteRepository;
     private final RutaRepository rutaRepository;
     private final VehiculoRepository vehiculoRepository;
     private final UsuarioMovilRepository usuarioMovilRepository;
-    private final MailerSendService mailerSendService;
-    private final EmailTemplateRenderer templateRenderer;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -93,6 +95,45 @@ public class OrdenServiceImpl implements OrdenService {
             return List.of();
         }
         return ordenRepository.findFetchedByClienteId(clienteId).stream().map(this::toOrderResponse).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public EnlaceResponse obtenerParaEnlace(String numeroOrden) {
+        String num = numeroOrden == null ? "" : numeroOrden.trim();
+        if (num.isEmpty()) throw new ResourceNotFoundException("Orden", num);
+        Orden o = ordenRepository.findByNumeroOrden(num)
+                .orElseThrow(() -> new ResourceNotFoundException("Orden", num));
+        return EnlaceResponse.builder()
+                .numeroOrden(o.getNumeroOrden())
+                .estado(o.getEstado())
+                .nombreCliente(o.getCliente() != null ? o.getCliente().getNombre() : "")
+                .contactoNombre(o.getContactoNombre())
+                .contactoTelefono(o.getContactoTelefono())
+                .contactoEmail(o.getContactoEmail())
+                .direccionLinea(o.getDireccionLinea())
+                .latitud(o.getLatitud() != null ? o.getLatitud().doubleValue() : null)
+                .longitud(o.getLongitud() != null ? o.getLongitud().doubleValue() : null)
+                .fechaRuta(o.getFechaRuta().format(UI_DATE))
+                .creadoEn(o.getCreadoEn().atZone(LIMA).format(UI_DATETIME))
+                .conductorNombre(null)
+                .conductorTelefono(null)
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AlertOrderResponse> listarParaAlertas() {
+        return ordenRepository.findLiteForAlertas().stream().map(row -> {
+            AlertOrderResponse dto = new AlertOrderResponse();
+            dto.setId((String) row[0]);
+            dto.setStatus((String) row[1]);
+            dto.setSubstatus((String) row[2]);
+            dto.setVehiclePlate((String) row[3]);
+            dto.setRouteDate(((java.time.LocalDate) row[4]).format(UI_DATE));
+            dto.setCreatedAt(((java.time.Instant) row[5]).atZone(LIMA).format(UI_DATETIME));
+            return dto;
+        }).toList();
     }
 
     @Override
@@ -145,7 +186,30 @@ public class OrdenServiceImpl implements OrdenService {
         Orden o = ordenRepository
                 .findByNumeroOrden(num)
                 .orElseThrow(() -> new ResourceNotFoundException("Orden", num));
-        return toOrderResponse(o);
+        OrderResponse response = toOrderResponse(o);
+
+        List<OrderProductLineResponse> lines = ordenProductoRepository
+                .findByOrden_NumeroOrdenOrderByCreadoEnAsc(num)
+                .stream()
+                .map(p -> {
+                    OrderProductLineResponse dto = new OrderProductLineResponse();
+                    dto.setId(p.getId().toString());
+                    dto.setCode(p.getCodigo());
+                    dto.setOrderId(num);
+                    dto.setName(p.getNombre());
+                    dto.setUnitPrice(p.getPrecioUnitario().doubleValue());
+                    dto.setQuantity(p.getCantidad());
+                    if (p.getPesoKg() != null) dto.setWeight(p.getPesoKg().doubleValue());
+                    dto.setCustomField(p.getCampoPersonalizado() == null || p.getCampoPersonalizado().isBlank()
+                            ? "—"
+                            : p.getCampoPersonalizado());
+                    dto.setCreatedAt(p.getCreadoEn().atZone(LIMA).format(UI_DATETIME));
+                    return dto;
+                })
+                .toList();
+        response.setProductLines(lines);
+
+        return response;
     }
 
     @Override
@@ -241,45 +305,7 @@ public class OrdenServiceImpl implements OrdenService {
 
         Orden guardada = ordenRepository.save(o);
 
-        String estadoNuevo = guardada.getEstado();
-        if (estadoCambio(estadoAnterior, estadoNuevo)
-                && StringUtils.hasText(guardada.getContactoEmail())) {
-            notificarCambioEstado(guardada, estadoAnterior, estadoNuevo);
-        }
-
         return toOrderResponse(guardada);
-    }
-
-    private boolean estadoCambio(String anterior, String nuevo) {
-        if (anterior == null || anterior.isBlank()) return false;
-        return !anterior.trim().equalsIgnoreCase(nuevo != null ? nuevo.trim() : "");
-    }
-
-    private void notificarCambioEstado(Orden orden, String estadoAnterior, String estadoNuevo) {
-        try {
-            EmailTemplateRenderer.NotificacionContenido contenido =
-                    templateRenderer.construirContenidoCambioEstado(orden, estadoAnterior, estadoNuevo);
-
-            NotificationSendRequest req = new NotificationSendRequest();
-            req.setDestinatarioEmail(orden.getContactoEmail().trim());
-            req.setDestinatarioNombre(contenido.nombreContacto());
-            req.setAsunto(contenido.asunto());
-            req.setContenidoHtml(contenido.html());
-            req.setContenidoPlano(contenido.plano());
-            req.setTipo(estadoNuevo);
-            req.setOrdenCodigo(orden.getNumeroOrden());
-
-            mailerSendService.enviar(req);
-
-            log.info("Notificacion enviada a {} por cambio de estado de orden {}: {} -> {}",
-                    orden.getContactoEmail(), orden.getNumeroOrden(), estadoAnterior, estadoNuevo);
-        } catch (Exception e) {
-            log.warn("No se pudo notificar cambio de estado de orden {}: {}",
-                    orden.getNumeroOrden(), e.getMessage());
-            throw new BusinessException(
-                    "No se pudo enviar la notificacion de cambio de estado. "
-                    + "El cambio de estado no se ha aplicado.");
-        }
     }
 
     @Override
@@ -405,17 +431,33 @@ public class OrdenServiceImpl implements OrdenService {
             dto.setClientId(o.getCliente().getId().toString());
             dto.setClientName(
                     o.getCliente().getNombre() == null ? "" : o.getCliente().getNombre().trim());
+            dto.setClientAddress(o.getCliente().getDireccion());
+            dto.setClientLatitude(o.getCliente().getLatitud() != null ? o.getCliente().getLatitud().doubleValue() : null);
+            dto.setClientLongitude(o.getCliente().getLongitud() != null ? o.getCliente().getLongitud().doubleValue() : null);
+            dto.setClientCodigoModular(o.getCliente().getCodigoModularIiee());
+            dto.setClientNivelEducacion(o.getCliente().getNivelEducacion());
+            dto.setClientDirectorName(o.getCliente().getNombreApellidosDirectorIiee() != null
+                    ? o.getCliente().getNombreApellidosDirectorIiee().trim() : null);
+            dto.setClientPhone(o.getCliente().getTelefono() != null
+                    ? o.getCliente().getTelefono().trim() : null);
+            dto.setClientEmail(o.getCliente().getEmail() != null
+                    ? o.getCliente().getEmail().trim() : null);
         } else {
             dto.setClientName("");
         }
         dto.setRouteDate(o.getFechaRuta().format(UI_DATE));
         dto.setContactName(o.getContactoNombre() == null ? "" : o.getContactoNombre());
         dto.setContactIdentifier(o.getContactoIdentificador() == null ? "" : o.getContactoIdentificador());
-        dto.setRouteDateIso(o.getFechaRuta().toString());
         dto.setCreatedAtIso(o.getCreadoEn().atZone(LIMA).toLocalDate().toString());
         dto.setLastDispatch(Boolean.TRUE.equals(o.getEsUltimoDespacho()));
         if (o.getRuta() != null) {
             dto.setRouteId(o.getRuta().getId().toString());
+            dto.setRouteCode(o.getRuta().getCodigo());
+            dto.setRouteName(o.getRuta().getNombre());
+            dto.setStartDate(o.getRuta().getFechaEntrega().toString());
+            dto.setEndDate(o.getRuta().getFechaFin() != null
+                    ? o.getRuta().getFechaFin().toString()
+                    : o.getRuta().getFechaEntrega().toString());
         }
         if (o.getVehiculo() != null) {
             dto.setVehicleId(o.getVehiculo().getId().toString());

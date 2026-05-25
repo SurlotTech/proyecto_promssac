@@ -99,7 +99,9 @@ const StepDireccion = ({
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => onClientSelect(c)}
                 >
-                  <span className="font-medium text-foreground">{c.nombre}</span>
+                  <span className="font-medium text-foreground">
+                    {c.codigoModularIiee ? c.codigoModularIiee + " · " : ""}{c.nombre}
+                  </span>
                   {c.direccion ? (
                     <span className="truncate text-xs text-muted-foreground">{c.direccion}</span>
                   ) : null}

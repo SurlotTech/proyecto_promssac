@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
   Download,
   FileSpreadsheet,
+  Loader2,
   Plus,
   Route,
   Send,
@@ -11,6 +12,16 @@ import {
   Truck,
   Upload,
   Users,
+  ChevronDown,
+  ChevronRight,
+  Package,
+  MapPin,
+  Phone,
+  User,
+  AlertTriangle,
+  Calendar,
+  Mail,
+  FileText,
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import StatCard from "@/components/StatCard";
@@ -23,6 +34,14 @@ import RoutesPaginationBar from "@/components/routes/RoutesPaginationBar";
 import RoutesViewToggle from "@/components/routes/RoutesViewToggle";
 import ConfirmDeleteDialog from "@/components/ui/ConfirmDeleteDialog";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import type { Route as RouteData } from "@/domain/routes";
 import { places } from "@/domain/routes";
 import { routeMatchesFilters } from "@/lib/routeListFilter";
@@ -30,6 +49,9 @@ import { ROUTES_QUERY_KEY } from "@/hooks/useRoutesQueryInvalidation";
 import { useMobileUserRouteOptionsQuery, useRoutesQuery, useVehicleOptionsQuery } from "@/hooks/useOperationsQueries";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { routesApi } from "@/services";
+import { apiPost } from "@/lib/api";
+import { endpoints } from "@/services/endpoints";
+import { downloadPlantillaRutasYOrdenes, parseRouteOrderImport, type RouteOrderImportPreview } from "@/lib/routesExcel";
 import { toast } from "sonner";
 
 const defaultFilters: Filters = {
@@ -76,6 +98,14 @@ const Rutas = () => {
   const [editingRoute, setEditingRoute] = useState<RouteData | null>(null);
   const [assignRouteOpen, setAssignRouteOpen] = useState(false);
   const [routeToDelete, setRouteToDelete] = useState<RouteData | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importPreview, setImportPreview] = useState<RouteOrderImportPreview | null>(null);
+  const [importFileName, setImportFileName] = useState("");
+  const [importError, setImportError] = useState("");
+  const [importando, setImportando] = useState(false);
+  const [importWarnings, setImportWarnings] = useState<string[]>([]);
+  const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const deleteRouteMut = useMutation({
     mutationFn: (id: string) => routesApi.remove(id),
@@ -109,6 +139,134 @@ const Rutas = () => {
   const confirmDeleteRouteMut = () => {
     if (!routeToDelete) return;
     deleteRouteMut.mutate(routeToDelete.id);
+  };
+
+  const groupedByRoute = useMemo(() => {
+    if (!importPreview) return [];
+    const map = new Map<string, { rows: RouteOrderImportRow[]; nombre: string; placa: string; fechaInicio: string; fechaFin: string }>();
+    for (const row of importPreview.rows) {
+      const key = row.codigoRuta || `__sin_ruta_${map.size}`;
+      if (!map.has(key)) {
+        map.set(key, { rows: [], nombre: row.nombreRuta, placa: row.placaVehiculo, fechaInicio: row.fechaInicio, fechaFin: row.fechaFin });
+      }
+      map.get(key)!.rows.push(row);
+    }
+    return [...map.entries()];
+  }, [importPreview]);
+
+  const groupedByOrder = (rows: RouteOrderImportRow[]) => {
+    const map = new Map<string, RouteOrderImportRow[]>();
+    for (const row of rows) {
+      const key = row.numeroOrden || `__sin_orden_${map.size}`;
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(row);
+    }
+    return [...map.entries()];
+  };
+
+  const toggleOrder = (orderNum: string) => {
+    setExpandedOrders((prev) => {
+      const next = new Set(prev);
+      if (next.has(orderNum)) next.delete(orderNum);
+      else next.add(orderNum);
+      return next;
+    });
+  };
+
+  const missing = (val: string) => !val || val.trim() === "";
+
+  const hasAnyError = useMemo(() => {
+    if (!importPreview) return true;
+    return importPreview.rows.some((r) =>
+      missing(r.codigoRuta) || missing(r.placaVehiculo) || missing(r.numeroOrden)
+      || missing(r.contactoNombre) || missing(r.contactoTelefono) || missing(r.direccion)
+    );
+  }, [importPreview]);
+
+  const handleImport = async () => {
+    if (!importPreview || hasAnyError) return;
+    setImportando(true);
+    setImportWarnings([]);
+    try {
+      const response = await apiPost<{ rutasCreadas: number; ordenesCreadas: number; productosCreados: number; errores: string[]; mensajes: string[] }, { items: unknown[] }>(
+        `${endpoints.routes}/importacion-lote`,
+        { items: importPreview.rows.map((r) => ({
+          codigoRuta: r.codigoRuta,
+          nombreRuta: r.nombreRuta,
+          placaVehiculo: r.placaVehiculo,
+          fechaInicio: r.fechaInicio,
+          fechaFin: r.fechaFin || undefined,
+          numeroOrden: r.numeroOrden,
+          estadoOrden: r.estadoOrden || undefined,
+          subestado: r.subestado || undefined,
+          contactoIdentificador: r.contactoIdentificador || undefined,
+          contactoNombre: r.contactoNombre,
+          contactoTelefono: r.contactoTelefono,
+          contactoEmail: r.contactoEmail || undefined,
+          nivel: r.nivel || undefined,
+          direccion: r.direccion,
+          direccionNormalizada: r.direccionNormalizada || undefined,
+          fechaEntrega: r.fechaEntrega || undefined,
+          modoEntrega: r.modoEntrega || undefined,
+          prioridadEntrega: r.prioridadEntrega || undefined,
+          director: r.director || undefined,
+          telefonoDirector: r.telefonoDirector || undefined,
+          paquetes: r.paquetes || undefined,
+          actaEntrega: r.actaEntrega || undefined,
+          guiaRemision: r.guiaRemision || undefined,
+          guiaTransportista: r.guiaTransportista || undefined,
+          correoElectronico: r.correoElectronico || undefined,
+          productoCodigo: r.productoCodigo || undefined,
+          productoNombre: r.productoNombre || undefined,
+          productoCantidad: r.productoCantidad ? Number(r.productoCantidad) : undefined,
+          productoPrecioUnit: r.productoPrecioUnit ? Number(r.productoPrecioUnit) : undefined,
+          productoPesoKg: r.productoPesoKg ? Number(r.productoPesoKg) : undefined,
+          productoCampoExtra: r.productoCampoExtra || undefined,
+        })) }
+      );
+
+      if (response.errores.length > 0) {
+        setImportWarnings(response.errores);
+        toast.error(`${response.errores.length} error(es). Revisa los detalles y corrige el archivo.`);
+      }
+      if (response.mensajes && response.mensajes.length > 0) {
+        setImportWarnings((prev) => [...prev, ...response.mensajes]);
+      }
+      if (response.rutasCreadas > 0 || response.ordenesCreadas > 0) {
+        qc.invalidateQueries({ queryKey: ROUTES_QUERY_KEY });
+        toast.success(`${response.rutasCreadas} ruta(s), ${response.ordenesCreadas} orden(es), ${response.productosCreados} producto(s) creados`);
+      }
+      if (response.errores.length === 0) {
+        setImportOpen(false);
+        setImportPreview(null);
+      }
+    } catch (e) {
+      setImportWarnings([e instanceof Error ? e.message : "Error al importar"]);
+    } finally {
+      setImportando(false);
+    }
+  };
+
+  const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImportFileName(file.name);
+    setImportError("");
+    setImportWarnings([]);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const buffer = ev.target?.result as ArrayBuffer;
+        const preview = parseRouteOrderImport(buffer);
+        setImportPreview(preview);
+        setImportOpen(true);
+      } catch {
+        setImportError("No se pudo leer el archivo. Verifica que sea un Excel válido.");
+      }
+    };
+    reader.onerror = () => setImportError("Error al leer el archivo.");
+    reader.readAsArrayBuffer(file);
+    e.target.value = "";
   };
 
   const filteredRoutes = useMemo(
@@ -172,14 +330,15 @@ const Rutas = () => {
         subtitle="Planifica y monitorea las rutas de entrega."
         actions={
           <>
-            <Button variant="outline" size="sm" className="h-9 gap-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5 transition-colors">
+            <Button variant="outline" size="sm" className="h-9 gap-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5 transition-colors" onClick={downloadPlantillaRutasYOrdenes}>
               <FileSpreadsheet className="size-4 shrink-0" />
               <span className="hidden sm:inline">Plantilla</span>
             </Button>
-            <Button variant="outline" size="sm" className="h-9 gap-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5 transition-colors">
+            <Button variant="outline" size="sm" className="h-9 gap-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5 transition-colors" onClick={() => fileInputRef.current?.click()}>
               <Upload className="size-4 shrink-0" />
               <span className="hidden sm:inline">Importar</span>
             </Button>
+            <input ref={fileInputRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleImportFile} />
             <Button variant="outline" size="sm" className="h-9 gap-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5 transition-colors">
               <Download className="size-4 shrink-0" />
               <span className="hidden sm:inline">Exportar</span>
@@ -320,6 +479,179 @@ const Rutas = () => {
         isPending={deleteRouteMut.isPending}
         onConfirm={confirmDeleteRouteMut}
       />
+
+      <Dialog open={importOpen} onOpenChange={(open) => { if (!open) { setImportOpen(false); setImportPreview(null); setExpandedOrders(new Set()); setImportWarnings([]); } }}>
+        <DialogContent className="max-w-[min(96vw,64rem)] max-h-[90vh] flex flex-col overflow-hidden" aria-describedby={undefined}>
+          <DialogHeader className="shrink-0">
+            <DialogTitle>Vista previa de importación</DialogTitle>
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">{importFileName}</span>
+              {importPreview && (
+                <>
+                  <Badge variant="secondary" className="text-xs">{importPreview.rutasUnicas} ruta(s)</Badge>
+                  <Badge variant="secondary" className="text-xs">{importPreview.ordenes} orden(es)</Badge>
+                  <Badge variant="secondary" className="text-xs">{importPreview.total} fila(s)</Badge>
+                </>
+              )}
+            </div>
+          </DialogHeader>
+          {importPreview && (
+            <div className="overflow-auto flex-1 min-h-0 -mx-6 px-6 space-y-4 py-1">
+              {groupedByRoute.map(([rutaCodigo, ruta]) => {
+                const orders = groupedByOrder(ruta.rows);
+                const rutaHasErrors = missing(rutaCodigo) || missing(ruta.placa) || missing(ruta.fechaInicio);
+                return (
+                  <div key={rutaCodigo} className={cn("rounded-xl border bg-card/60 backdrop-blur-sm overflow-hidden min-w-[600px]", rutaHasErrors && "border-destructive/40")}>
+                    <div className="flex items-center gap-4 px-5 py-3 bg-muted/30 border-b border-border">
+                      <div className="flex items-center gap-2.5">
+                        <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg", rutaHasErrors ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary")}>
+                          <Route className="size-4" />
+                        </div>
+                        <div>
+                          <p className={cn("font-semibold text-sm", missing(rutaCodigo) && "text-destructive")}>{rutaCodigo || "Sin código"}</p>
+                          <p className="text-xs text-muted-foreground">{ruta.nombre || "—"}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4 ml-auto text-xs">
+                        <Truck className="size-3 text-muted-foreground shrink-0" />
+                        <span className={cn("font-medium", missing(ruta.placa) && "text-destructive")}>{ruta.placa || "—"}</span>
+                        <Calendar className="size-3 text-muted-foreground shrink-0" />
+                        <span className={cn("font-medium", missing(ruta.fechaInicio) && "text-destructive")}>
+                          {ruta.fechaInicio && ruta.fechaFin ? `${ruta.fechaInicio} → ${ruta.fechaFin}` : "—"}
+                        </span>
+                        <Badge variant="secondary" className="text-[10px]">{orders.length} órdenes</Badge>
+                      </div>
+                    </div>
+                    <div className="divide-y divide-border/50">
+                      {orders.map(([orderNum, orderRows]) => {
+                        const first = orderRows[0];
+                        const hasProducts = orderRows.some((r) => r.productoCodigo || r.productoNombre);
+                        const hasCustomFields = first.director || first.telefonoDirector || first.paquetes || first.actaEntrega || first.guiaRemision || first.guiaTransportista || first.correoElectronico || first.contactoEmail || first.modoEntrega || first.fechaEntrega;
+                        const hasExtra = hasProducts || hasCustomFields;
+                        const isExpanded = expandedOrders.has(orderNum);
+                        const orderHasErrors = missing(first.numeroOrden) || missing(first.contactoNombre) || missing(first.contactoTelefono) || missing(first.direccion);
+                        const productos = orderRows.filter((r) => r.productoCodigo || r.productoNombre);
+
+                        return (
+                          <div key={orderNum} className={cn(orderHasErrors && "bg-destructive/5")}>
+                            <div
+                              className="flex items-center gap-3 px-5 py-3 cursor-pointer hover:bg-muted/30 transition-colors"
+                              onClick={() => toggleOrder(orderNum)}
+                            >
+                              {hasExtra ? (
+                                isExpanded ? <ChevronDown className="size-4 text-muted-foreground shrink-0" /> : <ChevronRight className="size-4 text-muted-foreground shrink-0" />
+                              ) : <span className="w-4 shrink-0" />}
+                              <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto_2fr_1.5fr_2fr] gap-3 items-center">
+                                <div>
+                                  <p className={cn("font-medium text-sm truncate", missing(first.numeroOrden) && "text-destructive")}>{first.numeroOrden || "—"}</p>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                  <Badge variant="outline" className="text-[10px] font-normal">{first.estadoOrden || "—"}</Badge>
+                                  {first.subestado && <span className="text-[10px] text-muted-foreground">{first.subestado}</span>}
+                                </div>
+                                <div className={cn("flex items-center gap-1.5 text-sm min-w-0", missing(first.contactoNombre) && "text-destructive")}>
+                                  <User className="size-3 shrink-0" />
+                                  <span className="truncate">{first.contactoNombre || "—"}</span>
+                                </div>
+                                <div className={cn("flex items-center gap-1.5 text-xs text-muted-foreground", missing(first.contactoTelefono) && "text-destructive")}>
+                                  <Phone className="size-3 shrink-0" />
+                                  <span>{first.contactoTelefono || "—"}</span>
+                                </div>
+                                <div className={cn("flex items-center gap-1.5 text-xs text-muted-foreground min-w-0", missing(first.direccion) && "text-destructive")}>
+                                  <MapPin className="size-3 shrink-0" />
+                                  <span className="truncate">{first.direccion || "—"}</span>
+                                </div>
+                              </div>
+                            </div>
+                            {isExpanded && hasExtra && (
+                              <div className="px-5 pb-4 pl-12 space-y-4 bg-muted/15 border-t border-border/50">
+                                {hasCustomFields && (
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 text-xs pt-3">
+                                    <span className="flex items-center gap-1.5"><User className="size-3 text-primary/70 shrink-0" /><span className="font-medium">Director:</span> <span className="text-muted-foreground">{first.director || "—"}</span></span>
+                                    <span className="flex items-center gap-1.5"><Phone className="size-3 text-primary/70 shrink-0" /><span className="font-medium">Tel. Director:</span> <span className="text-muted-foreground">{first.telefonoDirector || "—"}</span></span>
+                                    <span className="flex items-center gap-1.5"><Mail className="size-3 text-primary/70 shrink-0" /><span className="font-medium">Correo Director:</span> <span className="text-muted-foreground">{first.correoElectronico || "—"}</span></span>
+                                    <span className="flex items-center gap-1.5"><Package className="size-3 text-primary/70 shrink-0" /><span className="font-medium">Paquetes:</span> <span className="text-muted-foreground">{first.paquetes || "—"}</span></span>
+                                    <span className="flex items-center gap-1.5"><FileText className="size-3 text-primary/70 shrink-0" /><span className="font-medium">Acta:</span> <span className="text-muted-foreground">{first.actaEntrega || "—"}</span></span>
+                                    <span className="flex items-center gap-1.5"><FileText className="size-3 text-primary/70 shrink-0" /><span className="font-medium">Guía Remisión:</span> <span className="text-muted-foreground">{first.guiaRemision || "—"}</span></span>
+                                    <span className="flex items-center gap-1.5"><FileText className="size-3 text-primary/70 shrink-0" /><span className="font-medium">Guía Transportista:</span> <span className="text-muted-foreground">{first.guiaTransportista || "—"}</span></span>
+                                    <span className="flex items-center gap-1.5"><Mail className="size-3 text-primary/70 shrink-0" /><span className="font-medium">Correo Contacto:</span> <span className="text-muted-foreground">{first.contactoEmail || "—"}</span></span>
+                                    <span className="flex items-center gap-1.5"><Truck className="size-3 text-primary/70 shrink-0" /><span className="font-medium">Modo:</span> <span className="text-muted-foreground">{first.modoEntrega || "—"}</span></span>
+                                    <span className="flex items-center gap-1.5"><Calendar className="size-3 text-primary/70 shrink-0" /><span className="font-medium">F. entrega:</span> <span className="text-muted-foreground">{first.fechaEntrega || "—"}</span></span>
+                                  </div>
+                                )}
+                                {hasProducts && (
+                                  <div className="space-y-2">
+                                    <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                                      <Package className="size-3" /> Productos ({productos.length})
+                                    </div>
+                                    <div className="space-y-1.5">
+                                      {productos.map((p, pi) => (
+                                        <div key={pi} className="flex items-center gap-3 text-xs bg-muted/30 rounded-lg px-3 py-2">
+                                          <span className="font-medium text-xs tabular-nums text-primary">{p.productoCodigo || "—"}</span>
+                                          <span className="flex-1 truncate">{p.productoNombre || "—"}</span>
+                                          {p.productoCantidad && <span className="tabular-nums bg-muted px-1.5 py-0.5 rounded font-medium">x{p.productoCantidad}</span>}
+                                          {p.productoPrecioUnit && <span className="tabular-nums font-medium">S/ {p.productoPrecioUnit}</span>}
+                                          {p.productoPesoKg && <span className="text-muted-foreground text-[11px]">{p.productoPesoKg}kg</span>}
+                                          {p.productoCampoExtra && <span className="text-muted-foreground text-[11px] italic">{p.productoCampoExtra}</span>}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          {importWarnings.length > 0 && (
+            <div className="space-y-1.5 shrink-0">
+              {importWarnings.map((w, i) => (
+                <div key={i} className="flex items-start gap-2 text-xs bg-destructive/10 text-destructive rounded-lg px-3 py-2">
+                  <AlertTriangle className="size-3.5 mt-0.5 shrink-0" />
+                  <span>{w}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="flex items-center justify-between pt-4 border-t border-border shrink-0">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <AlertTriangle className="size-3.5 text-destructive" />
+              Campos en <span className="text-destructive font-medium">rojo</span> están incompletos
+            </div>
+            <div className="flex gap-3">
+                <Button variant="outline" size="sm" onClick={() => { setImportOpen(false); setImportPreview(null); setExpandedOrders(new Set()); setImportWarnings([]); }}>
+                  Cancelar
+                </Button>
+              <Button size="sm" className="bg-primary gap-2" disabled={hasAnyError || importando} onClick={handleImport}>
+                {importando ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    Importando...
+                  </>
+                ) : (
+                  "Importar"
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!importError} onOpenChange={() => setImportError("")}>
+        <DialogContent className="max-w-sm text-center" aria-describedby={undefined}>
+          <DialogHeader>
+            <DialogTitle className="text-destructive">Error al leer archivo</DialogTitle>
+            <p className="text-sm text-muted-foreground">{importError}</p>
+          </DialogHeader>
+          <Button variant="outline" size="sm" onClick={() => setImportError("")} className="w-full">Cerrar</Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

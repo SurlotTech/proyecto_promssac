@@ -154,7 +154,7 @@ const FleetMap = ({ devices, selectedId, onMarkerClick, onMarkerPopupClose }: Pr
       ) : null}
 
       <p className="pointer-events-none absolute bottom-3 right-3 z-[500] max-w-[min(90vw,280px)] rounded-md bg-white/95 px-2 py-1 text-center text-[10px] leading-snug text-muted-foreground shadow">
-        © OpenStreetMap · Vista referencial FleetOps
+        © OpenStreetMap · Vista referencial Sutrack
       </p>
 
     </div>

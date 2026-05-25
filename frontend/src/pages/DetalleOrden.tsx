@@ -46,8 +46,6 @@ import { orderStatusMeta, type OrderStatus } from "@/domain/orders";
 import OrderStatusBadge from "@/components/orders/OrderStatusBadge";
 import {
   useOrderDetailQuery,
-  useOrderProductLinesQuery,
-  useRoutesQuery,
   useEstadosHijosPorClaveQuery,
 } from "@/hooks/useOperationsQueries";
 import {
@@ -312,13 +310,6 @@ const DetalleOrden = () => {
     refetch,
     error,
   } = useOrderDetailQuery(decodedId);
-  const {
-    data: productLines = [],
-    isLoading: linesLoading,
-    isError: linesError,
-    refetch: refetchLines,
-  } = useOrderProductLinesQuery(decodedId);
-  const { data: routeCatalog = [] } = useRoutesQuery();
 
   const [modifyStatusOpen, setModifyStatusOpen] = useState(false);
   const [modifyForm, setModifyForm] = useState({
@@ -358,17 +349,19 @@ const DetalleOrden = () => {
 
   const goToCompletarDatos = useCallback(() => {
     if (!order) return;
-    const ruta = order.routeId ? routeCatalog.find((r) => r.id === order.routeId) : undefined;
+    const routeLabel = (order.routeCode && order.routeName)
+      ? `${order.routeCode} — ${order.routeName}`
+      : null;
     const draft: OrderCreationDraft = {
       displayOrderId: order.id,
       routeId: order.routeId ?? "",
-      routeLabel: ruta ? `${ruta.code} — ${ruta.name}` : null,
+      routeLabel,
       autoCode: order.id.startsWith("ORD-AUTO-"),
     };
     persistOrderDraft(draft);
     const state: OrderCompletarLocationState = { orderDraft: draft };
     navigate("/ordenes/completar", { state });
-  }, [navigate, order, routeCatalog]);
+  }, [navigate, order]);
 
   const irAGestionProductos = useCallback(() => {
     if (!order) return;
@@ -450,7 +443,10 @@ const DetalleOrden = () => {
   }
 
   const direccionPrimaria =
-    order.addressLine?.trim() ?? order.normalizedAddress?.trim() ?? "";
+    order.clientAddress || order.addressLine?.trim() || order.normalizedAddress?.trim() || "";
+
+  const latMostrar = order.clientLatitude ?? (typeof order.latitude === "number" ? order.latitude : null);
+  const lngMostrar = order.clientLongitude ?? (typeof order.longitude === "number" ? order.longitude : null);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-transparent animate-fade-in">
@@ -553,9 +549,9 @@ const DetalleOrden = () => {
                     <div>
                       <p className="flex items-center gap-1 text-xs font-medium text-foreground">
                         Dirección
-                        {typeof order.latitude === "number" && typeof order.longitude === "number" ? (
+                        {latMostrar != null && lngMostrar != null ? (
                           <a
-                            href={`https://www.google.com/maps?q=${order.latitude},${order.longitude}`}
+                            href={`https://www.google.com/maps?q=${latMostrar},${lngMostrar}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex size-6 items-center justify-center rounded-md text-primary hover:bg-primary-soft transition-colors"
@@ -667,7 +663,7 @@ const DetalleOrden = () => {
               </section>
             </Collapsible>
 
-            <Collapsible open={itemsOpen} onOpenChange={setItemsOpen}>
+              <Collapsible open={itemsOpen} onOpenChange={setItemsOpen}>
               <section className="overflow-hidden rounded-l border border-border bg-card/40 backdrop-blur-lg shadow-sm">
                 <div className="flex w-full flex-wrap items-center justify-between gap-2 px-4 py-3 text-left">
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Ítems</h3>
@@ -680,16 +676,7 @@ const DetalleOrden = () => {
                 <div className="h-px bg-slate-100 mx-4" />
                 <CollapsibleContent>
                   <div className="space-y-3 p-4">
-                    {linesError ? (
-                      <div className="space-y-2">
-                        <p className="text-sm text-destructive">No se pudieron cargar las líneas.</p>
-                        <Button type="button" variant="outline" size="sm" onClick={() => void refetchLines()}>
-                          Reintentar productos
-                        </Button>
-                      </div>
-                    ) : linesLoading ? (
-                      <p className="text-sm text-muted-foreground animate-pulse">Cargando productos…</p>
-                    ) : productLines.length === 0 ? (
+                    {((order as any)?.productLines ?? []).length === 0 ? (
                       <p className="text-sm text-muted-foreground">
                         Esta orden no tiene líneas cargadas.{` `}
                         <button type="button" className="font-medium text-primary underline" onClick={irAGestionProductos}>
@@ -698,7 +685,7 @@ const DetalleOrden = () => {
                       </p>
                     ) : (
                       <ul className="space-y-4">
-                        {productLines.map((line) => (
+                        {((order as any)?.productLines ?? []).map((line: any) => (
                           <li key={line.id} className="rounded-md border border-border/80 bg-muted/20 p-3 text-sm">
                             <p className="font-semibold text-foreground">{line.name.trim()}</p>
                             <p className="text-xs text-muted-foreground">
@@ -722,11 +709,9 @@ const DetalleOrden = () => {
                         ))}
                       </ul>
                     )}
-                    {!linesLoading && !linesError ? (
-                      <Button type="button" variant="outline" size="sm" className="w-full" onClick={irAGestionProductos}>
-                        Abrir pantalla completa de productos
-                      </Button>
-                    ) : null}
+                    <Button type="button" variant="outline" size="sm" className="w-full" onClick={irAGestionProductos}>
+                      Abrir pantalla completa de productos
+                    </Button>
                   </div>
                 </CollapsibleContent>
               </section>

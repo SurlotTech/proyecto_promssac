@@ -1,4 +1,4 @@
-package com.promssac.backend.integration.mailersend;
+package com.promssac.backend.integration.email;
 
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
@@ -20,7 +20,7 @@ public class AssetLoader {
 
     private final Map<String, String> cache = new ConcurrentHashMap<>();
 
-    private static final String ASSETS_BASE = "email/";
+    private static final String ASSETS_BASE = "public/email/";
 
     @PostConstruct
     void precargar() {
@@ -35,9 +35,6 @@ public class AssetLoader {
         return cache.computeIfAbsent(filename, this::cargarDesdeClasspath);
     }
 
-    /**
-     * Obtiene el asset como bytes crudos.
-     */
     public byte[] bytes(String filename) {
         String b64 = dataUri(filename);
         if (!StringUtils.hasText(b64)) {

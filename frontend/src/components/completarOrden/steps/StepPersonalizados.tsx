@@ -6,10 +6,6 @@ import {
   fieldInputClass,
   type CustomFieldKey,
 } from "@/lib/completarOrden/constants";
-import {
-  PERU_PHONE_DIGIT_COUNT,
-  sanitizePeruNineDigitPhoneInput,
-} from "@/lib/completarOrden/contactValidation";
 
 interface Props {
   customFields: Record<CustomFieldKey, string>;
@@ -18,42 +14,19 @@ interface Props {
 
 const StepPersonalizados = ({ customFields, onCustomFieldChange }: Props) => (
   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-    {customFieldKeys.map((key) =>
-      key === "telefono_director" ? (
-        <div key={key} className="space-y-1.5">
-          <Label htmlFor={`cf-${key}`} className="text-sm text-muted-foreground">
-            {customFieldLabels[key]}
-          </Label>
-          <Input
-            id={`cf-${key}`}
-            type="tel"
-            inputMode="numeric"
-            autoComplete="tel"
-            maxLength={PERU_PHONE_DIGIT_COUNT}
-            placeholder="Ej. 987654321"
-            aria-describedby={`cf-${key}-hint`}
-            pattern={`[0-9]{0,${PERU_PHONE_DIGIT_COUNT}}`}
-            value={customFields[key]}
-            onChange={(e) =>
-              onCustomFieldChange(key, sanitizePeruNineDigitPhoneInput(e.target.value))
-            }
-            className={fieldInputClass}
-          />
-        </div>
-      ) : (
-        <div key={key} className="space-y-1.5">
-          <Label htmlFor={`cf-${key}`} className="text-sm text-muted-foreground">
-            {customFieldLabels[key]}
-          </Label>
-          <Input
-            id={`cf-${key}`}
-            value={customFields[key]}
-            onChange={(e) => onCustomFieldChange(key, e.target.value)}
-            className={fieldInputClass}
-          />
-        </div>
-      ),
-    )}
+    {customFieldKeys.map((key) => (
+      <div key={key} className="space-y-1.5">
+        <Label htmlFor={`cf-${key}`} className="text-sm text-muted-foreground">
+          {customFieldLabels[key]}
+        </Label>
+        <Input
+          id={`cf-${key}`}
+          value={customFields[key]}
+          onChange={(e) => onCustomFieldChange(key, e.target.value)}
+          className={fieldInputClass}
+        />
+      </div>
+    ))}
   </div>
 );
 

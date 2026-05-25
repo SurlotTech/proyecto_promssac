@@ -4,7 +4,6 @@ import { customFieldKeys, type CustomFieldKey } from "@/lib/completarOrden/const
 import { sanitizePeruNineDigitPhoneInput } from "@/lib/completarOrden/contactValidation";
 
 export type CompletarHydrationSnapshot = {
-  /** UUID del vehículo o cadena vacía si no hay. */
   vehicleId: string;
   deliveryFrom: string;
   deliveryTo: string;
@@ -23,6 +22,10 @@ export type CompletarHydrationSnapshot = {
   lat: string;
   lng: string;
   customFields: Record<CustomFieldKey, string>;
+  selectedClientId: string;
+  clientAddress: string;
+  clientLatitude: number | null;
+  clientLongitude: number | null;
 };
 
 function inferContactIdType(identifier: string): "dni" | "ruc" | "otro" {
@@ -53,10 +56,7 @@ export function completarFormSnapshotFromOrder(order: Order): CompletarHydration
     for (const k of customFieldKeys) {
       const v = order.customFields[k];
       if (v != null && String(v).trim()) {
-        customFields[k] =
-          k === "telefono_director"
-            ? sanitizePeruNineDigitPhoneInput(String(v))
-            : String(v).trim();
+        customFields[k] = String(v).trim();
       }
     }
   }
@@ -64,8 +64,8 @@ export function completarFormSnapshotFromOrder(order: Order): CompletarHydration
   const ident = order.contactIdentifier ?? "";
   return {
     vehicleId: order.vehicleId?.trim() ?? "",
-    deliveryFrom: (order.deliveryWindowFrom || order.routeDateIso || "").slice(0, 10),
-    deliveryTo: (order.deliveryWindowTo || order.routeDateIso || "").slice(0, 10),
+        deliveryFrom: (order.deliveryWindowFrom || (order as any).startDate || "").slice(0, 10),
+        deliveryTo: (order.deliveryWindowTo || (order as any).endDate || "").slice(0, 10),
     mode: order.deliveryMode?.trim() || "default",
     priority: coercePriority(order.deliveryPriority),
     cod: order.cashOnDelivery === true,
@@ -84,5 +84,9 @@ export function completarFormSnapshotFromOrder(order: Order): CompletarHydration
     lat: formatCoord(order.latitude),
     lng: formatCoord(order.longitude),
     customFields,
+    selectedClientId: order.clientId ?? "",
+    clientAddress: order.clientAddress ?? "",
+    clientLatitude: order.clientLatitude ?? null,
+    clientLongitude: order.clientLongitude ?? null,
   };
 }

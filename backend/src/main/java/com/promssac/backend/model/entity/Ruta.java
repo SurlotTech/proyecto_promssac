@@ -44,6 +44,9 @@ public class Ruta {
     @Column(name = "fecha_entrega", nullable = false)
     private LocalDate fechaEntrega;
 
+    @Column(name = "fecha_fin")
+    private LocalDate fechaFin;
+
     @Column(nullable = false, length = 20)
     private String prioridad;
 

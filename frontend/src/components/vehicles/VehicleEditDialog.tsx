@@ -22,7 +22,6 @@ import { type Vehicle, type VehicleStatus } from "@/domain/vehicles";
 import { vehiclesApi } from "@/services";
 import { User } from "lucide-react";
 import { VehicleDriverSelect } from "@/components/vehicles/VehicleDriverSelect";
-import { useMobileUserRouteOptionsQuery } from "@/hooks/useOperationsQueries";
 
 interface Props {
   vehicle: Vehicle | null;
@@ -37,7 +36,6 @@ const VehicleEditDialog = ({ vehicle, open, onOpenChange, onUpdated }: Props) =>
   const [plate, setPlate] = useState("");
   const [type, setType] = useState("");
   const [driverId, setDriverId] = useState("");
-  const { data: routeOptions = [] } = useMobileUserRouteOptionsQuery();
   const [status, setStatus] = useState<VehicleStatus>("active");
   const [capacityKg, setCapacityKg] = useState("1200");
   const [saving, setSaving] = useState(false);
@@ -53,19 +51,8 @@ const VehicleEditDialog = ({ vehicle, open, onOpenChange, onUpdated }: Props) =>
 
   useEffect(() => {
     if (!vehicle || !open) return;
-    const id = vehicle.driverId?.trim();
-    if (id) {
-      setDriverId(id);
-      return;
-    }
-    const name = vehicle.driver?.trim();
-    if (!name) {
-      setDriverId("");
-      return;
-    }
-    const match = routeOptions.find((o) => o.nombreCompleto.trim() === name);
-    setDriverId(match?.id ?? "");
-  }, [vehicle, open, routeOptions]);
+    setDriverId(vehicle.driverId?.trim() ?? "");
+  }, [vehicle, open]);
 
   const handleSave = async () => {
     if (!vehicle || !plate || !type) return;

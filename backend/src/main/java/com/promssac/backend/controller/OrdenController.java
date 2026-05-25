@@ -5,6 +5,7 @@ import com.promssac.backend.model.dto.request.OrderCompleteRequest;
 import com.promssac.backend.model.dto.request.OrderCreateRequest;
 import com.promssac.backend.model.dto.request.OrderProductLineCreateRequest;
 import com.promssac.backend.model.dto.request.OrderStatusPatchRequest;
+import com.promssac.backend.model.dto.response.AlertOrderResponse;
 import com.promssac.backend.model.dto.response.OrderProductLineResponse;
 import com.promssac.backend.model.dto.response.OrderResponse;
 import com.promssac.backend.service.OrdenProductoService;
@@ -38,6 +39,11 @@ public class OrdenController {
     @GetMapping
     public ResponseEntity<List<OrderResponse>> listar() {
         return ResponseEntity.ok(ordenService.listarParaOperaciones());
+    }
+
+    @GetMapping("/alertas")
+    public ResponseEntity<List<AlertOrderResponse>> listarAlertas() {
+        return ResponseEntity.ok(ordenService.listarParaAlertas());
     }
 
     @GetMapping("/{numeroOrden}")

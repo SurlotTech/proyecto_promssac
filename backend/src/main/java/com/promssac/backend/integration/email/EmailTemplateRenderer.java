@@ -1,6 +1,8 @@
-package com.promssac.backend.integration.mailersend;
+package com.promssac.backend.integration.email;
 
+import com.promssac.backend.config.ResendProperties;
 import com.promssac.backend.model.entity.Orden;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -11,7 +13,19 @@ public class EmailTemplateRenderer {
 
     private static final String LOGO_FILE = "logo.png";
 
+    private static final Map<String, String> TRADUCCION_ESTADOS = Map.ofEntries(
+            Map.entry("pending", "Pendiente"),
+            Map.entry("in_route", "En ruta"),
+            Map.entry("delivered", "Entregado"),
+            Map.entry("entregado", "Entregado"),
+            Map.entry("no_entregado", "No entregado"),
+            Map.entry("cancelled", "Cancelado"),
+            Map.entry("completed", "Completado"),
+            Map.entry("preparing", "En preparación")
+    );
+
     private final AssetLoader assetLoader;
+    private final ResendProperties properties;
 
     /**
      * Plantilla genérica de notificación con logo, contenido y footer corporativo.
@@ -20,18 +34,8 @@ public class EmailTemplateRenderer {
         return envolverConPlantilla(contenidoHtml);
     }
 
-    /**
-     * Construye el HTML de notificación de cambio de estado de una orden.
-     */
-    public String construirCambioEstado(Orden orden, String estadoAnterior, String estadoNuevo) {
-        String nombreContacto = StringUtils.hasText(orden.getContactoNombre())
-                ? orden.getContactoNombre().trim()
-                : "Cliente";
-
-        String nombreCliente = orden.getCliente() != null
-                && StringUtils.hasText(orden.getCliente().getNombre())
-                ? orden.getCliente().getNombre().trim()
-                : "PROMSSAC";
+    private String construirCambioEstado(Orden orden, String estadoAnterior, String estadoNuevo) {
+        String trackingUrl = properties.getFrontendUrl() + "/enlace-cliente/" + orden.getNumeroOrden();
 
         String html = """
                 <p>Estimado/a <strong>%s</strong>,</p>
@@ -42,40 +46,64 @@ public class EmailTemplateRenderer {
                     <tr><td style="padding:8px 12px;border:1px solid #ddd;font-weight:bold;">Nuevo estado</td>
                         <td style="padding:8px 12px;border:1px solid #ddd;color:#2563eb;font-weight:bold;">%s</td></tr>
                 </table>
-                <p>Puede hacer seguimiento de su despacho en nuestro portal.</p>
+                <p style="margin:20px 0;">
+                    <a href="%s" style="display:inline-block;background-color:#2563eb;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:6px;font-weight:bold;">
+                        Ver seguimiento de mi pedido
+                    </a>
+                </p>
+                <p style="font-size:12px;color:#888888;">O copia este enlace en tu navegador:<br/>%s</p>
                 <p>Saludos,<br/>Equipo %s</p>
                 """.formatted(
-                    nombreContacto, orden.getNumeroOrden(),
+                    resolverNombreContacto(orden), orden.getNumeroOrden(),
                     estadoAnterior, estadoNuevo,
-                    nombreCliente);
+                    trackingUrl, trackingUrl,
+                    resolverNombreCliente(orden));
 
-        return envolverConPlantilla(html);
+        return html;
     }
 
     /**
      * Construye el asunto y texto plano para notificación de cambio de estado.
      */
     public NotificacionContenido construirContenidoCambioEstado(Orden orden, String estadoAnterior, String estadoNuevo) {
-        String nombreContacto = StringUtils.hasText(orden.getContactoNombre())
-                ? orden.getContactoNombre().trim()
-                : "Cliente";
+        String nombreContacto = resolverNombreContacto(orden);
+        String nombreCliente = resolverNombreCliente(orden);
+        String numeroOrden = orden.getNumeroOrden();
+        String anterior = traducirEstado(estadoAnterior);
+        String nuevo = traducirEstado(estadoNuevo);
 
-        String nombreCliente = orden.getCliente() != null
-                && StringUtils.hasText(orden.getCliente().getNombre())
-                ? orden.getCliente().getNombre().trim()
-                : "PROMSSAC";
+        String trackingUrl = properties.getFrontendUrl() + "/enlace-cliente/" + numeroOrden;
 
-        String asunto = nombreCliente + " - Estado de orden #" + orden.getNumeroOrden();
+        String asunto = nombreCliente + " - Estado de orden #" + numeroOrden;
 
         String plano = "Estimado/a " + nombreContacto + ",\n\n"
-                + "El estado de su orden #" + orden.getNumeroOrden() + " ha sido actualizado:\n"
-                + "Estado anterior: " + estadoAnterior + "\n"
-                + "Nuevo estado: " + estadoNuevo + "\n\n"
+                + "El estado de su orden #" + numeroOrden + " ha sido actualizado:\n"
+                + "Estado anterior: " + anterior + "\n"
+                + "Nuevo estado: " + nuevo + "\n\n"
+                + "Seguimiento: " + trackingUrl + "\n\n"
                 + "Saludos,\nEquipo " + nombreCliente;
 
-        String html = construirCambioEstado(orden, estadoAnterior, estadoNuevo);
+        String html = construirCambioEstado(orden, anterior, nuevo);
 
         return new NotificacionContenido(asunto, html, plano, nombreContacto);
+    }
+
+    private String traducirEstado(String estado) {
+        if (estado == null) return "";
+        return TRADUCCION_ESTADOS.getOrDefault(estado, estado);
+    }
+
+    private String resolverNombreContacto(Orden orden) {
+        return StringUtils.hasText(orden.getContactoNombre())
+                ? orden.getContactoNombre().trim()
+                : "Cliente";
+    }
+
+    private String resolverNombreCliente(Orden orden) {
+        return orden.getCliente() != null
+                && StringUtils.hasText(orden.getCliente().getNombre())
+                ? orden.getCliente().getNombre().trim()
+                : "SUTRACK";
     }
 
     public record NotificacionContenido(String asunto, String html, String plano, String nombreContacto) {}
@@ -98,7 +126,7 @@ public class EmailTemplateRenderer {
         if (StringUtils.hasText(logo)) {
             html.append("""
                     <tr><td align="center" style="padding:24px 24px 0 24px;">
-                        <img src="%s" alt="PROMSSAC" style="max-width:200px;height:auto;display:block;" />
+                        <img src="%s" alt="SUTRACK" style="max-width:200px;height:auto;display:block;" />
                     </td></tr>
                     """.formatted(logo));
         }
@@ -113,7 +141,7 @@ public class EmailTemplateRenderer {
                 <tr><td style="padding:0 24px 24px 24px;">
                     <hr style="border:none;border-top:1px solid #e0e0e0;margin:0 0 16px 0;">
                     <p style="color:#999999;font-size:12px;margin:0;">
-                        PROMSSAC &mdash; Este es un correo autom&aacute;tico, por favor no responda a esta direcci&oacute;n.
+                        SUTRACK &mdash; Este es un correo autom&aacute;tico, por favor no responda a esta direcci&oacute;n.
                     </p>
                 </td></tr>
                 </table>

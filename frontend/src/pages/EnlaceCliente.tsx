@@ -1,100 +1,211 @@
-import React, { useState } from "react";
-import { CheckCircle2, Circle, Package, Truck, MapPin, Phone, Mail, User, FileText, Paperclip, ClipboardList, Car, Navigation, PackageCheck, Calendar, Plus, Minus, Layers } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useEffect, useState, useRef } from "react";
+import { useParams } from "react-router-dom";
+import { CheckCircle2, Circle, Package, MapPin, Phone, Mail, User, FileText, Calendar, Loader2 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
+import maplibregl from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
+import {
+  PROMSSAC_MAP_STYLES,
+  type PromssacMapStyleKey,
+  add3dBuildingsToMap,
+} from "@/lib/promssacMapStyles";
 
-// @ts-expect-error _getIconUrl is an internal property
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-});
+interface HistorialEntry {
+  estado: string;
+  fecha: string;
+}
 
-const mockOrderData = {
-  orderNumber: "ORD-2026-001",
-  historial: [
-    { estado: "Ingresado a sistema", fecha: "18/11/2025 19:14", completado: true },
-    { estado: "Asignado a vehículo", fecha: "19/11/2025 06:31", completado: true },
-    { estado: "En ruta", fecha: "20/11/2025 14:41", completado: true },
-    { estado: "Entrega exitosa", fecha: "12/12/2025 15:07", completado: true },
-  ],
-  orden: {
-    pedidoEl: "05 May 2026",
-    fechaGestion: "06 May 2026",
-    nombreCliente: "Juan Pérez",
-    celular: "+51 912 345 678",
-    email: "juan.perez@ejemplo.pe",
-    direccionDestino: "Av. Javier Prado 1234, Lima, Perú",
-  },
-  conductor: {
-    nombre: "Carlos Mendoza",
-    telefono: "+51 987 654 321",
-  },
-  items: {
-    cajas: "10/15",
-    total: "10/15",
-  },
+interface EnlaceData {
+  numeroOrden: string;
+  estado: string;
+  nombreCliente: string;
+  contactoNombre: string;
+  contactoTelefono: string;
+  contactoEmail: string;
+  direccionLinea: string;
+  latitud: number | null;
+  longitud: number | null;
+  fechaRuta: string;
+  creadoEn: string;
+  conductorNombre: string;
+  conductorTelefono: string;
+  historial: HistorialEntry[];
+}
+
+const TRADUCCION: Record<string, string> = {
+  pending: "Pendiente",
+  in_route: "En ruta",
+  delivered: "Entregado",
+  entregado: "Entregado",
+  no_entregado: "No entregado",
+  cancelled: "Cancelado",
+  completed: "Completado",
+  preparing: "En preparación",
+};
+
+const traducirEstado = (estado: string) => TRADUCCION[estado] || estado;
+
+const formatFecha = (iso: string) => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("es-PE", { day: "2-digit", month: "short", year: "numeric" })
+    + " " + d.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" });
+};
+
+const MAP_STYLE_LABELS: Record<PromssacMapStyleKey, string> = {
+  default: "CARTO (claro)",
+  bright: "OpenFreeMap · bright",
+  liberty: "OpenFreeMap · 3D",
 };
 
 const EnlaceCliente = () => {
-  const [activeTab, setActiveTab] = useState("informacion");
-  const currentStatus = mockOrderData.historial.filter(h => h.completado).pop()?.estado || "Sin estado";
+  const { orderId } = useParams<{ orderId: string }>();
+  const [data, setData] = useState<EnlaceData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  const getStatusIcon = (estado: string) => {
-    const lowerEstado = estado.toLowerCase();
-    if (lowerEstado.includes("ingresado") || lowerEstado.includes("sistema")) return ClipboardList;
-    if (lowerEstado.includes("asignado") || lowerEstado.includes("vehículo")) return Car;
-    if (lowerEstado.includes("ruta")) return Navigation;
-    if (lowerEstado.includes("entrega") || lowerEstado.includes("exitosa")) return PackageCheck;
-    return Package;
+  useEffect(() => {
+    if (!orderId) return;
+    setLoading(true);
+    fetch(`/api/v1/enlace/${encodeURIComponent(orderId)}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("No encontrado");
+        return res.json();
+      })
+      .then((json: EnlaceData) => setData(json))
+      .catch(() => setError(true))
+      .finally(() => setLoading(false));
+  }, [orderId]);
+
+  const [activeTab, setActiveTab] = useState("informacion");
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<maplibregl.Map | null>(null);
+  const markerRef = useRef<maplibregl.Marker | null>(null);
+  const [mapStyle, setMapStyle] = useState<PromssacMapStyleKey>("default");
+
+  useEffect(() => {
+    if (!data) return;
+    const el = containerRef.current;
+    if (!el || mapRef.current) return;
+
+    const lat = data.latitud ?? -12.0464;
+    const lng = data.longitud ?? -77.0428;
+
+    const map = new maplibregl.Map({
+      container: el,
+      style: PROMSSAC_MAP_STYLES["default"],
+      center: [lng, lat],
+      zoom: 14,
+      maxPitch: 85,
+      attributionControl: false,
+    });
+
+    map.addControl(
+      new maplibregl.NavigationControl({
+        visualizePitch: true,
+        showCompass: true,
+        showZoom: true,
+      }),
+      "top-right",
+    );
+
+    const popup = new maplibregl.Popup({ offset: 25 }).setHTML(
+      `<div style="font-size:14px">
+        <p style="font-weight:600">Ubicación de entrega</p>
+        <p style="color:#6b7280;font-size:12px">${data.direccionLinea || "Sin dirección"}</p>
+      </div>`
+    );
+
+    const marker = new maplibregl.Marker({ color: "#2563eb" })
+      .setLngLat([lng, lat])
+      .setPopup(popup)
+      .addTo(map);
+
+    mapRef.current = map;
+    markerRef.current = marker;
+
+    return () => {
+      marker.remove();
+      map.remove();
+      mapRef.current = null;
+      markerRef.current = null;
+    };
+  }, [data]);
+
+  const handleStyleChange = (style: PromssacMapStyleKey) => {
+    setMapStyle(style);
+    const map = mapRef.current;
+    if (!map) return;
+
+    map.once("style.load", () => {
+      if (style === "liberty") {
+        add3dBuildingsToMap(map);
+      }
+      map.easeTo({ pitch: style === "liberty" ? 60 : 0, duration: 500 });
+    });
+    map.setStyle(PROMSSAC_MAP_STYLES[style]);
   };
+
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-transparent">
+        <Loader2 className="size-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center bg-transparent gap-4">
+        <Package className="size-16 text-muted-foreground" />
+        <p className="text-lg text-muted-foreground">Orden no encontrada</p>
+        <p className="text-sm text-muted-foreground">Verifica el enlace e inténtalo nuevamente.</p>
+      </div>
+    );
+  }
+
+  const estadoTraducido = traducirEstado(data.estado);
+
+  const historial = data.historial && data.historial.length > 0
+    ? data.historial.map((h) => ({
+        estado: traducirEstado(h.estado),
+        fecha: formatFecha(h.fecha),
+        completado: true,
+      }))
+    : [{
+        estado: estadoTraducido,
+        fecha: formatFecha(data.creadoEn),
+        completado: true,
+      }];
 
   return (
     <div className="h-screen bg-transparent animate-fade-in overflow-hidden">
       <div className="flex w-full h-full lg:flex-row">
-        {/* Columna Izquierda - Información */}
         <div className="w-full space-y-6 lg:w-1/2 overflow-y-auto px-4 lg:px-8 pb-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          {/* Número de Orden Centrado */}
           <div className="text-center py-4">
-            <h1 className="text-2xl font-bold text-primary">{mockOrderData.orderNumber}</h1>
+            <h1 className="text-2xl font-bold text-primary">{data.numeroOrden}</h1>
           </div>
 
-          {/* Historial del Proceso */}
           <div className="space-y-6 px-4 lg:px-8">
-            <h2 className="text-2xl font-bold text-black">{currentStatus}</h2>
+            <h2 className="text-2xl font-bold text-black">{estadoTraducido}</h2>
             <div className="space-y-10">
-              {[...mockOrderData.historial].reverse().map((item, index, arr) => (
+              {[...historial].reverse().map((item, index, arr) => (
                 <div key={index} className="flex items-start gap-4 relative">
                   {index !== arr.length - 1 && (
                     <div className="absolute left-[15.5px] top-[34px] h-[36px] w-px bg-gray-300" />
                   )}
-                  <div
-                    className={cn(
-                      "relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 flex-shrink-0",
-                      item.completado
-                        ? "bg-primary border-primary"
-                        : "bg-transparent border-border"
-                    )}
-                  >
-                    {item.completado ? (
-                      React.createElement(getStatusIcon(item.estado), { className: "h-5 w-5 text-primary-foreground" })
-                    ) : (
-                      <Circle className="h-4 w-4 text-muted-foreground" />
-                    )}
+                  <div className={cn(
+                    "relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 flex-shrink-0",
+                    "bg-primary border-primary"
+                  )}>
+                    <CheckCircle2 className="h-5 w-5 text-primary-foreground" />
                   </div>
                   <div className="flex-1 flex justify-between items-start pt-1">
-                    <p className={cn(
-                      "text-base",
-                      item.completado ? "text-foreground" : "text-muted-foreground"
-                    )}>
-                      {item.estado}
-                    </p>
+                    <p className="text-base text-foreground">{item.estado}</p>
                     <p className="text-sm text-muted-foreground">{item.fecha}</p>
                   </div>
                 </div>
@@ -102,7 +213,6 @@ const EnlaceCliente = () => {
             </div>
           </div>
 
-          {/* Card con Tabs */}
           <Card className="border-none shadow-none mb-8">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <div className="p-4">
@@ -124,7 +234,6 @@ const EnlaceCliente = () => {
 
               <CardContent className="p-6">
                 <TabsContent value="informacion" className="space-y-4 -mt-3">
-                  {/* Información de la Orden */}
                   <div className="space-y-3">
                     <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                       Información
@@ -136,7 +245,7 @@ const EnlaceCliente = () => {
                         </div>
                         <div>
                           <p className="text-[11px] text-muted-foreground font-medium">Orden</p>
-                          <p className="text-base font-semibold text-[#1e293b]">{mockOrderData.orderNumber.split('-').pop()}</p>
+                          <p className="text-base font-semibold text-[#1e293b]">{data.numeroOrden.split('-').pop()}</p>
                         </div>
                       </div>
 
@@ -145,20 +254,22 @@ const EnlaceCliente = () => {
                           <CheckCircle2 className="size-5 text-gray-500" />
                         </div>
                         <div>
-                          <p className="text-[11px] text-muted-foreground font-medium">Pedido el</p>
-                          <p className="text-base font-semibold text-[#1e293b]">{mockOrderData.orden.pedidoEl}</p>
+                          <p className="text-[11px] text-muted-foreground font-medium">Estado</p>
+                          <p className="text-base font-semibold text-[#1e293b]">{estadoTraducido}</p>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-1">
-                        <div className="flex h-10 w-10 items-center justify-center flex-shrink-0">
-                          <Calendar className="size-5 text-gray-500" />
+                      {data.fechaRuta && (
+                        <div className="flex items-center gap-1">
+                          <div className="flex h-10 w-10 items-center justify-center flex-shrink-0">
+                            <Calendar className="size-5 text-gray-500" />
+                          </div>
+                          <div>
+                            <p className="text-[11px] text-muted-foreground font-medium">Fecha de entrega</p>
+                            <p className="text-base font-semibold text-[#1e293b]">{formatFecha(data.fechaRuta)}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-[11px] text-muted-foreground font-medium">Fecha de gestión</p>
-                          <p className="text-base font-semibold text-[#1e293b]">{mockOrderData.orden.fechaGestion}</p>
-                        </div>
-                      </div>
+                      )}
 
                       <div className="flex items-center gap-1">
                         <div className="flex h-10 w-10 items-center justify-center flex-shrink-0">
@@ -166,104 +277,78 @@ const EnlaceCliente = () => {
                         </div>
                         <div>
                           <p className="text-[11px] text-muted-foreground font-medium">Nombre cliente</p>
-                          <p className="text-base font-semibold text-[#1e293b]">{mockOrderData.orden.nombreCliente}</p>
+                          <p className="text-base font-semibold text-[#1e293b]">{data.nombreCliente || "—"}</p>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-1">
-                        <div className="flex h-10 w-10 items-center justify-center flex-shrink-0">
-                          <Phone className="size-5 text-gray-500" />
+                      {data.contactoTelefono && (
+                        <div className="flex items-center gap-1">
+                          <div className="flex h-10 w-10 items-center justify-center flex-shrink-0">
+                            <Phone className="size-5 text-gray-500" />
+                          </div>
+                          <div>
+                            <p className="text-[11px] text-muted-foreground font-medium">Teléfono</p>
+                            <p className="text-base font-semibold text-[#1e293b]">{data.contactoTelefono}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-[11px] text-muted-foreground font-medium">Teléfono</p>
-                          <p className="text-base font-semibold text-[#1e293b]">{mockOrderData.orden.celular}</p>
-                        </div>
-                      </div>
+                      )}
 
-                      <div className="flex items-center gap-1">
-                        <div className="flex h-10 w-10 items-center justify-center flex-shrink-0">
-                          <Mail className="size-5 text-gray-500" />
+                      {data.contactoEmail && (
+                        <div className="flex items-center gap-1">
+                          <div className="flex h-10 w-10 items-center justify-center flex-shrink-0">
+                            <Mail className="size-5 text-gray-500" />
+                          </div>
+                          <div>
+                            <p className="text-[11px] text-muted-foreground font-medium">Email</p>
+                            <p className="text-base font-semibold text-[#1e293b]">{data.contactoEmail}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-[11px] text-muted-foreground font-medium">Email</p>
-                          <p className="text-base font-semibold text-[#1e293b]">{mockOrderData.orden.email}</p>
-                        </div>
-                      </div>
+                      )}
 
-                      <div className="flex items-center gap-1">
-                        <div className="flex h-10 w-10 items-center justify-center flex-shrink-0">
-                          <MapPin className="size-5 text-gray-500" />
+                      {data.direccionLinea && (
+                        <div className="flex items-center gap-1">
+                          <div className="flex h-10 w-10 items-center justify-center flex-shrink-0">
+                            <MapPin className="size-5 text-gray-500" />
+                          </div>
+                          <div>
+                            <p className="text-[11px] text-muted-foreground font-medium">Dirección de destino</p>
+                            <p className="text-base font-semibold text-[#1e293b]">{data.direccionLinea}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-[11px] text-muted-foreground font-medium">Dirección de destino</p>
-                          <p className="text-base font-semibold text-[#1e293b]">{mockOrderData.orden.direccionDestino}</p>
-                        </div>
-                      </div>
+                      )}
                     </div>
                   </div>
 
-                  {/* Información del Conductor */}
-                  <div className="space-y-3 pt-4 border-t">
-                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                      Conductor
-                    </h3>
-                    <div className="flex items-center gap-1">
-                      <div className="flex h-10 w-10 items-center justify-center">
-                        <User className="size-5 text-gray-500" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-semibold text-base text-[#1e293b]">{mockOrderData.conductor.nombre}</p>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <Phone className="size-3" />
-                          {mockOrderData.conductor.telefono}
+                  {data.conductorNombre && (
+                    <div className="space-y-3 pt-4 border-t">
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                        Conductor
+                      </h3>
+                      <div className="flex items-center gap-1">
+                        <div className="flex h-10 w-10 items-center justify-center">
+                          <User className="size-5 text-gray-500" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-semibold text-base text-[#1e293b]">{data.conductorNombre}</p>
+                          {data.conductorTelefono && (
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                              <Phone className="size-3" />
+                              {data.conductorTelefono}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
-                  </div>
-
-                  {/* Items */}
-                  <div className="space-y-3 pt-4 border-t">
-                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                      Items
-                    </h3>
-                    <div className="flex items-center justify-center gap-8 py-4">
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-2 mb-1">
-                          <Package className="size-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">Cajas</span>
-                        </div>
-                        <p className="text-2xl font-bold text-primary">{mockOrderData.items.cajas}</p>
-                      </div>
-                      <div className="h-12 w-px bg-border" />
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-2 mb-1">
-                          <span className="text-sm text-muted-foreground">Total</span>
-                        </div>
-                        <p className="text-2xl font-bold text-primary">{mockOrderData.items.total}</p>
-                      </div>
-                    </div>
-                  </div>
+                  )}
                 </TabsContent>
 
                 <TabsContent value="archivos" className="mt-0">
-                  <div className="grid grid-cols-2 gap-4">
-                    {[
-                      { title: "Prueba 1 - Foto entrega", src: "https://picsum.photos/seed/proof1/400/300" },
-                      { title: "Prueba 2 - Firmado", src: "https://picsum.photos/seed/proof2/400/300" },
-                      { title: "Prueba 3 - Destino", src: "https://picsum.photos/seed/proof3/400/300" },
-                      { title: "Prueba 4 - Checklist", src: "https://picsum.photos/seed/proof4/400/300" },
-                    ].map((file, index) => (
-                      <div key={index} className="space-y-2">
-                        <div className="aspect-video rounded-lg overflow-hidden border border-border bg-muted">
-                          <img
-                            src={file.src}
-                            alt={file.title}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <p className="text-xs text-center text-muted-foreground">{file.title}</p>
-                      </div>
-                    ))}
+                  <div className="flex items-center justify-center py-16 text-muted-foreground">
+                    <div className="text-center space-y-2">
+                      <FileText className="size-10 mx-auto" />
+                      <p className="text-sm">Prueba de entrega no disponible aún</p>
+                      <p className="text-xs">Se mostrará cuando el pedido sea entregado.</p>
+                    </div>
                   </div>
                 </TabsContent>
               </CardContent>
@@ -271,27 +356,20 @@ const EnlaceCliente = () => {
           </Card>
         </div>
 
-        {/* Columna Derecha - Mapa */}
         <div className="w-full lg:w-1/2 h-full overflow-hidden relative">
-          <MapContainer 
-            center={[-12.0464, -77.0428]} 
-            zoom={14} 
-            style={{ height: "100%", width: "100%" }}
-            className="z-10"
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-              url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-            />
-            <Marker position={[-12.0464, -77.0428]}>
-              <Popup>
-                <div className="text-sm">
-                  <p className="font-semibold">Ubicación de entrega</p>
-                  <p className="text-muted-foreground text-xs">{mockOrderData.orden.direccionDestino}</p>
-                </div>
-              </Popup>
-            </Marker>
-          </MapContainer>
+          <div ref={containerRef} className="h-full w-full" />
+
+          <div className="absolute left-2 top-2 z-10">
+            <select
+              value={mapStyle}
+              onChange={(e) => handleStyleChange(e.target.value as PromssacMapStyleKey)}
+              className="rounded-md border border-border bg-background/95 px-2 py-1.5 text-xs text-foreground shadow-sm backdrop-blur-sm"
+            >
+              {Object.entries(MAP_STYLE_LABELS).map(([key, label]) => (
+                <option key={key} value={key}>{label}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
     </div>

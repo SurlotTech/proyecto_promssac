@@ -10,10 +10,11 @@ export function useVehiclesQuery() {
 }
 
 /** Solo id, plate, type — para combos (menos datos que list()). */
-export function useVehicleOptionsQuery() {
+export function useVehicleOptionsQuery(enabled: boolean = true) {
   return useQuery({
     queryKey: ["vehicles", "opciones"],
     queryFn: () => vehiclesApi.listOpciones(),
+    enabled,
   });
 }
 
@@ -25,10 +26,11 @@ export function useMobileUsersQuery(incluirInactivos: boolean = false) {
 }
 
 /** id + nombre + vehiculoId; solo activos — modal / filtros ligeros de rutas. */
-export function useMobileUserRouteOptionsQuery() {
+export function useMobileUserRouteOptionsQuery(enabled: boolean = true) {
   return useQuery({
     queryKey: ["usuarios-movil", "opciones-ruta"],
     queryFn: () => mobileUsersApi.listRouteOptions(),
+    enabled,
   });
 }
 
@@ -96,6 +98,13 @@ export function useOrdersQuery() {
   return useQuery({
     queryKey: ["ordenes"],
     queryFn: () => ordersApi.list(),
+  });
+}
+
+export function useAlertOrdersQuery() {
+  return useQuery({
+    queryKey: ["ordenes", "alertas"],
+    queryFn: () => ordersApi.listAlertas(),
   });
 }
 

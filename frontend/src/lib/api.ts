@@ -12,6 +12,26 @@ function jsonHeaders(): Record<string, string> {
   return { "Content-Type": "application/json", ...authHeaders() };
 }
 
+function handleUnauthorized(errorMsg: string) {
+  const isSessionTerminated = errorMsg.includes("Sesion finalizada")
+    || errorMsg.includes("otro usuario");
+  localStorage.removeItem("auth_token");
+  localStorage.removeItem("auth_user");
+  const reason = isSessionTerminated ? "session_terminated" : "token_expired";
+  window.location.href = `/login?reason=${reason}`;
+}
+
+async function checkResponse(res: Response): Promise<void> {
+  if (!res.ok) {
+    const msg = await parseError(res);
+    if (res.status === 401) {
+      handleUnauthorized(msg);
+      throw new Error(msg);
+    }
+    throw new Error(msg);
+  }
+}
+
 async function parseError(res: Response): Promise<string> {
   let body: unknown;
   try {
@@ -26,7 +46,7 @@ async function parseError(res: Response): Promise<string> {
 
 export async function apiGet<T>(path: string): Promise<T> {
   const res = await fetch(`${base}${path}`, { headers: authHeaders() });
-  if (!res.ok) throw new Error(await parseError(res));
+  await checkResponse(res);
   return res.json() as Promise<T>;
 }
 
@@ -36,18 +56,17 @@ export async function apiPost<T, B>(path: string, body: B): Promise<T> {
     headers: jsonHeaders(),
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(await parseError(res));
+  await checkResponse(res);
   return res.json() as Promise<T>;
 }
 
-/** POST que responde 204 No Content sin cuerpo JSON. */
 export async function apiPostNoContent<B>(path: string, body: B): Promise<void> {
   const res = await fetch(`${base}${path}`, {
     method: "POST",
     headers: jsonHeaders(),
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(await parseError(res));
+  await checkResponse(res);
 }
 
 async function fetchMultipartJson<T>(
@@ -62,7 +81,7 @@ async function fetchMultipartJson<T>(
   fd.append(jsonPartName, new Blob([JSON.stringify(jsonBody)], { type: "application/json" }));
   if (file) fd.append(filePartName, file);
   const res = await fetch(`${base}${path}`, { method, body: fd, headers: authHeaders() });
-  if (!res.ok) throw new Error(await parseError(res));
+  await checkResponse(res);
   return res.json() as Promise<T>;
 }
 
@@ -92,34 +111,32 @@ export async function apiPut<T, B>(path: string, body: B): Promise<T> {
     headers: jsonHeaders(),
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(await parseError(res));
+  await checkResponse(res);
   return res.json() as Promise<T>;
 }
 
-/** PATCH con JSON; acepta 204 sin cuerpo. */
 export async function apiPatch<B>(path: string, body: B): Promise<void> {
   const res = await fetch(`${base}${path}`, {
     method: "PATCH",
     headers: jsonHeaders(),
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(await parseError(res));
+  await checkResponse(res);
 }
 
-/** PATCH esperando respuesta JSON. */
 export async function apiPatchJson<T, B>(path: string, body: B): Promise<T> {
   const res = await fetch(`${base}${path}`, {
     method: "PATCH",
     headers: jsonHeaders(),
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(await parseError(res));
+  await checkResponse(res);
   return res.json() as Promise<T>;
 }
 
 export async function apiDelete(path: string): Promise<void> {
   const res = await fetch(`${base}${path}`, { method: "DELETE", headers: authHeaders() });
-  if (!res.ok) throw new Error(await parseError(res));
+  await checkResponse(res);
 }
 
 export async function apiPostFormData<T>(path: string, formData: FormData): Promise<T> {
@@ -128,6 +145,6 @@ export async function apiPostFormData<T>(path: string, formData: FormData): Prom
     headers: authHeaders(),
     body: formData,
   });
-  if (!res.ok) throw new Error(await parseError(res));
+  await checkResponse(res);
   return res.json() as Promise<T>;
 }

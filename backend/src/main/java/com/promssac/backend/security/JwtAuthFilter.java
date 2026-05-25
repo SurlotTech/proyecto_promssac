@@ -1,5 +1,6 @@
 package com.promssac.backend.security;
 
+import com.promssac.backend.repository.SesionActivaRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,6 +21,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final SesionActivaRepository sesionActivaRepository;
 
     @Override
     protected void doFilterInternal(
@@ -27,12 +29,28 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
 
+        String path = request.getRequestURI();
+        if (path.startsWith("/ws")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
             try {
                 WebUserDetails userDetails = jwtTokenProvider.validarToken(token);
+
+                if (!sesionActivaRepository.findByToken(token).isPresent()) {
+                    log.warn("Sesion finalizada (otro usuario inicio sesion): usuario={}", userDetails.getUsername());
+                    SecurityContextHolder.clearContext();
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.setCharacterEncoding("UTF-8");
+                    response.getWriter().write("{\"error\":\"Sesion finalizada. Otro usuario inicio sesion.\"}");
+                    return;
+                }
 
                 UsernamePasswordAuthenticationToken auth =
                         new UsernamePasswordAuthenticationToken(

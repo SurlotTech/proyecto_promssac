@@ -7,6 +7,20 @@ export type RouteStatus =
 
 export type RoutePriority = "high" | "medium" | "low";
 
+export interface RouteOrder {
+  id: string;
+  status: string;
+  substatus: string;
+  vehiclePlate: string;
+  clientName: string;
+  contactName: string;
+  contactIdentifier: string;
+  contactPhone: string;
+  driverName: string;
+  addressLine: string;
+  routeDate?: string;
+}
+
 export interface Route {
   /** UUID de la ruta (API). */
   id: string;
@@ -26,6 +40,7 @@ export interface Route {
   amountInRoute: number;
   status: RouteStatus;
   place: string;
+  orders?: RouteOrder[];
 }
 
 export const routeStatusMeta: Record<

@@ -4,6 +4,8 @@ import com.promssac.backend.model.dto.request.OrderAssignBulkRequest;
 import com.promssac.backend.model.dto.request.OrderCompleteRequest;
 import com.promssac.backend.model.dto.request.OrderCreateRequest;
 import com.promssac.backend.model.dto.request.OrderStatusPatchRequest;
+import com.promssac.backend.model.dto.response.AlertOrderResponse;
+import com.promssac.backend.model.dto.response.EnlaceResponse;
 import com.promssac.backend.model.dto.response.OrderResponse;
 import java.util.Collection;
 import java.util.List;
@@ -36,5 +38,9 @@ public interface OrdenService {
      * Cuentas de órdenes por {@code cliente_id}, en una o varias consultas. Claves = UUID del cliente.
      */
     Map<UUID, Long> contarAgrupadoPorClienteId(Collection<UUID> clienteIds);
+
+    EnlaceResponse obtenerParaEnlace(String numeroOrden);
+
+    List<AlertOrderResponse> listarParaAlertas();
 }
 

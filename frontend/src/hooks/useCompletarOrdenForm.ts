@@ -30,8 +30,8 @@ import {
   type OrderCreationDraft,
   type OrderProductsLocationState,
 } from "@/lib/orderCreationDraft";
-import { consultasApi } from "@/services/consultas.api";
 import { clientsApi } from "@/services/clients.api";
+import { consultasApi } from "@/services/consultas.api";
 import { ordersApi } from "@/services/orders.api";
 import { toast } from "sonner";
 import { sanitizePeruNineDigitPhoneInput } from "@/lib/completarOrden/contactValidation";
@@ -62,6 +62,7 @@ type FormCache = {
   lng: string;
   customFields: Record<string, string>;
   selectedClientId: string;
+  clientSearchQuery: string;
 };
 
 function saveFormCache(orderId: string, data: Omit<FormCache, "orderId">) {
@@ -119,6 +120,8 @@ export function useCompletarOrdenForm() {
   const [geocodificandoMapa, setGeocodificandoMapa] = useState(false);
   const [guardandoOrden, setGuardandoOrden] = useState(false);
   const [hydratingOrder, setHydratingOrder] = useState(false);
+  const [routeFechaInicio, setRouteFechaInicio] = useState<string | undefined>();
+  const [routeFechaFin, setRouteFechaFin] = useState<string | undefined>();
 
   const [selectedClientId, setSelectedClientId] = useState("");
   const [clientSearchQuery, setClientSearchQuery] = useState("");
@@ -127,6 +130,7 @@ export function useCompletarOrdenForm() {
   const [clientSearchResults, setClientSearchResults] = useState<Client[]>([]);
   const [clientSearching, setClientSearching] = useState(false);
   const clientSearchTimer = useRef<ReturnType<typeof setTimeout>>();
+  const identifierOrigRef = useRef("");
 
   useEffect(() => {
     const state = location.state as OrderCompletarLocationState | null;
@@ -169,6 +173,7 @@ export function useCompletarOrdenForm() {
       setContactName(cached.contactName);
       setContactPhone(cached.contactPhone);
       setContactIdentifier(cached.contactIdentifier);
+      identifierOrigRef.current = cached.contactIdentifier;
       setContactEmail(cached.contactEmail);
       setIdType(cached.idType);
       setAddressLine(cached.addressLine);
@@ -179,13 +184,13 @@ export function useCompletarOrdenForm() {
       setCustomFields({
         ...emptyCustomFields(),
         ...cachedCf,
-        telefono_director: sanitizePeruNineDigitPhoneInput(cachedCf.telefono_director ?? ""),
       });
       if (cached.lat.trim() && cached.lng.trim()) {
         setLat(cached.lat);
         setLng(cached.lng);
       }
       setSelectedClientId(cached.selectedClientId ?? "");
+      setClientSearchQuery(cached.clientSearchQuery ?? "");
       return; // No llamar al API
     }
 
@@ -204,6 +209,7 @@ export function useCompletarOrdenForm() {
         setContactName(snap.contactName);
         setContactPhone(snap.contactPhone);
         setContactIdentifier(snap.contactIdentifier);
+        identifierOrigRef.current = snap.contactIdentifier;
         setContactEmail(snap.contactEmail);
         setIdType(snap.idType);
         setAddressLine(snap.addressLine);
@@ -211,6 +217,28 @@ export function useCompletarOrdenForm() {
         setServiceMinutes(snap.serviceMinutes);
         setAddressReference(snap.addressReference);
         setCustomFields(snap.customFields);
+        setSelectedClientId(snap.selectedClientId ?? "");
+        setClientSearchQuery(((order as any).clientCodigoModular
+          ? (order as any).clientCodigoModular + " · " + ((order as any).clientName || "")
+          : (order as any).clientName) || "");
+        setRouteFechaInicio(((order as any).startDate?.trim()) || undefined);
+        setRouteFechaFin(((order as any).endDate?.trim()) || undefined);
+        if (snap.clientAddress && !addressLine) {
+          setAddressLine(snap.clientAddress);
+          setNormalizedAddress(snap.clientAddress);
+          setAddressReference(snap.clientAddress);
+        }
+        if (snap.clientLatitude != null && snap.clientLongitude != null && !lat && !lng) {
+          setLat(snap.clientLatitude.toFixed(6));
+          setLng(snap.clientLongitude.toFixed(6));
+        }
+        const orderAny = order as any;
+        setCustomFields((prev) => ({
+          ...prev,
+          ...(!prev.profesor && orderAny.clientDirectorName ? { profesor: orderAny.clientDirectorName } : {}),
+          ...(!prev.telefono && orderAny.clientPhone ? { telefono: orderAny.clientPhone } : {}),
+          ...(!prev.correoElectronico && orderAny.clientEmail ? { correoElectronico: orderAny.clientEmail } : {}),
+        }));
         if (snap.lat.trim() && snap.lng.trim()) {
           setLat(snap.lat);
           setLng(snap.lng);
@@ -228,6 +256,42 @@ export function useCompletarOrdenForm() {
       cancelled = true;
     };
   }, [draft?.displayOrderId]);
+
+  useEffect(() => {
+    if (currentStep !== 1) return;
+    if (idType !== "dni" && idType !== "ruc") return;
+    const num = contactIdentifier.trim();
+    if (idType === "dni" && num.length !== 8) return;
+    if (idType === "ruc" && num.length !== 11) return;
+    if (num === identifierOrigRef.current) return;
+
+    let cancelled = false;
+    const timer = window.setTimeout(async () => {
+      setConsultandoDocumento(true);
+      try {
+        const res = idType === "dni" ? await consultasApi.dni(num) : await consultasApi.ruc(num);
+        if (cancelled) return;
+        if (!res.exito) {
+          toast.error(res.mensaje ?? "No se encontró el documento.");
+          return;
+        }
+        if (res.nombreMostrar?.trim()) {
+          setContactName(res.nombreMostrar.trim());
+        }
+      } catch (e) {
+        if (!cancelled) {
+          toast.error(errorMessageFromUnknown(e, "Error al consultar el documento."));
+        }
+      } finally {
+        if (!cancelled) setConsultandoDocumento(false);
+      }
+    }, 550);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [contactIdentifier, currentStep, idType]);
 
   const lowAddressConfidence = useMemo(() => {
     const t = addressLine.trim();
@@ -266,41 +330,6 @@ export function useCompletarOrdenForm() {
       customFields,
     ],
   );
-
-  useEffect(() => {
-    if (currentStep !== 1) return;
-    if (idType !== "dni" && idType !== "ruc") return;
-    const num = contactIdentifier.trim();
-    if (idType === "dni" && num.length !== 8) return;
-    if (idType === "ruc" && num.length !== 11) return;
-
-    let cancelled = false;
-    const timer = window.setTimeout(async () => {
-      setConsultandoDocumento(true);
-      try {
-        const res = idType === "dni" ? await consultasApi.dni(num) : await consultasApi.ruc(num);
-        if (cancelled) return;
-        if (!res.exito) {
-          toast.error(res.mensaje ?? "No se encontró el documento.");
-          return;
-        }
-        if (res.nombreMostrar?.trim()) {
-          setContactName(res.nombreMostrar.trim());
-        }
-      } catch (e) {
-        if (!cancelled) {
-          toast.error(errorMessageFromUnknown(e, "Error al consultar el documento."));
-        }
-      } finally {
-        if (!cancelled) setConsultandoDocumento(false);
-      }
-    }, 550);
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-    };
-  }, [contactIdentifier, currentStep, idType]);
 
   /** Dirección y coords desde el mapa (inversa Nominatim); no usa datos del DNI/RUC. */
   const aplicarUbicacionEnMapa = useCallback(async (lat: number, lng: number) => {
@@ -383,12 +412,18 @@ export function useCompletarOrdenForm() {
     }
     setClientSearchOpen(false);
     setClientSearchResults([]);
-    setClientSearchQuery(client.nombre);
+    setClientSearchQuery((client as any).codigoModularIiee
+      ? (client as any).codigoModularIiee + " · " + client.nombre
+      : client.nombre);
   }, []);
 
   const handleBackToList = useCallback(() => {
-    navigate("/ordenes");
-  }, [navigate]);
+    if (draft?.displayOrderId) {
+      navigate(`/ordenes/detalle/${encodeURIComponent(draft.displayOrderId)}`);
+    } else {
+      navigate("/ordenes");
+    }
+  }, [navigate, draft?.displayOrderId]);
 
   const validateStep = useCallback(
     (step: number): boolean => isCompletarStepValid(step, stepCtx),
@@ -495,7 +530,7 @@ export function useCompletarOrdenForm() {
       deliveryFrom, deliveryTo, mode, priority, cod,
       contactName, contactPhone, contactIdentifier, contactEmail, idType,
       addressLine, normalizedAddress, serviceMinutes, addressReference,
-      lat, lng, customFields, selectedClientId,
+      lat, lng, customFields, selectedClientId, clientSearchQuery,
     });
     const state: OrderProductsLocationState = { displayOrderId: draft.displayOrderId };
     navigate("/ordenes/productos", { state });
@@ -551,6 +586,8 @@ export function useCompletarOrdenForm() {
     geocodificandoMapa,
     guardandoOrden,
     hydratingOrder,
+    routeFechaInicio,
+    routeFechaFin,
     lowAddressConfidence,
     handleBackToList,
     aplicarUbicacionEnMapa,

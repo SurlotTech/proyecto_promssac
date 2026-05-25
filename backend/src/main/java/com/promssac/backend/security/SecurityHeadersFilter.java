@@ -26,6 +26,7 @@ public class SecurityHeadersFilter extends OncePerRequestFilter {
         response.setHeader("Permissions-Policy",
                 "camera=(), microphone=(), geolocation=(), payment=()");
         response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+        response.setHeader("X-Powered-By", "Sulort Tech S.A.C");
 
         filterChain.doFilter(request, response);
     }

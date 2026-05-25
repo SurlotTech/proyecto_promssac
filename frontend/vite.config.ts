@@ -23,6 +23,10 @@ export default defineConfig({
           });
         },
       },
+      "/ws": {
+        target: "http://127.0.0.1:8080",
+        ws: true,
+      },
     },
   },
   plugins: [
@@ -32,8 +36,8 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "logo.png"],
       manifest: {
-        name: "Promssac - Logística y Transporte",
-        short_name: "Promssac",
+        name: "Sutrack - Logística y Transporte",
+        short_name: "Sutrack",
         description: "Sistema de gestión logística y transporte.",
         theme_color: "#212121",
         background_color: "#212121",

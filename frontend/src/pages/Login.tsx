@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,12 +10,22 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { login } = useAuth();
   const [usuario, setUsuario] = useState("");
   const [contrasena, setContrasena] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const reason = searchParams.get("reason");
+    if (reason === "session_terminated") {
+      setError("Su sesión fue cerrada porque otro usuario inició sesión en este sistema.");
+    } else if (reason === "token_expired") {
+      setError("Su sesión expiró. Inicie sesión nuevamente.");
+    }
+  }, [searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +45,6 @@ const Login = () => {
 
   return (
     <div className="flex min-h-screen w-full bg-[#121212]">
-      {/* Left: Background Image - Desktop only */}
       <div 
         className="hidden md:block md:w-1/2 lg:w-[55%] bg-cover bg-center bg-no-repeat relative"
         style={{ backgroundImage: 'url("/login-bg.png")' }}
@@ -43,14 +52,12 @@ const Login = () => {
         <div className="absolute inset-0 bg-black/30" />
       </div>
 
-      {/* Right: Login Form - White background */}
       <div className="w-full md:w-1/2 lg:w-[45%] flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-white">
         <div className="w-full max-w-[420px] animate-in fade-in zoom-in-95 duration-500 space-y-8">
-          {/* Logo */}
           <div className="flex flex-col items-center justify-center space-y-3">
             <img 
               src="/logo.png" 
-              alt="FleetOps" 
+              alt="Sutrack" 
               className="h-44 w-37 object-contain"
             />
           </div>
@@ -136,7 +143,7 @@ const Login = () => {
           
           <div className="text-center pt-4 border-t border-border">
             <p className="text-xs text-muted-foreground">
-              Desarrollado por <span className="font-bold text-foreground">Grupo Sulort Tech S.A.C</span>
+              Desarrollado por <span className="font-bold text-foreground">Sulort Tech S.A.C</span>
             </p>
           </div>
         </div>

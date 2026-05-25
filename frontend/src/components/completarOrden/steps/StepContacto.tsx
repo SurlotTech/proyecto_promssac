@@ -83,21 +83,17 @@ const StepContacto = ({
             autoComplete="off"
           />
           {consultandoDocumento ? (
-            <Loader2
-              className="size-4 shrink-0 animate-spin text-primary"
-              aria-label="Consultando documento"
-            />
+            <Loader2 className="size-4 shrink-0 animate-spin text-primary" aria-label="Consultando documento" />
           ) : null}
         </div>
       </div>
       {idType === "dni" ? (
         <p className="text-xs text-muted-foreground">
-          Con 8 dígitos se consulta RENIEC y se completa el nombre (servidor con token Factiliza).
+          Con 8 dígitos se consulta RENIEC y se completa el nombre automáticamente.
         </p>
       ) : idType === "ruc" ? (
         <p className="text-xs text-muted-foreground">
-          Con 11 dígitos se consulta SUNAT y se completa la razón social. La dirección de entrega la defines en el paso
-          siguiente usando el mapa.
+          Con 11 dígitos se consulta SUNAT y se completa la razón social.
         </p>
       ) : null}
     </div>

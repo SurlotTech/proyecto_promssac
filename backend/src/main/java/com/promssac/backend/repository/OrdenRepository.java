@@ -46,4 +46,17 @@ public interface OrdenRepository extends JpaRepository<Orden, UUID> {
                     + "where o.cliente is not null and o.cliente.id in :ids "
                     + "group by o.cliente.id")
     List<Object[]> countGroupedByClienteIdIn(@Param("ids") Collection<UUID> ids);
+
+    @Query("select o.numeroOrden, o.estado, coalesce(o.subestado, ''), "
+            + "coalesce(o.vehiculoPlaca, '—'), o.fechaRuta, o.creadoEn "
+            + "from Orden o order by o.creadoEn desc")
+    List<Object[]> findLiteForAlertas();
+
+    @Query("select o.numeroOrden, o.estado, o.subestado, o.vehiculoPlaca, "
+            + "coalesce(c.nombre, ''), o.contactoNombre, o.contactoIdentificador, o.contactoTelefono, "
+            + "coalesce(r.conductorMovil, coalesce(v.conductor, '')), "
+            + "o.direccionLinea, o.fechaRuta "
+            + "from Orden o left join o.ruta r left join o.vehiculo v left join o.cliente c "
+            + "where o.ruta.id = :rutaId order by o.numeroOrden asc")
+    List<Object[]> findLiteByRutaId(@Param("rutaId") UUID rutaId);
 }

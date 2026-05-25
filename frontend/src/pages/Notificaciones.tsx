@@ -58,16 +58,12 @@ const Notificaciones = () => {
   }, [page]);
 
   const handleVerMensaje = async (notif: NotificacionEnviadaListResponse) => {
-    if (notif.contenido) {
-      setSelectedNotif(notif);
-      return;
-    }
+    setSelectedNotif(notif);
+    if (notif.contenido) return;
     setLoadingDetail(true);
     try {
       const detalle = await notificacionesApi.detalle(notif.id);
       setSelectedNotif(detalle);
-    } catch {
-      setSelectedNotif(notif);
     } finally {
       setLoadingDetail(false);
     }
@@ -99,10 +95,8 @@ const Notificaciones = () => {
 
       <div className="flex flex-1 overflow-hidden p-4 sm:p-6 lg:p-8">
         <div className="flex w-full flex-col gap-6 lg:flex-row">
-          {/* Sidebar */}
           <aside className="w-full shrink-0 space-y-5 lg:w-80">
 
-            {/* Card 1: Estado del Servicio */}
             <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg p-4 shadow-sm">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -137,7 +131,6 @@ const Notificaciones = () => {
               </div>
             </div>
 
-            {/* Card 2: Total Enviadas */}
             <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg p-4 shadow-sm">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -151,7 +144,6 @@ const Notificaciones = () => {
               <p className="text-xs text-muted-foreground mt-1">Notificaciones en el historial</p>
             </div>
 
-            {/* Filtros */}
             <div className="rounded-xl border border-border bg-card/40 backdrop-blur-lg p-4 shadow-sm">
               <div className="mb-4 flex items-center gap-2 border-b border-border pb-3">
                 <Filter className="size-4 text-primary" />
@@ -206,7 +198,6 @@ const Notificaciones = () => {
             </div>
           </aside>
 
-          {/* Main Table */}
           <main className="flex-1 space-y-6">
             <div className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm">
               {loading ? (
@@ -255,9 +246,9 @@ const Notificaciones = () => {
                               <span
                                 className={cn(
                                   "inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide border",
-                                  notif.estado === "ENVIADO" &&
+                                  notif.estado === "Enviado" &&
                                     "bg-success/10 text-success border-success/20",
-                                  notif.estado === "FALLIDO" &&
+                                  notif.estado === "Fallido" &&
                                     "bg-destructive/10 text-destructive border-destructive/20"
                                 )}
                               >
@@ -308,7 +299,7 @@ const Notificaciones = () => {
         </div>
       </div>
 
-      <Dialog open={selectedNotif !== null} onOpenChange={(open) => { if (!open) setSelectedNotif(null); }}>
+      <Dialog open={selectedNotif !== null} onOpenChange={(open) => { if (!open) { setSelectedNotif(null); setLoadingDetail(false); } }}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-lg">{selectedNotif?.asunto}</DialogTitle>

@@ -1,4 +1,4 @@
-import type { Order } from "@/domain/orders";
+import type { AlertOrder, Order } from "@/domain/orders";
 import { normalizeFechaRutaForApi } from "@/lib/fechaRutaApi";
 import { apiDelete, apiGet, apiPatchJson, apiPost, apiPostNoContent, apiPut } from "@/lib/api";
 import { endpoints } from "./endpoints";
@@ -108,6 +108,10 @@ function buildOrderCreateJson(input: OrderCreateInput): Record<string, unknown> 
 export const ordersApi = {
   list(): Promise<Order[]> {
     return apiGet<Order[]>(endpoints.orders);
+  },
+
+  listAlertas(): Promise<AlertOrder[]> {
+    return apiGet<AlertOrder[]>(endpoints.ordersAlertas);
   },
 
   /** Una orden por número (para rellenar el asistente al editar). */

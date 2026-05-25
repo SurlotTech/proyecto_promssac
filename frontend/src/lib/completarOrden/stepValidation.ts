@@ -24,13 +24,7 @@ export type CompletarStepContext = {
   customFields: Record<CustomFieldKey, string>;
 };
 
-/** Teléfono Director (campo personalizado): vacío válido; si hay texto → 9 dígitos. */
-export function describePersonalizadosStepError(fields: Record<CustomFieldKey, string>): string | null {
-  const raw = fields.telefono_director?.trim() ?? "";
-  if (!raw) return null;
-  if (!isValidPeruMobileNineDigits(raw)) {
-    return "El Teléfono Director debe tener exactamente 9 dígitos numéricos (sin letras).";
-  }
+export function describePersonalizadosStepError(_fields: Record<CustomFieldKey, string>): null {
   return null;
 }
 

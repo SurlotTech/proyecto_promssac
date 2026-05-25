@@ -16,7 +16,7 @@ function routeOnSameDay(route: Route, day: Date): boolean {
 }
 
 function orderOnSameDay(order: Order, day: Date): boolean {
-  return order.routeDateIso === formatAssignDayIso(day);
+  return (order as any).startDate === formatAssignDayIso(day);
 }
 
 function orderIsCandidate(order: Order): boolean {

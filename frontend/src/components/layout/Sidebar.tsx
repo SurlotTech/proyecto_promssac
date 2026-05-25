@@ -285,9 +285,9 @@ const Sidebar = ({ open, onClose, isCollapsed, onToggleCollapse }: SidebarProps)
             </div>
             {!isCollapsed && (
               <div className="leading-tight transition-opacity duration-300">
-                <p className="text-sm font-bold text-white">FleetOps</p>
-                <p className="text-[10px] uppercase tracking-wider text-sidebar-foreground/60">
-                  PROMSSAC
+                <p className="text-sm font-bold text-white">Sutrack</p>
+                <p className="text-[10px] text-gray-400">
+                  Promssac
                 </p>
               </div>
             )}

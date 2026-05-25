@@ -4,7 +4,7 @@ const Footer = () => (
       <div className="flex items-center gap-2">
         <span className="text-[11px] text-gray-500/80">
           Desarrollado por{" "}
-          <span className="font-semibold text-gray-500/80">Grupo Sulort Tech S.A.C</span>
+          <span className="font-semibold text-gray-500/80">Sulort Tech S.A.C</span>
         </span>
       </div>
       <div className="flex items-center gap-4 text-[10px] text-gray-500/80">

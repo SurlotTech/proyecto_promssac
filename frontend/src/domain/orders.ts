@@ -1,6 +1,15 @@
 /** Opción de ruta para combos al crear o editar una orden. */
 export type OrderRouteOption = { id: string; label: string };
 
+export interface AlertOrder {
+  id: string;
+  status: string;
+  substatus: string;
+  vehiclePlate: string;
+  routeDate: string;
+  createdAt: string;
+}
+
 export type OrderStatus =
   | "entregado"
   | "no_entregado"

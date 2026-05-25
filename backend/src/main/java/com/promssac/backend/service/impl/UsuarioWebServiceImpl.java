@@ -13,13 +13,16 @@ import com.promssac.backend.model.dto.response.ResourceIdResponse;
 import com.promssac.backend.model.dto.response.WebUserDetailResponse;
 import com.promssac.backend.model.dto.response.WebUserListItemResponse;
 import com.promssac.backend.model.entity.RolWeb;
+import com.promssac.backend.model.entity.SesionActiva;
 import com.promssac.backend.model.entity.UsuarioWeb;
 import com.promssac.backend.model.enums.ModoPermisoUsuarioWeb;
 import com.promssac.backend.repository.RolWebRepository;
+import com.promssac.backend.repository.SesionActivaRepository;
 import com.promssac.backend.repository.UsuarioWebRepository;
 import com.promssac.backend.security.JwtTokenProvider;
 import com.promssac.backend.security.WebUserDetails;
 import com.promssac.backend.service.UsuarioWebService;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -53,9 +56,10 @@ public class UsuarioWebServiceImpl implements UsuarioWebService {
 
     private final UsuarioWebRepository usuarioWebRepository;
     private final RolWebRepository rolWebRepository;
+    private final SesionActivaRepository sesionActivaRepository;
+    private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper;
-    private final JwtTokenProvider jwtTokenProvider;
 
     private record RolPermisos(String rolClave, String permisosJson) {}
 
@@ -209,6 +213,13 @@ public class UsuarioWebServiceImpl implements UsuarioWebService {
         );
 
         String token = jwtTokenProvider.crearToken(userDetails);
+
+        sesionActivaRepository.deleteAll();
+        SesionActiva sesion = new SesionActiva();
+        sesion.setUsuarioId(entity.getId());
+        sesion.setToken(token);
+        sesion.setIniciadaEn(Instant.now());
+        sesionActivaRepository.save(sesion);
 
         entity.setUltimaConexion(LocalDateTime.now());
         usuarioWebRepository.save(entity);

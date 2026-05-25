@@ -8,23 +8,25 @@ export const fieldInputClass =
   "h-12 rounded-full border-border bg-transparent px-4 text-base font-normal shadow-none transition-all hover:bg-zinc-50 hover:border-zinc-300 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
 
 export const customFieldKeys = [
-  "director",
-  "telefono_director",
   "paquetes",
   "actaEntrega",
   "guiaRemision",
   "guiaTransportista",
+  "telefono",
+  "profesor",
+  "correoElectronico",
 ] as const;
 
 export type CustomFieldKey = (typeof customFieldKeys)[number];
 
 export const customFieldLabels: Record<CustomFieldKey, string> = {
-  director: "Director",
-  telefono_director: "Teléfono Director",
   paquetes: "Paquetes",
   actaEntrega: "Acta de entrega",
   guiaRemision: "Guía de remisión",
   guiaTransportista: "Guía de transportista",
+  telefono: "Teléfono",
+  profesor: "Director",
+  correoElectronico: "Correo electrónico",
 };
 
 export const COMPLETAR_ORDEN_STEPS: Step[] = [

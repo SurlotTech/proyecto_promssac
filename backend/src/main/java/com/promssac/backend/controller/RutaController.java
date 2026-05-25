@@ -1,7 +1,9 @@
 package com.promssac.backend.controller;
 
+import com.promssac.backend.model.dto.request.RouteOrderBulkImportRequest;
 import com.promssac.backend.model.dto.request.RouteWriteRequest;
 import com.promssac.backend.model.dto.response.OrderResponse;
+import com.promssac.backend.model.dto.response.RouteOrderBulkImportResponse;
 import com.promssac.backend.model.dto.response.RouteResponse;
 import com.promssac.backend.service.OrdenService;
 import com.promssac.backend.service.RutaService;
@@ -60,5 +62,11 @@ public class RutaController {
     public ResponseEntity<Void> eliminar(@PathVariable UUID id) {
         rutaService.eliminar(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/importacion-lote")
+    public ResponseEntity<RouteOrderBulkImportResponse> importarLote(
+            @Valid @RequestBody RouteOrderBulkImportRequest request) {
+        return ResponseEntity.ok(rutaService.importarLote(request));
     }
 }

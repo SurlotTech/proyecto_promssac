@@ -1,6 +1,7 @@
 package com.promssac.backend.model.dto.response;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,4 +29,6 @@ public class RouteResponse {
     private BigDecimal amountInRoute;
     private String status;
     private String place;
+
+    private List<RouteContextOrderResponse> orders;
 }

@@ -1,16 +1,12 @@
 package com.promssac.backend.config;
 
 import com.promssac.backend.model.entity.RolWeb;
-import com.promssac.backend.model.entity.UsuarioWeb;
-import com.promssac.backend.model.enums.ModoPermisoUsuarioWeb;
 import com.promssac.backend.repository.RolWebRepository;
-import com.promssac.backend.repository.UsuarioWebRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -27,14 +23,11 @@ public class RolWebDataSeeder implements ApplicationRunner {
             "}";
 
     private final RolWebRepository rolWebRepository;
-    private final UsuarioWebRepository usuarioWebRepository;
-    private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(ApplicationArguments args) {
         seedRolesIfEmpty();
         ensureAdminRoleWithPermissions();
-        seedAdminUserIfMissing();
     }
 
     private void seedRolesIfEmpty() {
@@ -72,26 +65,5 @@ public class RolWebDataSeeder implements ApplicationRunner {
         r.setActivo(true);
         r.setPermisosJson(permisosJson);
         return rolWebRepository.save(r);
-    }
-
-    private void seedAdminUserIfMissing() {
-        if (usuarioWebRepository.existsByNombreUsuarioIgnoreCase("admin")) {
-            return;
-        }
-
-        RolWeb adminRol = rolWebRepository.findByClaveIgnoreCase("admin")
-                .orElseThrow(() -> new IllegalStateException("Rol admin no encontrado al intentar crear usuario admin"));
-
-        UsuarioWeb u = new UsuarioWeb();
-        u.setNombreCompleto("Administrador");
-        u.setNombreUsuario("admin");
-        u.setEmail("admin@promssac.com");
-        u.setContrasenaHash(passwordEncoder.encode("admin123"));
-        u.setActivo(true);
-        u.setModoPermisos(ModoPermisoUsuarioWeb.ROL);
-        u.setRolClave(adminRol.getClave());
-        u.setPermisosJson("{}");
-        usuarioWebRepository.save(u);
-        log.info("Usuario admin por defecto creado.");
     }
 }
