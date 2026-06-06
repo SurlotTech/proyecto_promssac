@@ -1,4 +1,6 @@
 import XLSX from "xlsx-js-style";
+import type { Route, RouteOrder } from "@/domain/routes";
+import type { OrderProductLineDto } from "@/services/orders.api";
 
 export interface RouteOrderImportRow {
   codigoRuta: string;
@@ -171,11 +173,11 @@ function colWch(h: string): { wch: number } {
   return { wch: 13 };
 }
 
-export function downloadPlantillaRutasYOrdenes() {
-  const wsData = [
-    PLANTILLA_HEADERS.map(String),
-    ...SAMPLE_DATA.map((row) => row.map((v) => (v != null ? String(v) : ""))),
-  ];
+export function downloadExportXlsx(rows: (string | number | null | undefined)[][], filename: string) {
+  const wsData = [PLANTILLA_HEADERS.map(String), ...rows.map((row) => PLANTILLA_HEADERS.map((_, i) => {
+    const v = row[i];
+    return v != null ? String(v) : "";
+  }))];
   const ws = XLSX.utils.aoa_to_sheet(wsData);
   styleSheet(ws, PLANTILLA_HEADERS.length, wsData.length);
 
@@ -192,9 +194,13 @@ export function downloadPlantillaRutasYOrdenes() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "plantilla_rutas_y_ordenes.xlsx";
+  a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+export function downloadPlantillaRutasYOrdenes() {
+  downloadExportXlsx(SAMPLE_DATA, "plantilla_rutas_y_ordenes.xlsx");
 }
 
 export function parseRouteOrderImport(buffer: ArrayBuffer): RouteOrderImportPreview {

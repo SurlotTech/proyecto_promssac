@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   Truck,
   Package,
@@ -8,7 +9,7 @@ import {
   CheckCircle2,
   Clock,
   AlertTriangle,
-  MapPin,
+  Loader2,
 } from "lucide-react";
 import {
   Area,
@@ -24,36 +25,18 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { apiGet } from "@/lib/api";
 
-const performance = [
-  { m: "Ene", entregas: 320, pendientes: 40 },
-  { m: "Feb", entregas: 410, pendientes: 55 },
-  { m: "Mar", entregas: 380, pendientes: 30 },
-  { m: "Abr", entregas: 520, pendientes: 60 },
-  { m: "May", entregas: 610, pendientes: 45 },
-  { m: "Jun", entregas: 720, pendientes: 70 },
-  { m: "Jul", entregas: 690, pendientes: 50 },
-  { m: "Ago", entregas: 810, pendientes: 65 },
-  { m: "Sep", entregas: 890, pendientes: 55 },
-  { m: "Oct", entregas: 940, pendientes: 60 },
-  { m: "Nov", entregas: 1020, pendientes: 75 },
-  { m: "Dic", entregas: 1180, pendientes: 80 },
-];
-
-const fleetStatus = [
-  { name: "Activos", value: 4, color: "oklch(0.68 0.16 155)" },
-  { name: "En ruta", value: 0, color: "oklch(0.65 0.16 240)" },
-  { name: "Mantenimiento", value: 0, color: "oklch(0.78 0.15 75)" },
-  { name: "Inactivos", value: 0, color: "oklch(0.7 0.02 260)" },
-];
-
-const topDrivers = [
-  { name: "Giomar", entregas: 142, score: 98 },
-  { name: "C. Pérez", entregas: 128, score: 95 },
-  { name: "M. Soto", entregas: 119, score: 93 },
-  { name: "L. Vega", entregas: 104, score: 90 },
-  { name: "J. Díaz", entregas: 96, score: 88 },
-];
+interface DashboardData {
+  entregasHoy: number;
+  rutasActivas: number;
+  flotaDisponible: number;
+  flotaTotal: number;
+  recaudacionHoy: number;
+  performanceMensual: { mes: string; entregas: number; pendientes: number }[];
+  flotaStatus: { name: string; value: number; color: string }[];
+  topConductores: { name: string; entregas: number }[];
+}
 
 const recentActivity = [
   { icon: CheckCircle2, color: "text-success", title: "Ruta R-1042 completada", subtitle: "BKT760 · Giomar", time: "hace 5 min" },
@@ -123,29 +106,51 @@ function KpiCard({
 
 const spark = (n: number[]) => n.map((v) => ({ v }));
 
+const defaultPerformance = Array.from({ length: 12 }, () => ({ mes: "", entregas: 0, pendientes: 0 }));
+
 const Dashboard = () => {
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    apiGet<DashboardData>("/api/v1/dashboard")
+      .then(setData)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const performance = data?.performanceMensual ?? defaultPerformance;
+  const fleetStatus = data?.flotaStatus ?? [];
+  const topDrivers = (data?.topConductores ?? []).map((d) => ({ name: d.name, entregas: d.entregas, score: 0 }));
   const totalFleet = fleetStatus.reduce((a, b) => a + b.value, 0);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full min-h-[60vh] gap-4">
+        <Loader2 className="size-10 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">Cargando dashboard...</p>
+      </div>
+    );
+  }
+
+  const d = data;
   return (
     <div className="space-y-6 p-4 sm:p-6 lg:p-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-display font-bold">Dashboard</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Bienvenida, Ana. Resumen operativo de tu flota en tiempo real.
+            Resumen operativo de tu flota.
           </p>
-        </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
-          Datos actualizados hace 30 s
         </div>
       </div>
 
       {/* KPIs */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard label="Entregas hoy" value="248" delta="+12.4%" trend="up" icon={Package} tone="primary" spark={spark([12, 18, 14, 22, 28, 25, 34, 40])} />
-        <KpiCard label="Rutas activas" value="32" delta="+8.2%" trend="up" icon={RouteIcon} tone="info" spark={spark([8, 10, 9, 14, 18, 22, 26, 32])} />
-        <KpiCard label="Flota disponible" value="4 / 4" delta="100%" trend="up" icon={Truck} tone="success" spark={spark([2, 3, 3, 4, 4, 4, 4, 4])} />
-        <KpiCard label="Recaudación" value="S/ 18,420" delta="-3.1%" trend="down" icon={DollarSign} tone="warning" spark={spark([20, 22, 19, 24, 21, 18, 17, 18])} />
+        <KpiCard label="Entregas hoy" value={String(d?.entregasHoy ?? 0)} delta="" trend="up" icon={Package} tone="primary" spark={spark([12, 18, 14, 22, 28, 25, 34, 40])} />
+        <KpiCard label="Rutas activas" value={String(d?.rutasActivas ?? 0)} delta="" trend="up" icon={RouteIcon} tone="info" spark={spark([8, 10, 9, 14, 18, 22, 26, 32])} />
+        <KpiCard label="Flota disponible" value={`${d?.flotaDisponible ?? 0} / ${d?.flotaTotal ?? 0}`} delta="" trend="up" icon={Truck} tone="success" spark={spark([2, 3, 3, 4, 4, 4, 4, 4])} />
+        <KpiCard label="Recaudación" value={`S/ ${(d?.recaudacionHoy ?? 0).toLocaleString("es-PE", { minimumFractionDigits: 2 })}`} delta="" trend="up" icon={DollarSign} tone="warning" spark={spark([20, 22, 19, 24, 21, 18, 17, 18])} />
       </div>
 
       {/* Charts row */}
@@ -154,12 +159,7 @@ const Dashboard = () => {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="font-display font-semibold text-lg">Rendimiento operativo</h3>
-              <p className="text-xs text-muted-foreground">Entregas vs pendientes — últimos 12 meses</p>
-            </div>
-            <div className="flex gap-1 rounded-lg bg-secondary p-1 text-xs font-medium">
-              <button className="px-3 py-1.5 rounded-md bg-card shadow-sm">Año</button>
-              <button className="px-3 py-1.5 text-muted-foreground">Mes</button>
-              <button className="px-3 py-1.5 text-muted-foreground">Semana</button>
+              <p className="text-xs text-muted-foreground">Entregas vs pendientes</p>
             </div>
           </div>
           <div className="h-72">
@@ -176,7 +176,7 @@ const Dashboard = () => {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.92 0.008 250)" vertical={false} />
-                <XAxis dataKey="m" tick={{ fontSize: 11, fill: "oklch(0.52 0.03 258)" }} axisLine={false} tickLine={false} />
+                <XAxis dataKey="mes" tick={{ fontSize: 11, fill: "oklch(0.52 0.03 258)" }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: "oklch(0.52 0.03 258)" }} axisLine={false} tickLine={false} />
                 <Tooltip
                   contentStyle={{

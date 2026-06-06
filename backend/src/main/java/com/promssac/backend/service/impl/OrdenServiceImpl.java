@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.promssac.backend.exception.BusinessException;
 import com.promssac.backend.exception.ResourceNotFoundException;
+import com.promssac.backend.model.dto.request.NotificationSendRequest;
 import com.promssac.backend.model.dto.request.OrderAssignBulkRequest;
 import com.promssac.backend.model.dto.request.OrderCompleteRequest;
 import com.promssac.backend.model.dto.request.OrderCreateRequest;
@@ -13,6 +14,12 @@ import com.promssac.backend.model.dto.response.AlertOrderResponse;
 import com.promssac.backend.model.dto.response.EnlaceResponse;
 import com.promssac.backend.model.dto.response.OrderProductLineResponse;
 import com.promssac.backend.model.dto.response.OrderResponse;
+import com.promssac.backend.service.EmailService;
+import com.promssac.backend.integration.email.EmailTemplateRenderer;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import com.promssac.backend.model.entity.Cliente;
 import com.promssac.backend.model.entity.Orden;
 import com.promssac.backend.model.entity.OrdenProducto;
@@ -29,6 +36,7 @@ import com.promssac.backend.service.OrdenService;
 import com.promssac.backend.validation.CorreoOpcionalValidator;
 import com.promssac.backend.validation.GeoCoordinateValidator;
 import java.math.BigDecimal;
+import java.io.ByteArrayOutputStream;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -71,6 +79,8 @@ public class OrdenServiceImpl implements OrdenService {
     private final RutaRepository rutaRepository;
     private final VehiculoRepository vehiculoRepository;
     private final UsuarioMovilRepository usuarioMovilRepository;
+    private final EmailService emailService;
+    private final EmailTemplateRenderer templateRenderer;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -129,11 +139,61 @@ public class OrdenServiceImpl implements OrdenService {
             dto.setId((String) row[0]);
             dto.setStatus((String) row[1]);
             dto.setSubstatus((String) row[2]);
-            dto.setVehiclePlate((String) row[3]);
-            dto.setRouteDate(((java.time.LocalDate) row[4]).format(UI_DATE));
-            dto.setCreatedAt(((java.time.Instant) row[5]).atZone(LIMA).format(UI_DATETIME));
+            dto.setPreviousStatus((String) row[3]);
+            dto.setVehiclePlate((String) row[4]);
+            dto.setRouteDate(((java.time.LocalDate) row[5]).format(UI_DATE));
+            dto.setCreatedAt(((java.time.Instant) row[6]).atZone(LIMA).format(UI_DATETIME));
+            dto.setLastUpdatedAt(((java.time.Instant) row[7]).atZone(LIMA).format(UI_DATETIME));
             return dto;
         }).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public byte[] exportarRutasOrdenesExcel() {
+        List<Object[]> rows = ordenRepository.findForExport();
+
+        String[] headers = {"Código ruta", "Nombre ruta", "Placa vehículo",
+                "Fecha inicio", "Fecha fin",
+                "N° orden", "Estado orden", "Subestado",
+                "Tipo ident.", "Identificador", "Contacto nombre",
+                "Contacto teléfono", "Contacto email", "Nivel",
+                "Dirección", "Dirección normalizada", "Fecha de entrega",
+                "Modo entrega", "Prioridad entrega",
+                "Director", "Teléfono director", "Paquetes",
+                "Acta de entrega", "Guía de remisión", "Guía de transportista",
+                "Correo electrónico",
+                "Producto código", "Producto nombre", "Producto cantidad",
+                "Producto precio unit.", "Producto peso (kg)", "Producto campo extra"};
+
+        try (Workbook wb = new XSSFWorkbook()) {
+            Sheet sheet = wb.createSheet("Rutas y Órdenes");
+
+            Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < headers.length; i++) {
+                headerRow.createCell(i).setCellValue(headers[i]);
+            }
+
+            for (int r = 0; r < rows.size(); r++) {
+                Object[] row = rows.get(r);
+                Row dataRow = sheet.createRow(r + 1);
+                for (int c = 0; c < row.length; c++) {
+                    Object val = row[c];
+                    if (val == null) continue;
+                    if (val instanceof Number n) {
+                        dataRow.createCell(c).setCellValue(n.doubleValue());
+                    } else {
+                        dataRow.createCell(c).setCellValue(val.toString());
+                    }
+                }
+            }
+
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            wb.write(bos);
+            return bos.toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException("Error al generar el Excel de exportación", e);
+        }
     }
 
     @Override
@@ -298,14 +358,61 @@ public class OrdenServiceImpl implements OrdenService {
         String estadoAnterior = o.getEstado();
 
         if (request.getEstado() != null && !request.getEstado().isBlank()) {
-            o.setEstado(request.getEstado().trim());
+            String nuevo = request.getEstado().trim();
+            if (!nuevo.equals(estadoAnterior)) {
+                o.setEstadoAnterior(estadoAnterior);
+            }
+            o.setEstado(nuevo);
         }
         o.setSubestado(trimToNull(request.getSubestado()));
         o.setActualizadoEn(Instant.now());
 
         Orden guardada = ordenRepository.save(o);
 
+        notificarCambioEstado(guardada, estadoAnterior);
+
         return toOrderResponse(guardada);
+    }
+
+    private void notificarCambioEstado(Orden orden, String estadoAnterior) {
+        String email = resolverEmailDestinatario(orden);
+        if (!StringUtils.hasText(email)) {
+            return;
+        }
+
+        String nuevoEstado = orden.getEstado();
+        if (nuevoEstado != null && nuevoEstado.equals(estadoAnterior)) {
+            return;
+        }
+
+        EmailTemplateRenderer.NotificacionContenido contenido =
+                templateRenderer.construirContenidoCambioEstado(orden, estadoAnterior, nuevoEstado);
+
+        NotificationSendRequest notif = new NotificationSendRequest();
+        notif.setDestinatarioEmail(email);
+        notif.setDestinatarioNombre(contenido.nombreContacto());
+        notif.setAsunto(contenido.asunto());
+        notif.setContenidoHtml(contenido.html());
+        notif.setContenidoPlano(contenido.plano());
+        notif.setTipo("cambio_estado");
+        notif.setOrdenCodigo(orden.getNumeroOrden());
+
+        try {
+            emailService.enviar(notif);
+        } catch (Exception e) {
+            log.error("No se pudo enviar email de cambio de estado para orden {}: {}",
+                    orden.getNumeroOrden(), e.getMessage());
+        }
+    }
+
+    private String resolverEmailDestinatario(Orden orden) {
+        if (StringUtils.hasText(orden.getContactoEmail())) {
+            return orden.getContactoEmail().trim();
+        }
+        if (orden.getCliente() != null && StringUtils.hasText(orden.getCliente().getEmail())) {
+            return orden.getCliente().getEmail().trim();
+        }
+        return null;
     }
 
     @Override

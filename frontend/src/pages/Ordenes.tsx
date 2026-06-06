@@ -7,8 +7,6 @@ import {
   Truck,
   CheckCircle2,
   Clock,
-  Upload,
-  Download,
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import StatCard from "@/components/StatCard";
@@ -172,14 +170,6 @@ const Ordenes = () => {
         subtitle="Gestiona órdenes de entrega, estado operativo y despachos."
         actions={
           <>
-            <Button variant="outline" size="sm" className="h-9 gap-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5 transition-colors">
-              <Upload className="size-4 shrink-0" />
-              <span className="hidden sm:inline">Importar</span>
-            </Button>
-            <Button variant="outline" size="sm" className="h-9 gap-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5 transition-colors">
-              <Download className="size-4 shrink-0" />
-              <span className="hidden sm:inline">Exportar</span>
-            </Button>
             <Button
               size="sm"
               type="button"

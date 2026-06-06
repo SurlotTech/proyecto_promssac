@@ -244,12 +244,16 @@ const Alertas = () => {
                             <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">No hay órdenes registradas.</TableCell>
                           </TableRow>
                         ) : (
-                          currentOrders.map((order) => {
-                            const statusInfo = orderStatusMeta[order.status] || {
-                              label: order.status,
-                              className: "bg-muted text-muted-foreground",
-                            };
-                            return (
+                           currentOrders.map((order) => {
+                             const statusInfo = orderStatusMeta[order.status] || {
+                               label: order.status,
+                               className: "bg-muted text-muted-foreground",
+                             };
+                             const prevInfo = orderStatusMeta[order.previousStatus] || {
+                               label: order.previousStatus,
+                               className: "bg-muted text-muted-foreground",
+                             };
+                             return (
                               <TableRow
                                 key={order.id}
                                 className="hover:bg-muted/30"
@@ -266,24 +270,25 @@ const Alertas = () => {
                                   {order.vehiclePlate || "Sin vehículo"}
                                 </TableCell>
                                 <TableCell>
-                                  <div className="flex flex-col">
-                                    <span className="flex items-center gap-1.5 text-foreground">
-                                      <Calendar className="size-3 text-muted-foreground" />
-                                      {order.routeDate}
-                                    </span>
-                                    {order.createdAt && (
-                                      <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                        <Clock className="size-3" />
-                                        {order.createdAt.slice(-5)}
-                                      </span>
-                                    )}
-                                  </div>
-                                </TableCell>
+                                   <div className="flex flex-col">
+                                     <span className="flex items-center gap-1.5 text-foreground">
+                                       <Calendar className="size-3 text-muted-foreground" />
+                                       {order.routeDate}
+                                     </span>
+                                     <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                       <Clock className="size-3" />
+                                       {order.lastUpdatedAt || "—"}
+                                     </span>
+                                   </div>
+                                 </TableCell>
                                 <TableCell>
-                                  <div className="flex items-center justify-center gap-3">
-                                    <div className="flex items-center gap-1.5 rounded-full bg-muted/20 px-2.5 py-1 text-[11px] font-medium text-muted-foreground border border-border/50">
-                                      Pendiente
-                                    </div>
+                                   <div className="flex items-center justify-center gap-3">
+                                     <div className={cn(
+                                       "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium border border-border/50",
+                                       prevInfo.className,
+                                     )}>
+                                       {prevInfo.label}
+                                     </div>
                                     <div className="flex w-16 items-center">
                                       <div className="h-px flex-1 bg-gradient-to-r from-muted-foreground/30 to-primary/50" />
                                       <ChevronRight className="size-3 text-primary/50 -ml-1" />

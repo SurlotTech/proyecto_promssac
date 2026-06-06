@@ -52,6 +52,9 @@ public class Orden {
     @Column(nullable = false, length = 30)
     private String estado;
 
+    @Column(name = "estado_anterior", length = 30)
+    private String estadoAnterior;
+
     @Column(length = 120)
     private String subestado;
 

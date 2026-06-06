@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ChevronDown,
   ClipboardCopy,
@@ -300,6 +301,7 @@ const OrderTimeline = ({ order }: { order: any }) => {
 const DetalleOrden = () => {
   const { orderId = "" } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const decodedId = decodeURIComponent(orderId);
 
   const {
@@ -879,6 +881,8 @@ const DetalleOrden = () => {
                   subestado: modifyForm.substatus || undefined,
                 }).then(() => {
                   void refetch();
+                  void queryClient.invalidateQueries({ queryKey: ["ordenes", "alertas"] });
+                  void queryClient.invalidateQueries({ queryKey: ["ordenes"] });
                   toast.success("Estado actualizado.");
                   setModifyStatusOpen(false);
                 }).catch((e: unknown) => {

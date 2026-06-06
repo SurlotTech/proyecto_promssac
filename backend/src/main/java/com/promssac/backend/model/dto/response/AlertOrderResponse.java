@@ -15,7 +15,9 @@ public class AlertOrderResponse {
     private String id;
     private String status;
     private String substatus;
+    private String previousStatus;
     private String vehiclePlate;
     private String routeDate;
     private String createdAt;
+    private String lastUpdatedAt;
 }

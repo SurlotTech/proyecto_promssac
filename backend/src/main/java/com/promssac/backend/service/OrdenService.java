@@ -42,5 +42,7 @@ public interface OrdenService {
     EnlaceResponse obtenerParaEnlace(String numeroOrden);
 
     List<AlertOrderResponse> listarParaAlertas();
+
+    byte[] exportarRutasOrdenesExcel();
 }
 

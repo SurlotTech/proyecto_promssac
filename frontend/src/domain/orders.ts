@@ -5,9 +5,11 @@ export interface AlertOrder {
   id: string;
   status: string;
   substatus: string;
+  previousStatus: string;
   vehiclePlate: string;
   routeDate: string;
   createdAt: string;
+  lastUpdatedAt: string;
 }
 
 export type OrderStatus =

@@ -8,10 +8,14 @@ import com.promssac.backend.model.dto.response.RouteResponse;
 import com.promssac.backend.service.OrdenService;
 import com.promssac.backend.service.RutaService;
 import jakarta.validation.Valid;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -68,5 +72,15 @@ public class RutaController {
     public ResponseEntity<RouteOrderBulkImportResponse> importarLote(
             @Valid @RequestBody RouteOrderBulkImportRequest request) {
         return ResponseEntity.ok(rutaService.importarLote(request));
+    }
+
+    @GetMapping("/exportar")
+    public ResponseEntity<byte[]> exportar() {
+        byte[] excel = ordenService.exportarRutasOrdenesExcel();
+        String filename = "rutas_ordenes_" + LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE) + ".xlsx";
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(excel);
     }
 }

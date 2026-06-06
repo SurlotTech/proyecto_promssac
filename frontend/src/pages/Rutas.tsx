@@ -7,7 +7,6 @@ import {
   Loader2,
   Plus,
   Route,
-  Send,
   TrendingUp,
   Truck,
   Upload,
@@ -28,7 +27,6 @@ import StatCard from "@/components/StatCard";
 import RouteFilters, { RouteFilters as Filters } from "@/components/routes/RouteFilters";
 import RouteTable from "@/components/routes/RouteTable";
 import RouteCard from "@/components/routes/RouteCard";
-import AssignRouteDialog from "@/components/routes/AssignRouteDialog";
 import NewRouteDialog from "@/components/routes/NewRouteDialog";
 import RoutesPaginationBar from "@/components/routes/RoutesPaginationBar";
 import RoutesViewToggle from "@/components/routes/RoutesViewToggle";
@@ -96,7 +94,6 @@ const Rutas = () => {
   const [page, setPage] = useState(1);
   const [routeDialogOpen, setRouteDialogOpen] = useState(false);
   const [editingRoute, setEditingRoute] = useState<RouteData | null>(null);
-  const [assignRouteOpen, setAssignRouteOpen] = useState(false);
   const [routeToDelete, setRouteToDelete] = useState<RouteData | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [importPreview, setImportPreview] = useState<RouteOrderImportPreview | null>(null);
@@ -269,6 +266,28 @@ const Rutas = () => {
     e.target.value = "";
   };
 
+  const handleExport = async () => {
+    const toastId = toast.loading("Exportando datos...");
+    try {
+      const token = localStorage.getItem("auth_token");
+      const base = import.meta.env.VITE_API_BASE ?? "";
+      const res = await fetch(`${base}/api/v1/rutas/exportar`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error("Error al exportar");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "rutas_ordenes.xlsx";
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Exportación completada.", { id: toastId });
+    } catch (e) {
+      toast.error("Error al exportar.", { id: toastId });
+    }
+  };
+
   const filteredRoutes = useMemo(
     () => allRoutes.filter((r) => routeMatchesFilters(r, filters)),
     [filters, allRoutes],
@@ -339,19 +358,9 @@ const Rutas = () => {
               <span className="hidden sm:inline">Importar</span>
             </Button>
             <input ref={fileInputRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleImportFile} />
-            <Button variant="outline" size="sm" className="h-9 gap-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5 transition-colors">
+            <Button variant="outline" size="sm" className="h-9 gap-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5 transition-colors" onClick={handleExport}>
               <Download className="size-4 shrink-0" />
               <span className="hidden sm:inline">Exportar</span>
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-9 gap-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5 transition-colors"
-              onClick={() => setAssignRouteOpen(true)}
-            >
-              <Send className="size-4 shrink-0" />
-              <span className="hidden sm:inline">Asignar ruta</span>
             </Button>
             <Button
               size="sm"
@@ -461,8 +470,6 @@ const Rutas = () => {
         vehicles={vehicleOpciones}
         mobileUsers={mobileUsersRuta}
       />
-
-      <AssignRouteDialog open={assignRouteOpen} onOpenChange={setAssignRouteOpen} routes={allRoutes} />
 
       <ConfirmDeleteDialog
         open={routeToDelete != null}
