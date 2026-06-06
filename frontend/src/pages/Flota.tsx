@@ -1,93 +1,99 @@
-import { Crosshair, MapPin, Zap, ZapOff } from "lucide-react";
-import PageHeader from "@/components/PageHeader";
-import { useQuery } from "@tanstack/react-query";
-import { gpsApi } from "@/services";
-import FlotaLiveMap from "@/components/flota/FlotaLiveMap";
-import { useWakeLock } from "@/hooks/useWakeLock";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import FleetDeviceList from "@/components/flota/FleetDeviceList";
+import FleetFilters, { type FleetViewFilters } from "@/components/flota/FleetFilters";
+import FleetMap from "@/components/flota/FleetMap";
+import type { FleetDevice } from "@/domain/fleet";
+import { useFleetDevicesQuery } from "@/hooks/useOperationsQueries";
+import { fleetCalendarTodayKey } from "@/lib/fleetDateTime";
+import { instantIsoToLocalDateKey } from "@/lib/localCalendarDate";
 
-const FLOTA_POLL_KEY = ["flota", "ubicaciones"];
+function deviceMatchesFilters(d: FleetDevice, f: FleetViewFilters): boolean {
+  if (instantIsoToLocalDateKey(d.lastSeenIso) !== f.dateIso) return false;
+  if (f.status !== "all" && d.status !== f.status) return false;
+  return true;
+}
 
 const Flota = () => {
-  const {
-    data: ubicaciones = [],
-    isLoading,
-    isError,
-    error,
-  } = useQuery({
-    queryKey: FLOTA_POLL_KEY,
-    queryFn: () => gpsApi.listarUbicaciones(),
-    refetchInterval: 10000,
-  });
+  const { data: fleetDevices = [], isLoading, isError, error } = useFleetDevicesQuery();
+  const [filters, setFilters] = useState<FleetViewFilters>(() => ({
+    dateIso: fleetCalendarTodayKey(),
+    status: "all",
+  }));
+  const [search, setSearch] = useState("");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const wakeLock = useWakeLock();
-  const activos = ubicaciones.length;
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return fleetDevices.filter((d) => {
+      if (!deviceMatchesFilters(d, filters)) return false;
+      if (!q) return true;
+      return (
+        d.plate.toLowerCase().includes(q) ||
+        d.imei.toLowerCase().includes(q) ||
+        (d.alias?.toLowerCase().includes(q) ?? false)
+      );
+    });
+  }, [filters, search, fleetDevices]);
+
+  useEffect(() => {
+    if (fleetDevices.length === 0 || filtered.length > 0) return;
+    const keys = fleetDevices.map((d) => instantIsoToLocalDateKey(d.lastSeenIso));
+    const latest = keys.reduce((a, b) => (a > b ? a : b));
+    if (latest !== filters.dateIso) {
+      setFilters((f) => ({ ...f, dateIso: latest }));
+    }
+  }, [fleetDevices, filtered.length, filters.dateIso]);
+
+  useEffect(() => {
+    if (selectedId && !filtered.some((d) => d.id === selectedId)) {
+      setSelectedId(null);
+    }
+  }, [filtered, selectedId]);
+
+  const handleApplyFilters = () => {
+    toast.success(`${filtered.length} vehículo${filtered.length !== 1 ? "s" : ""} en vista.`);
+  };
 
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-transparent animate-fade-in">
-      <PageHeader
-        title="Flota en vivo"
-        subtitle="Monitoreo de ubicaciones en tiempo real."
-        actions={
-          <div className="flex items-center gap-3">
-            {wakeLock.isSupported && (
-              <button
-                type="button"
-                onClick={wakeLock.isActive ? wakeLock.release : wakeLock.acquire}
-                className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors"
-              >
-                {wakeLock.isActive ? (
-                  <>
-                    <Zap className="h-3.5 w-3.5 text-primary" />
-                    <span className="text-primary">Pantalla activa</span>
-                  </>
-                ) : (
-                  <>
-                    <ZapOff className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-muted-foreground">Pantalla activa</span>
-                  </>
-                )}
-              </button>
-            )}
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <MapPin className="h-4 w-4" />
-              <span>
-                {activos} usuario{activos !== 1 ? "s" : ""} activo
-                {activos !== 1 ? "s" : ""}
-              </span>
-            </div>
+    <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden bg-background">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row lg:items-stretch">
+        <aside className="flex min-h-0 w-full flex-1 flex-col overflow-hidden border-b border-border/80 lg:w-[min(100%,400px)] lg:max-w-[40vw] lg:flex-none lg:border-b-0 lg:border-r">
+          {isLoading && (
+            <p className="px-4 py-2 text-xs text-muted-foreground">Cargando dispositivos…</p>
+          )}
+          {isError && (
+            <p className="px-4 py-2 text-xs text-destructive">
+              {error instanceof Error ? error.message : "Error al cargar flota"}
+            </p>
+          )}
+          <FleetFilters
+            variant="sidebar"
+            filters={filters}
+            onChange={setFilters}
+            onApply={handleApplyFilters}
+          />
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <FleetDeviceList
+              devices={filtered}
+              search={search}
+              onSearchChange={setSearch}
+              selectedId={selectedId}
+              onSelectDevice={setSelectedId}
+            />
           </div>
-        }
-      />
+        </aside>
 
-      <div className="relative flex min-h-0 flex-1 flex-col mx-4 mb-4 sm:mx-6 lg:mx-8">
-        {isLoading ? (
-          <div className="flex flex-1 items-center justify-center rounded-xl border border-border/80 bg-muted p-8 text-center">
-            <div className="space-y-3">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
-                <Crosshair className="h-7 w-7 animate-pulse text-primary" />
-              </div>
-              <p className="text-lg font-semibold text-foreground">
-                Cargando mapa…
-              </p>
-            </div>
-          </div>
-        ) : isError ? (
-          <div className="flex flex-1 items-center justify-center rounded-xl border border-border/80 bg-muted p-8 text-center">
-            <div className="max-w-sm space-y-3">
-              <p className="text-sm font-medium text-destructive">
-                {error instanceof Error
-                  ? error.message
-                  : "Error al cargar ubicaciones"}
-              </p>
-            </div>
-          </div>
-        ) : (
-          <FlotaLiveMap ubicaciones={ubicaciones} />
-        )}
-
-        <p className="pointer-events-none absolute bottom-3 right-3 z-[500] rounded-md bg-background/95 px-2 py-1 text-[10px] text-muted-foreground shadow backdrop-blur-sm">
-          Se actualiza cada 10 s
-        </p>
+        <div className="relative flex min-h-[min(42vh,260px)] min-w-0 flex-1 flex-col self-stretch overflow-hidden lg:min-h-0">
+          <FleetMap
+            devices={filtered}
+            selectedId={selectedId}
+            onMarkerClick={setSelectedId}
+            onMarkerPopupClose={(id) => {
+              if (selectedId === id) setSelectedId(null);
+            }}
+          />
+        </div>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { Bell, Menu, Settings } from "lucide-react";
+import { Menu } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -47,13 +47,6 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
       </button>
 
       <div className="ml-auto flex items-center gap-1 sm:gap-2">
-        <button className="relative rounded-lg p-2 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100">
-          <Bell className="h-5 w-5" />
-          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary ring-2 ring-[#212121]" />
-        </button>
-        <button className="hidden rounded-lg p-2 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100 sm:inline-flex">
-          <Settings className="h-5 w-5" />
-        </button>
 
         <div className="mx-2 hidden h-8 w-px bg-border sm:block" />
 
