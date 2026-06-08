@@ -30,10 +30,10 @@ const StatCard = ({ label, value, delta, icon: Icon, tone = "neutral" }: StatCar
           <Icon className="h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-xs font-medium text-muted-foreground/90">
+          <p className="truncate text-sm font-medium text-muted-foreground/90">
             {label}
           </p>
-          <p className="text-xl font-bold text-foreground tracking-tight mt-0.5">
+          <p className="text-xl font-bold text-foreground tracking-tight mt-2">
             {value}
           </p>
           {delta && (

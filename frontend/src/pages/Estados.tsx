@@ -181,22 +181,22 @@ const Estados = () => {
           </>
         }
         actions={
-          <Button size="sm" className="h-9 gap-1.5 font-medium shadow-glow bg-primary text-primary-foreground hover:bg-primary-hover" onClick={() => openCreate()}>
+          <Button size="sm" className="h-12 gap-1.5 font-medium shadow-glow bg-primary text-primary-foreground hover:bg-primary-hover" onClick={() => openCreate()}>
             <Plus className="size-4" /> Nuevo estado
           </Button>
         }
       />
 
       <div className="flex-1 overflow-auto p-4 sm:p-6">
-        <div className="space-y-3">
+        <div className="space-y-6">
           <div className="flex flex-wrap items-center gap-3">
             <Input
               placeholder="Buscar por nombre"
               value={nombreFilter}
               onChange={(e) => setNombreFilter(e.target.value)}
-              className="h-10 w-full bg-transparent sm:max-w-xs"
+              className="h-12 w-full bg-card/80 border-border shadow-sm focus-visible:ring-offset-0 sm:max-w-xs"
             />
-            <div className="flex items-center bg-transparent p-1 rounded-md border border-border h-10 px-1 shrink-0 transition-colors hover:bg-zinc-50/50">
+            <div className="flex items-center bg-card/80 p-1.5 rounded-md border border-border shadow-sm h-12 px-1.5 shrink-0 transition-colors hover:bg-zinc-50/50">
               <div className="flex gap-1">
                 <button
                   type="button"

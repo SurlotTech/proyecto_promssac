@@ -1,4 +1,4 @@
-import { useState, type ComponentType, useMemo } from "react";
+import { useState, useRef, type ComponentType, useMemo } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -23,6 +23,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
 import { useAuth } from "@/contexts/AuthContext";
 import { SIDEBAR_PERMISSION_MAP } from "@/domain/permissions";
 
@@ -76,6 +81,18 @@ const Sidebar = ({ open, onClose, isCollapsed, onToggleCollapse }: SidebarProps)
   const location = useLocation();
   const { hasPermission } = useAuth();
   const [expandedMenus, setExpandedMenus] = useState<string[]>(["Usuarios", "Configuración"]);
+  const [openPopover, setOpenPopover] = useState<string | null>(null);
+  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handlePopoverEnter = (label: string) => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    setOpenPopover(label);
+  };
+
+  const handlePopoverLeave = () => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    hoverTimeoutRef.current = setTimeout(() => setOpenPopover(null), 150);
+  };
 
   const filteredOperationsItems = useMemo(
     () =>
@@ -128,36 +145,35 @@ const Sidebar = ({ open, onClose, isCollapsed, onToggleCollapse }: SidebarProps)
   const renderFlatSection = (items: NavItem[], sectionLabel: string) => (
     <>
       {!isCollapsed ? (
-        <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 transition-opacity duration-300">
+        <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 transition-opacity duration-300">
           {sectionLabel}
         </p>
       ) : (
-        <div className="mx-auto my-3 w-8 border-t border-white/10" />
+        <div className="-mx-2 my-3 border-t border-white/10" />
       )}
-      <ul className={cn("flex flex-col gap-1", isCollapsed && "gap-4")}>
+      <ul className={cn("flex flex-col gap-1", isCollapsed && "gap-2")}>
         {items.map((item) => {
+          const itemActive = pathMatchesSub(location.pathname, item.to!);
           const navLink = (
             <NavLink
               to={item.to!}
               end={item.to === "/"}
               onClick={onClose}
-              className={({ isActive }) =>
-                cn(
-                  "group flex items-center transition-all duration-200",
-                  isCollapsed
-                    ? "h-10 w-10 justify-center rounded-xl"
-                    : "w-full gap-3 rounded-lg px-3 py-2.5 text-sm font-medium",
-                  isActive
-                    ? isCollapsed
-                      ? "bg-white/15 text-white shadow-sm"
-                      : "bg-primary text-primary-foreground shadow-glow"
-                    : isCollapsed
-                      ? "text-white/70 hover:bg-white/10 hover:text-white"
-                      : "text-white/70 hover:bg-sidebar-accent hover:text-white",
-                )
-              }
+              className={cn(
+                "group flex items-center transition-all duration-200",
+                isCollapsed
+                  ? "h-10 w-10 justify-center rounded-xl"
+                  : "w-full gap-3 rounded-lg px-3 py-2.5 text-sm font-medium",
+                itemActive
+                  ? isCollapsed
+                    ? "bg-primary/60 text-white"
+                    : "bg-primary/60 text-white"
+                  : isCollapsed
+                    ? "text-white/60 hover:bg-white/[0.07] hover:text-white"
+                    : "text-white/60 hover:bg-white/[0.06] hover:text-white",
+              )}
             >
-              <item.icon className={cn("shrink-0", isCollapsed ? "h-[20px] w-[20px]" : "h-[18px] w-[18px]")} />
+              <item.icon className="shrink-0 h-5 w-5" />
               {!isCollapsed && <span className="truncate">{item.label}</span>}
             </NavLink>
           );
@@ -168,7 +184,7 @@ const Sidebar = ({ open, onClose, isCollapsed, onToggleCollapse }: SidebarProps)
                 <TooltipProvider delayDuration={0}>
                   <Tooltip>
                     <TooltipTrigger asChild>{navLink}</TooltipTrigger>
-                    <TooltipContent side="right" className="bg-[#212121] border-zinc-800 text-white">
+                    <TooltipContent side="right" sideOffset={14} className="bg-[#1a1a1a] border border-white/10 text-white text-xs shadow-lg">
                       {item.label}
                     </TooltipContent>
                   </Tooltip>
@@ -188,53 +204,91 @@ const Sidebar = ({ open, onClose, isCollapsed, onToggleCollapse }: SidebarProps)
     if (!subItems?.length) return null;
     const isChildActive = subItems.some((s) => pathMatchesSub(location.pathname, s.to));
 
+    if (isCollapsed) {
+      return (
+        <li key={item.label} className="w-full flex justify-center">
+          <Popover open={openPopover === item.label}>
+            <div
+              onMouseEnter={() => handlePopoverEnter(item.label)}
+              onMouseLeave={handlePopoverLeave}
+            >
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className={cn(
+                    "h-10 w-10 flex items-center justify-center rounded-xl transition-all duration-200",
+                    isChildActive
+                      ? "bg-primary/60 text-white"
+                      : "text-white/60 hover:bg-white/[0.07] hover:text-white",
+                  )}
+                >
+                  <item.icon className="h-5 w-5 shrink-0" />
+                </button>
+              </PopoverTrigger>
+            </div>
+            <PopoverContent
+              side="right"
+              align="start"
+              sideOffset={16}
+              onMouseEnter={() => handlePopoverEnter(item.label)}
+              onMouseLeave={handlePopoverLeave}
+              className="w-48 p-0 bg-[#1a1a1a] border border-white/10 shadow-lg rounded-lg overflow-hidden"
+              onCloseAutoFocus={(e) => e.preventDefault()}
+            >
+              <div className="p-2 space-y-1">
+                {subItems.map((sub) => (
+                  <NavLink
+                    key={sub.to}
+                    to={sub.to}
+                    end={sub.end === true}
+                    onClick={() => { onClose(); setOpenPopover(null); }}
+                    className={({ isActive }) =>
+                      cn(
+                        "flex items-center gap-2.5 px-3 py-2.5 text-xs transition-colors",
+                        isActive
+                          ? "bg-primary/60 text-white font-medium rounded-md"
+                          : "text-white/60 hover:bg-white/[0.06] hover:text-white rounded-md",
+                      )
+                    }
+                  >
+                    <span className="min-w-0 truncate">{sub.label}</span>
+                  </NavLink>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+        </li>
+      );
+    }
+
     const button = (
       <button
         type="button"
-        onClick={() => !isCollapsed && toggleMenu(item.label)}
+        onClick={() => toggleMenu(item.label)}
         className={cn(
           "group flex items-center transition-all duration-200",
-          isCollapsed
-            ? "h-10 w-10 justify-center rounded-xl"
-            : "w-full justify-between gap-3 rounded-lg px-3 py-2.5 text-sm font-medium",
+          "w-full justify-between gap-3 rounded-lg px-3 py-2.5 text-sm font-medium",
           isChildActive
-            ? isCollapsed ? "bg-white/15 text-white" : "bg-sidebar-accent text-white"
-            : isCollapsed ? "text-white/70 hover:bg-white/10 hover:text-white" : "text-white/70 hover:bg-sidebar-accent hover:text-white",
+            ? "bg-primary/60 text-white"
+            : "text-white/60 hover:bg-white/[0.06] hover:text-white",
         )}
       >
-        {!isCollapsed ? (
-          <>
-            <div className="flex items-center gap-3">
-              <item.icon className="h-[18px] w-[18px] shrink-0" />
-              <span className="truncate">{item.label}</span>
-            </div>
-            {expandedMenus.includes(item.label) ? (
-              <ChevronDown className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
-            ) : (
-              <ChevronRight className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
-            )}
-          </>
+        <div className="flex items-center gap-3">
+          <item.icon className="h-5 w-5 shrink-0" />
+          <span className="truncate">{item.label}</span>
+        </div>
+        {expandedMenus.includes(item.label) ? (
+          <ChevronDown className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
         ) : (
-          <item.icon className="h-[20px] w-[20px] shrink-0" />
+          <ChevronRight className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
         )}
       </button>
     );
 
     return (
-      <li key={item.label} className={cn("w-full", isCollapsed && "flex justify-center")}>
-        {isCollapsed ? (
-          <TooltipProvider delayDuration={0}>
-            <Tooltip>
-              <TooltipTrigger asChild>{button}</TooltipTrigger>
-              <TooltipContent side="right" className="bg-[#212121] border-zinc-800 text-white">
-                {item.label}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        ) : (
-          button
-        )}
-        {!isCollapsed && expandedMenus.includes(item.label) && (
+      <li key={item.label} className="w-full">
+        {button}
+        {expandedMenus.includes(item.label) && (
           <ul className="ml-3 space-y-0.5 border-l border-sidebar-border/60 py-1 pl-3">
             {subItems.map((sub) => (
               <li key={sub.to}>
@@ -246,8 +300,8 @@ const Sidebar = ({ open, onClose, isCollapsed, onToggleCollapse }: SidebarProps)
                     cn(
                       "flex items-center justify-between gap-2 rounded-md px-2.5 py-2 text-sm transition-colors",
                       isActive
-                        ? "bg-primary font-medium text-primary-foreground shadow-glow"
-                        : "text-white/70 hover:bg-sidebar-accent hover:text-white",
+                        ? "bg-primary/60 font-medium text-white"
+                        : "text-white/60 hover:bg-white/[0.06] hover:text-white",
                     )
                   }
                 >
@@ -307,13 +361,13 @@ const Sidebar = ({ open, onClose, isCollapsed, onToggleCollapse }: SidebarProps)
           {showUsersGroup ? (
             <>
               {!isCollapsed ? (
-                <p className="mt-6 px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 transition-opacity duration-300">
+                <p className="mt-5 px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 transition-opacity duration-300">
                   Usuarios
                 </p>
               ) : (
                 <div className="mx-auto my-3 w-6 border-t border-white/10" />
               )}
-              <ul className={cn("flex flex-col gap-1", isCollapsed && "gap-4")}>
+              <ul className={cn("flex flex-col gap-1", isCollapsed && "gap-2")}>
                 {renderExpandableGroup(usersGroup, filteredUsersSubItems)}
               </ul>
             </>
@@ -322,48 +376,44 @@ const Sidebar = ({ open, onClose, isCollapsed, onToggleCollapse }: SidebarProps)
           {showSystemGroup ? (
             <>
               {!isCollapsed ? (
-                <p className="mt-6 px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 transition-opacity duration-300">
-                  Sistema
+                <p className="mt-5 px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/50 transition-opacity duration-300">
+                  Configuración
                 </p>
               ) : (
                 <div className="mx-auto my-3 w-6 border-t border-white/10" />
               )}
-              <ul className={cn("flex flex-col gap-1", isCollapsed && "gap-4")}>
+              <ul className={cn("flex flex-col gap-1", isCollapsed && "gap-2")}>
                 {renderExpandableGroup(systemGroup, filteredSystemSubItems)}
               </ul>
             </>
           ) : null}
         </nav>
 
-        <div className="p-4">
+        <div className="border-t border-white/[0.08] p-3">
           <TooltipProvider delayDuration={0}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
                   onClick={onToggleCollapse}
                   className={cn(
-                    "flex items-center transition-all duration-200 hover:text-white",
+                    "flex items-center justify-center gap-2 rounded-full transition-all duration-300 hover:text-white",
                     isCollapsed
-                      ? "h-10 w-10 justify-center rounded-xl mx-auto bg-transparent hover:bg-white/10 text-white/70"
-                      : "w-full gap-3 rounded-lg px-3 h-10 text-sidebar-foreground hover:bg-sidebar-accent"
+                      ? "h-9 w-9 mx-auto text-white/50 hover:bg-white/[0.08]"
+                      : "h-9 w-full px-3 text-white/50 hover:bg-white/[0.08]"
                   )}
                 >
-                  <div className={cn("flex shrink-0 items-center justify-center rounded", !isCollapsed && "h-6 w-6 border border-white/20")}>
-                    {isCollapsed ? (
-                      <ChevronRight className="h-5 w-5" />
-                    ) : (
-                      <ChevronLeft className="h-4 w-4" />
-                    )}
-                  </div>
+                  {isCollapsed ? (
+                    <ChevronRight className="h-[18px] w-[18px] shrink-0" />
+                  ) : (
+                    <>
+                      <ChevronLeft className="h-[18px] w-[18px] shrink-0" />
+                      <span className="text-xs font-medium">Contraer</span>
+                    </>
+                  )}
                 </button>
               </TooltipTrigger>
-              {!isCollapsed && (
-                <TooltipContent side="right" className="bg-[#212121] border-zinc-800 text-white">
-                  Contraer navegación
-                </TooltipContent>
-              )}
               {isCollapsed && (
-                <TooltipContent side="right" className="bg-[#212121] border-zinc-800 text-white">
+                <TooltipContent side="right" sideOffset={14} className="bg-[#1a1a1a] border border-white/10 text-white text-xs shadow-lg">
                   Expandir navegación
                 </TooltipContent>
               )}

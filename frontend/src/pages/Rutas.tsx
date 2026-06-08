@@ -206,7 +206,7 @@ const Rutas = () => {
           </>
         }
       />
-      <div className="space-y-4 p-4 pt-1 sm:p-6 sm:pt-2 lg:p-8 lg:pt-2">
+      <div className="space-y-6 p-4 pt-1 sm:p-6 sm:pt-2 lg:p-8 lg:pt-2">
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <StatCard
             label="Total de rutas"
@@ -224,15 +224,17 @@ const Rutas = () => {
           />
         </div>
 
-        <RouteFilters
-          filters={filters}
-          onChange={setFilters}
-          onReset={handleResetFilters}
-          vehicles={vehicleOptions}
-          places={places}
-          drivers={driverFilterOptions}
-          toolbarRight={<RoutesViewToggle view={view} onViewChange={setView} />}
-        />
+        <div className="my-6">
+          <RouteFilters
+            filters={filters}
+            onChange={setFilters}
+            onReset={handleResetFilters}
+            vehicles={vehicleOptions}
+            places={places}
+            drivers={driverFilterOptions}
+            toolbarRight={<RoutesViewToggle view={view} onViewChange={setView} />}
+          />
+        </div>
 
         {filteredRoutes.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/80 backdrop-blur-md py-16 text-center">

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { MoreHorizontal, User, X, Search } from "lucide-react";
+import { MoreHorizontal, User, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import PageHeader from "@/components/PageHeader";
@@ -190,26 +190,23 @@ const [draftFilters, setDraftFilters] = useState<FilterDraft>(emptyFilters);
       <div className="flex-1 overflow-auto p-4 sm:p-6">
         <div className="space-y-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:flex-nowrap lg:gap-2">
-            <div className="relative min-w-0 flex-1 lg:max-w-lg">
-              <Input
-                placeholder="Buscar por nombre o usuario"
-                value={draftFilters.nombre || draftFilters.usuario}
-                onChange={(e) => setDraftFilters((d) => ({ ...d, nombre: e.target.value, usuario: e.target.value }))}
-                className="h-12 rounded-full border-border/100 bg-transparent pl-10 shadow-none transition-colors hover:bg-zinc-50 focus-visible:ring-offset-0"
-              />
-              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            </div>
+            <Input
+              placeholder="Buscar por nombre"
+              value={draftFilters.nombre}
+              onChange={(e) => setDraftFilters((d) => ({ ...d, nombre: e.target.value, usuario: e.target.value }))}
+              className="h-12 w-full bg-card/80 border-border shadow-sm focus-visible:ring-offset-0 sm:max-w-xs"
+            />
 
-            <div className="flex items-center bg-transparent p-1 rounded-full border border-border h-12 px-1 shrink-0 transition-colors hover:bg-zinc-50/50">
+            <div className="flex items-center bg-card/80 p-1.5 rounded-md border border-border shadow-sm h-12 px-1.5 shrink-0 transition-colors hover:bg-zinc-50/50">
               <div className="flex gap-1">
                 <button
                   type="button"
                   onClick={() => setEstadoFiltro("activos")}
                   className={cn(
-                    "rounded-full px-5 py-1.5 text-xs font-semibold transition-all h-8 flex items-center justify-center",
+                    "rounded-md px-5 py-1.5 text-xs font-semibold transition-all h-8 flex items-center justify-center",
                     estadoFiltro === "activos"
                       ? "bg-background text-emerald-600 dark:text-emerald-400 shadow-sm border border-border/40"
-                      : "text-muted-foreground hover:text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
                   )}
                 >
                   Activos
@@ -218,10 +215,10 @@ const [draftFilters, setDraftFilters] = useState<FilterDraft>(emptyFilters);
                   type="button"
                   onClick={() => setEstadoFiltro("inactivos")}
                   className={cn(
-                    "rounded-full px-5 py-1.5 text-xs font-semibold transition-all h-8 flex items-center justify-center",
+                    "rounded-md px-5 py-1.5 text-xs font-semibold transition-all h-8 flex items-center justify-center",
                     estadoFiltro === "inactivos"
                       ? "bg-background text-destructive shadow-sm border border-border/40"
-                      : "text-muted-foreground hover:text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
                   )}
                 >
                   Inactivos
@@ -234,7 +231,7 @@ const [draftFilters, setDraftFilters] = useState<FilterDraft>(emptyFilters);
                 value={draftFilters.estado || "all"}
                 onValueChange={(v) => setDraftFilters((d) => ({ ...d, estado: v === "all" ? "" : v as FilterDraft["estado"] }))}
               >
-                <SelectTrigger className="h-12 w-full min-w-0 shrink rounded-full border-border/100 bg-transparent px-4 py-0 shadow-none transition-colors hover:bg-zinc-50 focus:ring-2 focus:ring-ring focus:ring-offset-2 sm:w-fit sm:max-w-[min(100%,14rem)]">
+                <SelectTrigger className="h-12 w-full min-w-0 shrink bg-transparent border-0 shadow-none px-4 transition-colors sm:w-fit sm:max-w-[min(100%,14rem)]">
                   <SelectValue placeholder="Estado" />
                 </SelectTrigger>
                 <SelectContent>
@@ -248,7 +245,7 @@ const [draftFilters, setDraftFilters] = useState<FilterDraft>(emptyFilters);
                 value={draftFilters.rol || "all"}
                 onValueChange={(v) => setDraftFilters((d) => ({ ...d, rol: v === "all" ? "" : v }))}
               >
-                <SelectTrigger className="h-12 w-full min-w-0 shrink rounded-full border-border/100 bg-transparent px-4 py-0 shadow-none transition-colors hover:bg-zinc-50 focus:ring-2 focus:ring-ring focus:ring-offset-2 sm:w-fit sm:max-w-[min(100%,14rem)]">
+                <SelectTrigger className="h-12 w-full min-w-0 shrink bg-transparent border-0 shadow-none px-4 transition-colors sm:w-fit sm:max-w-[min(100%,14rem)]">
                   <SelectValue placeholder="Rol" />
                 </SelectTrigger>
                 <SelectContent>
