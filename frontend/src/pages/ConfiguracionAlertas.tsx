@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { ArrowLeft, Bell, Clock, Loader2, Save } from "lucide-react";
+import { Bell, Clock, Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PageHeader from "@/components/PageHeader";
 import { Input } from "@/components/ui/input";
@@ -63,18 +62,6 @@ const ConfiguracionAlertas = () => {
       <PageHeader
         title="Configuración de alertas"
         subtitle="Define qué eventos generan alertas y sus parámetros."
-        actions={
-          <Button
-            variant="outline"
-            className="h-9 gap-2 font-medium"
-            asChild
-          >
-            <Link to="/configuracion/alertas" aria-label="Volver">
-              <ArrowLeft className="size-4" />
-              Volver
-            </Link>
-          </Button>
-        }
       />
 
       <div className="flex-1 overflow-y-auto p-4 sm:p-6">

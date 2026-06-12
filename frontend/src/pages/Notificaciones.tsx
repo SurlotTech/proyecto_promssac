@@ -86,12 +86,12 @@ const Notificaciones = () => {
         actions={
           <Button
             size="sm"
-            className="gap-2 bg-[#f43f3e] hover:bg-[#d93534] text-white px-6 shadow-md transition-all hover:scale-105 active:scale-95"
+            className="h-12 gap-1.5 text-base bg-[#f43f3e] hover:bg-[#d93534] text-white px-6 shadow-md transition-all hover:scale-105 active:scale-95"
             asChild
           >
             <Link to="/configuracion/notificaciones/nueva">
               <Plus className="size-4" />
-              Nueva notificación
+              Nuevo
             </Link>
           </Button>
         }
