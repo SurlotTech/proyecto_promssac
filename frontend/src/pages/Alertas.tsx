@@ -1,13 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  Bell,
-  Calendar,
   ChevronRight,
   CheckCircle2,
   Clock,
   Download,
-  Filter,
   MoreVertical,
   Search,
   Truck,
@@ -42,6 +39,16 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+
+const CalendarIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" className={className}>
+    <path d="M6.96006 2C7.37758 2 7.71605 2.30996 7.71605 2.69231V4.08883C8.38663 4.07692 9.13829 4.07692 9.98402 4.07692H14.016C14.8617 4.07692 15.6134 4.07692 16.284 4.08883V2.69231C16.284 2.30996 16.6224 2 17.0399 2C17.4575 2 17.7959 2.30996 17.7959 2.69231V4.15008C19.2468 4.25647 20.1992 4.51758 20.899 5.15838C21.5987 5.79917 21.8838 6.67139 22 8V9H2V8C2.11618 6.67139 2.4013 5.79917 3.10104 5.15838C3.80079 4.51758 4.75323 4.25647 6.20406 4.15008V2.69231C6.20406 2.30996 6.54253 2 6.96006 2Z" fill="#6e737c" />
+    <path opacity="0.5" d="M22 14V12C22 11.161 21.9873 9.66527 21.9744 9H2.00586C1.99296 9.66527 2.00564 11.161 2.00564 12V14C2.00564 17.7712 2.00564 19.6569 3.17688 20.8284C4.34813 22 6.23321 22 10.0034 22H14.0023C17.7724 22 19.6575 22 20.8288 20.8284C22 19.6569 22 17.7712 22 14Z" fill="#6e737c" />
+    <path d="M18 16.5C18 17.3284 17.3284 18 16.5 18C15.6716 18 15 17.3284 15 16.5C15 15.6716 15.6716 15 16.5 15C17.3284 15 18 15.6716 18 16.5Z" fill="#6e737c" />
+  </svg>
+);
+
+
 
 const Alertas = () => {
   const { data: orders = [], isLoading } = useOrdersQuery();
@@ -117,11 +124,11 @@ const Alertas = () => {
     }
     if (dateRange.from) {
       const fromStr = format(dateRange.from, "yyyy-MM-dd");
-      list = list.filter((o) => (o.routeDate ?? "") >= fromStr);
+      list = list.filter((o) => (o.routeDateIso ?? "") >= fromStr);
     }
     if (dateRange.to) {
       const toStr = format(dateRange.to, "yyyy-MM-dd");
-      list = list.filter((o) => (o.routeDate ?? "") <= toStr);
+      list = list.filter((o) => (o.routeDateIso ?? "") <= toStr);
     }
     return list;
   }, [orders, activeStatus, selectedSubstatus, searchText, dateRange]);
@@ -142,16 +149,6 @@ const Alertas = () => {
       <PageHeader
         title="Alertas"
         subtitle="Monitorea y gestiona las alertas operativas en tiempo real."
-        actions={
-          <Button
-            size="sm"
-            type="button"
-            className="h-12 gap-1.5 text-base font-normal bg-primary hover:bg-primary text-white px-6 shadow-md transition-all hover:scale-105 active:scale-95"
-          >
-            <Bell className="size-5" />
-            Alertas
-          </Button>
-        }
       />
 
       <div className="space-y-10 p-4 pb-2 pt-1 sm:p-6 sm:pb-3 sm:pt-2 lg:p-8 lg:pb-4 lg:pt-2">
@@ -203,16 +200,40 @@ const Alertas = () => {
 
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="ghost" className="ml-auto h-14 gap-2 px-3 text-[15px] text-black hover:text-[#1f2933]">
-                    <Filter className="size-4" />
-                    Filtros
-                  </Button>
+                  <button
+                    type="button"
+                    className={cn(
+                      "relative flex h-14 w-[240px] items-center rounded-lg border bg-white/60 transition-colors hover:border-primary text-left",
+                      dateRange.from ? "border-primary" : "border-[#e1e7ee]",
+                    )}
+                  >
+                    <span className={cn(
+                      "absolute left-2.5 transition-all pointer-events-none bg-white px-1.5 z-10",
+                      dateRange.from
+                        ? "-top-2.5 text-[11px] text-primary"
+                        : "top-1/2 -translate-y-1/2 text-sm text-[#8a9aab]",
+                    )}>
+                      Fecha
+                    </span>
+                    <span className="h-full w-full rounded-lg border-0 bg-transparent px-3 text-[15px] text-[#1f2933] flex items-center">
+                      {dateRange.from ? (
+                        <>
+                          {format(dateRange.from, "d MMM", { locale: es })}
+                          {dateRange.to && dateRange.to.getTime() !== dateRange.from.getTime()
+                            ? ` — ${format(dateRange.to, "d MMM yyyy", { locale: es })}`
+                            : ` ${format(dateRange.from, "yyyy", { locale: es })}`}
+                        </>
+                      ) : null}
+                    </span>
+                    <CalendarIcon className="mr-3 size-5 shrink-0 text-[#52677a]" />
+                  </button>
                 </PopoverTrigger>
-                <PopoverContent align="end" className="w-auto p-0">
+                <PopoverContent className="w-auto p-0" align="start" sideOffset={4}>
                   <Calendar
                     mode="range"
-                    selected={dateRange}
+                    selected={dateRange.from ? { from: dateRange.from, to: dateRange.to } : undefined}
                     onSelect={(range) => setDateRange(range ?? { from: undefined, to: undefined })}
+                    locale={es}
                     initialFocus
                   />
                 </PopoverContent>
@@ -302,7 +323,7 @@ const Alertas = () => {
                         </td>
                         <td className="px-3">
                           <div className="flex flex-col">
-                            <span className="text-sm text-[#1f2933]">{order.routeDate}</span>
+                            <span className="text-sm text-[#1f2933]">{order.routeDateIso ? format(new Date(order.routeDateIso + "T12:00:00"), "d MMM yyyy", { locale: es }) : order.routeDate}</span>
                             {order.createdAtIso && (
                               <span className="text-xs text-[#52677a]">
                                 {new Date(order.createdAtIso).toLocaleTimeString([], {
