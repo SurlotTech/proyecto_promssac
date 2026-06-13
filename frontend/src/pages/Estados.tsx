@@ -181,13 +181,13 @@ const Estados = () => {
           </>
         }
         actions={
-          <Button size="sm" className="h-12 gap-1.5 font-medium shadow-glow bg-primary text-primary-foreground hover:bg-primary-hover" onClick={() => openCreate()}>
-            <Plus className="size-4" /> Nuevo estado
+          <Button size="sm" className="h-12 gap-1.5 text-base font-normal bg-primary hover:bg-primary text-white px-6 shadow-md transition-all hover:scale-105 active:scale-95" onClick={() => openCreate()}>
+            <Plus className="size-5" /> Nuevo
           </Button>
         }
       />
 
-      <div className="flex-1 overflow-auto p-4 sm:p-6">
+      <div className="flex-1 overflow-auto p-4 pt-1 sm:p-6 sm:pt-2">
         <div className="space-y-6">
           <div className="flex flex-wrap items-center gap-3">
             <Input

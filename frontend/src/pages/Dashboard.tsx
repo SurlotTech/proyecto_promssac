@@ -16,7 +16,12 @@ import {
 import {
   Area,
   AreaChart,
+  Bar,
+  BarChart,
   CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -24,6 +29,7 @@ import {
 } from "recharts";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import PageHeader from "@/components/PageHeader";
 import { PromssacMap } from "@/components/maps/PromssacMap";
 import {
   Dialog,
@@ -129,6 +135,22 @@ const recentActivity = [
   { icon: Clock, bg: "bg-secondary/40", fg: "text-muted-foreground", title: "Mantenimiento programado", subtitle: "CAG900 · 08/05", time: "hace 1 h" },
 ];
 
+const orderDistribution = [
+  { name: "Entregadas", value: 145, color: "#dc2626" },
+  { name: "En ruta", value: 52, color: "#f87171" },
+  { name: "Pendientes", value: 38, color: "#fca5a5" },
+  { name: "No entregadas", value: 13, color: "#fecaca" },
+];
+
+const monthlyRevenue = [
+  { m: "Ene", ingresos: 14200, gastos: 8900 },
+  { m: "Feb", ingresos: 15800, gastos: 9200 },
+  { m: "Mar", ingresos: 13500, gastos: 8500 },
+  { m: "Abr", ingresos: 18100, gastos: 10100 },
+  { m: "May", ingresos: 20500, gastos: 11200 },
+  { m: "Jun", ingresos: 22300, gastos: 11800 },
+];
+
 // Generador de marcadores DOM personalizados para MapLibre GL
 function createDriverMarkerEl(status: string) {
   const el = document.createElement("div");
@@ -180,7 +202,7 @@ function KpiCard({
   const TrendIcon = trend === "up" ? TrendingUp : TrendingDown;
 
   return (
-    <div className="rounded-2xl border border-border/60 bg-card/80 backdrop-blur-md p-5 shadow-sm hover:shadow-elevated transition-shadow">
+    <div className="rounded-2xl border border-border/40 bg-white/30 shadow-md p-5 hover:shadow-elevated transition-shadow">
       <div className="flex items-start justify-between">
         <div>
           <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</div>
@@ -221,6 +243,7 @@ const Dashboard = () => {
   const [mapModalOpen, setMapModalOpen] = useState(false);
   const [modalMapInst, setModalMapInst] = useState<maplibregl.Map | null>(null);
   const [timeframe, setTimeframe] = useState<"year" | "month" | "week">("year");
+  const [donutHoverIndex, setDonutHoverIndex] = useState(-1);
   const markersRef = useRef<maplibregl.Marker[]>([]);
   const modalMarkersRef = useRef<maplibregl.Marker[]>([]);
 
@@ -311,22 +334,20 @@ const Dashboard = () => {
   }, [modalMapInst]);
 
   return (
-    <div className="space-y-6 p-4 sm:p-6 lg:p-8 animate-fade-in">
-      {/* Encabezado */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-display font-bold">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Bienvenida, Ana. Resumen operativo de tu flota en tiempo real.
-          </p>
-        </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
-          Datos actualizados hace 30 s
-        </div>
-      </div>
+    <div className="animate-fade-in">
+      <PageHeader
+        title="Dashboard"
+        subtitle="Bienvenida, Ana. Resumen operativo de tu flota en tiempo real."
+        actions={
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
+            Datos actualizados hace 30 s
+          </div>
+        }
+      />
 
-      {/* Fila 1: KPIs */}
+      <div className="space-y-6 p-4 pt-1 sm:p-6 sm:pt-2 lg:p-8 lg:pt-2">
+        {/* Fila 1: KPIs */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard label="Órdenes" value="248" delta="+12.4%" trend="up" icon={Package} tone="primary" spark={spark([12, 18, 14, 22, 28, 25, 34, 40])} />
         <KpiCard label="Rutas" value="32" delta="+8.2%" trend="up" icon={RouteIcon} tone="info" spark={spark([8, 10, 9, 14, 18, 22, 26, 32])} />
@@ -334,10 +355,10 @@ const Dashboard = () => {
         <KpiCard label="Recaudación" value="S/ 18,420" delta="-3.1%" trend="down" icon={DollarSign} tone="warning" spark={spark([20, 22, 19, 24, 21, 18, 17, 18])} />
       </div>
 
-      {/* Fila 2: Mapa y Actividad Reciente */}
+      {/* Fila 2: mapa (ancho completo) + distribución */}
       <div className="grid gap-4 grid-cols-1 xl:grid-cols-3">
         {/* Card del Mapa */}
-        <div className="xl:col-span-2 rounded-2xl border border-border/60 bg-card/80 backdrop-blur-md p-5 shadow-sm flex flex-col h-[520px] relative overflow-hidden">
+        <div className="xl:col-span-2 rounded-2xl border border-border/40 bg-white/30 shadow-md p-5 flex flex-col h-[520px] relative overflow-hidden">
           <div className="flex items-center justify-between mb-4 z-10">
             <div>
               <h3 className="font-display font-semibold text-lg flex items-center gap-2">
@@ -361,8 +382,6 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-
-          {/* PromssacMap (MapLibre GL nativo con selector de 3 estilos) */}
           <div className="flex-1 rounded-xl overflow-hidden border border-border bg-muted/20 relative min-h-[300px]">
             <PromssacMap
               mapKey="dashboard-map"
@@ -380,8 +399,79 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* Card de Distribución de Órdenes */}
+        <div className="rounded-2xl border border-border/40 bg-white/30 shadow-md p-5 flex flex-col h-[520px]">
+          <div>
+            <h3 className="font-display font-semibold text-lg">Distribución de órdenes</h3>
+            <p className="text-xs text-muted-foreground">Estado actual de las órdenes</p>
+          </div>
+          <div className="flex-1 flex items-center justify-center">
+            <div className="w-full h-full max-h-[320px] max-w-[280px] mx-auto">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={orderDistribution}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={85}
+                    outerRadius={135}
+                    paddingAngle={0}
+                    dataKey="value"
+                    nameKey="name"
+                    animationBegin={0}
+                    animationDuration={800}
+                    activeIndex={donutHoverIndex >= 0 ? donutHoverIndex : undefined}
+                  >
+                    {orderDistribution.map((entry, i) => (
+                      <Cell
+                        key={entry.name}
+                        fill={entry.color}
+                        onMouseEnter={() => setDonutHoverIndex(i)}
+                        onMouseLeave={() => setDonutHoverIndex(-1)}
+                      />
+                    ))}
+                  </Pie>
+                  <text
+                    x="50%"
+                    y="47%"
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    style={{ fontSize: 28, fontWeight: 700, fill: "#1f2933" }}
+                  >
+                    {donutHoverIndex >= 0
+                      ? orderDistribution[donutHoverIndex].value
+                      : orderDistribution.reduce((s, i) => s + i.value, 0)}
+                  </text>
+                  <text
+                    x="50%"
+                    y="58%"
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    style={{ fontSize: 12, fontWeight: 500, fill: "#8a9aab" }}
+                  >
+                    {donutHoverIndex >= 0
+                      ? orderDistribution[donutHoverIndex].name
+                      : "Total"}
+                  </text>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          <div className="flex flex-wrap justify-center gap-4 mt-2">
+            {orderDistribution.map((item) => (
+              <div key={item.name} className="flex items-center gap-1.5 text-xs">
+                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                <span className="text-muted-foreground">{item.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Fila 3: Actividad + Rendimiento */}
+      <div className="grid gap-4 grid-cols-1 xl:grid-cols-3">
         {/* Card de Actividad Reciente */}
-        <div className="rounded-2xl border border-border/60 bg-card/80 backdrop-blur-md p-5 shadow-sm flex flex-col h-[520px]">
+        <div className="rounded-2xl border border-border/40 bg-white/30 shadow-md p-5 flex flex-col h-[400px]">
           <div>
             <h3 className="font-display font-semibold text-lg">Actividad reciente</h3>
             <p className="text-xs text-muted-foreground">Eventos en tiempo real</p>
@@ -407,82 +497,82 @@ const Dashboard = () => {
             Ver todas las alertas
           </button>
         </div>
-      </div>
 
-      {/* Fila 3: Rendimiento Operativo (Ancho completo) */}
-      <div className="rounded-2xl border border-border/60 bg-card/80 backdrop-blur-md p-5 shadow-sm w-full">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-          <div>
-            <h3 className="font-display font-semibold text-lg">Rendimiento operativo</h3>
-            <p className="text-xs text-muted-foreground">
-              {timeframe === "year"
-                ? "Entregas vs pendientes — últimos 12 meses"
-                : timeframe === "month"
-                ? "Entregas vs pendientes — semanas del mes"
-                : "Entregas vs pendientes — días de la semana"}
-            </p>
+        {/* Card de Rendimiento Operativo */}
+        <div className="xl:col-span-2 rounded-2xl border border-border/40 bg-white/30 shadow-md p-5 flex flex-col h-[400px]">
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+            <div>
+              <h3 className="font-display font-semibold text-lg">Rendimiento operativo</h3>
+              <p className="text-xs text-muted-foreground">
+                {timeframe === "year"
+                  ? "Entregas vs pendientes — últimos 12 meses"
+                  : timeframe === "month"
+                  ? "Entregas vs pendientes — semanas del mes"
+                  : "Entregas vs pendientes — días de la semana"}
+              </p>
+            </div>
+            <div className="flex gap-1 rounded-xl bg-muted p-1 text-xs font-medium border border-border">
+              <button
+                onClick={() => setTimeframe("year")}
+                className={`px-3 py-1.5 rounded-lg transition-all ${
+                  timeframe === "year"
+                    ? "bg-background text-foreground shadow-sm font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Año
+              </button>
+              <button
+                onClick={() => setTimeframe("month")}
+                className={`px-3 py-1.5 rounded-lg transition-all ${
+                  timeframe === "month"
+                    ? "bg-background text-foreground shadow-sm font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Mes
+              </button>
+              <button
+                onClick={() => setTimeframe("week")}
+                className={`px-3 py-1.5 rounded-lg transition-all ${
+                  timeframe === "week"
+                    ? "bg-background text-foreground shadow-sm font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Semana
+              </button>
+            </div>
           </div>
-          <div className="flex gap-1 rounded-xl bg-muted p-1 text-xs font-medium border border-border">
-            <button
-              onClick={() => setTimeframe("year")}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                timeframe === "year"
-                  ? "bg-background text-foreground shadow-sm font-semibold"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Año
-            </button>
-            <button
-              onClick={() => setTimeframe("month")}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                timeframe === "month"
-                  ? "bg-background text-foreground shadow-sm font-semibold"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Mes
-            </button>
-            <button
-              onClick={() => setTimeframe("week")}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                timeframe === "week"
-                  ? "bg-background text-foreground shadow-sm font-semibold"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Semana
-            </button>
+          <div className="flex-1 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={activePerformanceData} margin={{ left: -10, right: 8, top: 8 }}>
+                <defs>
+                  <linearGradient id="g-entregas" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="oklch(0.62 0.23 27)" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="oklch(0.62 0.23 27)" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="g-pend" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="oklch(0.65 0.16 240)" stopOpacity={0.25} />
+                    <stop offset="100%" stopColor="oklch(0.65 0.16 240)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.92 0.008 250)" vertical={false} />
+                <XAxis dataKey="m" tick={{ fontSize: 11, fill: "oklch(0.52 0.03 258)" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: "oklch(0.52 0.03 258)" }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  contentStyle={{
+                    borderRadius: 12,
+                    border: "1px solid oklch(0.92 0.008 250)",
+                    boxShadow: "0 10px 30px -12px oklch(0.2 0.02 260 / 0.18)",
+                    fontSize: 12,
+                  }}
+                />
+                <Area type="monotone" dataKey="entregas" stroke="oklch(0.62 0.23 27)" strokeWidth={2.5} fill="url(#g-entregas)" />
+                <Area type="monotone" dataKey="pendientes" stroke="oklch(0.65 0.16 240)" strokeWidth={2} fill="url(#g-pend)" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
-        </div>
-        <div className="h-72 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={activePerformanceData} margin={{ left: -10, right: 8, top: 8 }}>
-              <defs>
-                <linearGradient id="g-entregas" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="oklch(0.62 0.23 27)" stopOpacity={0.35} />
-                  <stop offset="100%" stopColor="oklch(0.62 0.23 27)" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="g-pend" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="oklch(0.65 0.16 240)" stopOpacity={0.25} />
-                  <stop offset="100%" stopColor="oklch(0.65 0.16 240)" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.92 0.008 250)" vertical={false} />
-              <XAxis dataKey="m" tick={{ fontSize: 11, fill: "oklch(0.52 0.03 258)" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: "oklch(0.52 0.03 258)" }} axisLine={false} tickLine={false} />
-              <Tooltip
-                contentStyle={{
-                  borderRadius: 12,
-                  border: "1px solid oklch(0.92 0.008 250)",
-                  boxShadow: "0 10px 30px -12px oklch(0.2 0.02 260 / 0.18)",
-                  fontSize: 12,
-                }}
-              />
-              <Area type="monotone" dataKey="entregas" stroke="oklch(0.62 0.23 27)" strokeWidth={2.5} fill="url(#g-entregas)" />
-              <Area type="monotone" dataKey="pendientes" stroke="oklch(0.65 0.16 240)" strokeWidth={2} fill="url(#g-pend)" />
-            </AreaChart>
-          </ResponsiveContainer>
         </div>
       </div>
 
@@ -512,6 +602,7 @@ const Dashboard = () => {
           />
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 };

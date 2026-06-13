@@ -4,17 +4,15 @@ import { routeStatusMeta, type RouteStatus } from "@/domain/routes";
 const RouteStatusBadge = ({ status }: { status: RouteStatus }) => {
   const meta = routeStatusMeta[status] ?? {
     label: status,
-    className: "bg-muted text-muted-foreground",
-    dot: "bg-muted-foreground",
+    className: "bg-[#e9eef2] text-[#5f7282]",
   };
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium",
+        "inline-flex items-center rounded-md px-2 py-1.5 text-xs font-bold",
         meta.className,
       )}
     >
-      <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", meta.dot)} />
       {meta.label}
     </span>
   );

@@ -1,6 +1,27 @@
 /** Opción de ruta para combos al crear o editar una orden. */
 export type OrderRouteOption = { id: string; label: string };
 
+export interface Order {
+  id: string;
+  status: string;
+  substatus: string;
+  vehiclePlate: string;
+  clientName: string;
+  clientId?: string;
+  routeDate: string;
+  routeDateIso: string;
+  createdAtIso: string;
+  contactName: string;
+  contactIdentifier?: string;
+  lastDispatch?: boolean;
+  routeId?: string;
+  vehicleId?: string;
+  driverName?: string;
+  driverPhone?: string;
+  deliveryWindowFrom?: string;
+  deliveryWindowTo?: string;
+}
+
 export type OrderStatus =
   | "entregado"
   | "no_entregado"

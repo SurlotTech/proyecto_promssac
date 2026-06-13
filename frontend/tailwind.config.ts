@@ -90,6 +90,7 @@ export default {
       },
       fontFamily: {
         sans: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"],
+        display: ["Plus Jakarta Sans", "system-ui", "sans-serif"],
       },
       backgroundImage: {
         "gradient-primary": "var(--gradient-primary)",
@@ -134,12 +135,18 @@ export default {
           from: { transform: "translateX(100%)" },
           to: { transform: "translateX(0)" },
         },
+        "breathe": {
+          "0%": { opacity: "1", transform: "scale(1)" },
+          "50%": { transform: "scale(1.012)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.3s ease-out",
         "slide-in-right": "slide-in-right 0.3s ease-out",
+        "breathe": "breathe 4s ease-in-out infinite",
       },
     },
   },

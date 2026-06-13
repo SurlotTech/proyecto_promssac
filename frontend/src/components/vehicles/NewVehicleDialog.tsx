@@ -111,22 +111,29 @@ const NewVehicleDialog = ({ open, onOpenChange, onCreated }: Props) => {
 
           <div className="">
             <div className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="plate" className="text-[0.8rem] font-medium text-slate-700">
-                  Placa o identificador <span className="text-primary">*</span>
-                </Label>
-                <Input
-                  id="plate"
-                  value={plate}
-                  onChange={(e) => handlePlateChange(e.target.value)}
-                  placeholder="Ej: BFS-748"
-                  className={cn(inputClass, "w-full")}
-                />
-                {plate.length > 0 && !isPlateValid && (
-                  <p className="mt-1.5 text-xs text-red-500">
-                    La placa debe tener exactamente 6 caracteres alfanuméricos (ej: AUF-429)
-                  </p>
-                )}
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="plate" className="text-[0.8rem] font-medium text-slate-700">
+                    Placa o identificador <span className="text-primary">*</span>
+                  </Label>
+                  <Input
+                    id="plate"
+                    value={plate}
+                    onChange={(e) => handlePlateChange(e.target.value)}
+                    placeholder="Ej: BFS-748"
+                    className={cn(inputClass, "w-full")}
+                  />
+                  {plate.length > 0 && !isPlateValid && (
+                    <p className="mt-1.5 text-xs text-red-500">
+                      La placa debe tener exactamente 6 caracteres alfanuméricos (ej: AUF-429)
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[0.8rem] font-medium text-slate-700">Conductor asociado</Label>
+                  <VehicleDriverSelect value={driverId} onChange={setDriverId} triggerClassName={selectTriggerClass} />
+                </div>
               </div>
 
               <div className="grid gap-5 sm:grid-cols-2">
@@ -162,11 +169,6 @@ const NewVehicleDialog = ({ open, onOpenChange, onCreated }: Props) => {
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-[0.8rem] font-medium text-slate-700">Conductor asociado</Label>
-                <VehicleDriverSelect value={driverId} onChange={setDriverId} triggerClassName={selectTriggerClass} />
               </div>
             </div>
           </div>

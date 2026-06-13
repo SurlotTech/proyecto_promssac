@@ -17,4 +17,5 @@ public class MobileUserRouteOptionResponse {
     private String nombreCompleto;
     /** UUID del vehículo asignado al usuario; vacío si no aplica. */
     private String vehiculoId;
+    private String telefono;
 }

@@ -19,6 +19,7 @@ export interface Route {
   dispatchCompleted: number;
   dispatchTotal: number;
   deliveryDate: string;
+  endDate?: string;
   createdAt: string;
   priority: RoutePriority;
   currentCollection: number;
@@ -33,29 +34,29 @@ export const routeStatusMeta: Record<
   { label: string; className: string; dot: string }
 > = {
   scheduled: {
-    label: "Programada",
-    className: "bg-info-soft text-info",
-    dot: "bg-info",
+    label: "Pendiente",
+    className: "bg-[#fff0d2] text-[#c97900]",
+    dot: "bg-[#c97900]",
   },
   delayed: {
     label: "Retrasada",
-    className: "bg-warning-soft text-warning",
-    dot: "bg-warning",
+    className: "bg-[#ffe1dc] text-[#d92316]",
+    dot: "bg-[#d92316]",
   },
   in_progress: {
-    label: "En curso",
-    className: "bg-primary-soft text-primary",
-    dot: "bg-primary",
+    label: "Activa",
+    className: "bg-[#d8f7e5] text-[#009f5b]",
+    dot: "bg-[#009f5b]",
   },
   completed: {
     label: "Completada",
-    className: "bg-success-soft text-success",
-    dot: "bg-success",
+    className: "bg-[#d1f2eb] text-[#0e7c6b]",
+    dot: "bg-[#0e7c6b]",
   },
   cancelled: {
     label: "Cancelada",
-    className: "bg-muted text-muted-foreground",
-    dot: "bg-muted-foreground",
+    className: "bg-[#e9eef2] text-[#5f7282]",
+    dot: "bg-[#5f7282]",
   },
 };
 

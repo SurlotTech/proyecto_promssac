@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { MoreHorizontal, User, X, Search } from "lucide-react";
+import { MoreHorizontal, User, X, Search, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import PageHeader from "@/components/PageHeader";
@@ -41,28 +41,42 @@ type ActivoDialogState = {
 const UsuariosMovil = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [estadoFiltro, setEstadoFiltro] = useState<"activos" | "inactivos">("activos");
+  const [estadoFiltro, setEstadoFiltro] = useState<"activos" | "inactivos">(
+    "activos",
+  );
   const { data: users = [], isLoading, isError } = useMobileUsersQuery(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [activoDialog, setActivoDialog] = useState<ActivoDialogState>(null);
 
   const setActivoMutation = useMutation({
-    mutationFn: ({ id, activo }: { id: string; activo: boolean }) => mobileUsersApi.setActivo(id, activo),
+    mutationFn: ({ id, activo }: { id: string; activo: boolean }) =>
+      mobileUsersApi.setActivo(id, activo),
     onSuccess: (_, { activo }) => {
       void queryClient.invalidateQueries({ queryKey: ["usuarios-movil"] });
       setActivoDialog(null);
       toast.success(activo ? "Usuario activado." : "Usuario bloqueado.");
     },
     onError: (e: unknown) => {
-      toast.error(e instanceof Error ? e.message : "No se pudo actualizar el estado.");
+      toast.error(
+        e instanceof Error ? e.message : "No se pudo actualizar el estado.",
+      );
     },
   });
 
-  const activeCount = useMemo(() => users.filter((u) => u.estado === "Activo").length, [users]);
-  const blockedCount = useMemo(() => users.filter((u) => u.estado !== "Activo").length, [users]);
+  const activeCount = useMemo(
+    () => users.filter((u) => u.estado === "Activo").length,
+    [users],
+  );
+  const blockedCount = useMemo(
+    () => users.filter((u) => u.estado !== "Activo").length,
+    [users],
+  );
 
   const filteredUsers = useMemo(() => {
-    let list = estadoFiltro === "inactivos" ? users.filter((u) => u.estado !== "Activo") : users.filter((u) => u.estado === "Activo");
+    let list =
+      estadoFiltro === "inactivos"
+        ? users.filter((u) => u.estado !== "Activo")
+        : users.filter((u) => u.estado === "Activo");
     const q = searchTerm.toLowerCase().trim();
     if (q) {
       list = list.filter(
@@ -82,25 +96,29 @@ const UsuariosMovil = () => {
         title="Usuarios móviles"
         subtitle={
           <>
-            Usuarios activos: <span className="text-foreground">{isLoading ? "…" : activeCount}</span>
+            Usuarios activos:{" "}
+            <span className="text-foreground">
+              {isLoading ? "…" : activeCount}
+            </span>
             <span className="mx-2 text-border">|</span>
-            Bloqueados: <span className="text-foreground">{isLoading ? "…" : blockedCount}</span>
+            Bloqueados:{" "}
+            <span className="text-foreground">
+              {isLoading ? "…" : blockedCount}
+            </span>
           </>
         }
         actions={
-          <>
-            <Button
-              size="sm"
-              className="h-9 bg-primary font-medium text-primary-foreground shadow-glow hover:bg-primary-hover"
-              onClick={() => navigate("/usuarios/movil/nuevo")}
-            >
-              Nuevo usuario
-            </Button>
-          </>
+          <Button
+            size="sm"
+            className="h-12 gap-1.5 text-base font-normal bg-primary hover:bg-primary text-white px-6 shadow-md transition-all hover:scale-105 active:scale-95"
+            onClick={() => navigate("/usuarios/movil/nuevo")}
+          >
+            <Plus className="size-5" /> Nuevo
+          </Button>
         }
       />
 
-      <div className="flex-1 overflow-auto p-4 sm:p-6">
+      <div className="flex-1 overflow-auto p-4 pt-1 sm:p-6 sm:pt-2">
         <div className="space-y-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:flex-nowrap lg:gap-2">
             <div className="relative min-w-0 flex-1 lg:max-w-lg">
@@ -122,7 +140,7 @@ const UsuariosMovil = () => {
                     "rounded-full px-5 py-1.5 text-xs font-semibold transition-all h-8 flex items-center justify-center",
                     estadoFiltro === "activos"
                       ? "bg-background text-emerald-600 dark:text-emerald-400 shadow-sm border border-border/40"
-                      : "text-muted-foreground hover:text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
                   )}
                 >
                   Activos
@@ -134,7 +152,7 @@ const UsuariosMovil = () => {
                     "rounded-full px-5 py-1.5 text-xs font-semibold transition-all h-8 flex items-center justify-center",
                     estadoFiltro === "inactivos"
                       ? "bg-background text-destructive shadow-sm border border-border/40"
-                      : "text-muted-foreground hover:text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
                   )}
                 >
                   Inactivos
@@ -158,26 +176,49 @@ const UsuariosMovil = () => {
         </div>
         <div className="mt-4 overflow-hidden rounded-xl border border-border/60 bg-card/80 backdrop-blur-md shadow-sm">
           {isError ? (
-            <p className="p-6 text-sm text-destructive">No se pudo cargar el listado. Revisa el backend e intenta de nuevo.</p>
+            <p className="p-6 text-sm text-destructive">
+              No se pudo cargar el listado. Revisa el backend e intenta de
+              nuevo.
+            </p>
           ) : isLoading ? (
-            <p className="p-6 text-sm text-muted-foreground">Cargando usuarios…</p>
+            <p className="p-6 text-sm text-muted-foreground">
+              Cargando usuarios…
+            </p>
           ) : filteredUsers.length === 0 ? (
             <p className="p-6 text-sm text-muted-foreground">
-              {users.length === 0 ? "No hay usuarios móviles registrados." : "Ningún resultado coincide con la búsqueda o filtros."}
+              {users.length === 0
+                ? "No hay usuarios móviles registrados."
+                : "Ningún resultado coincide con la búsqueda o filtros."}
             </p>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader className="bg-muted/40">
                   <TableRow className="hover:bg-transparent">
-                    <TableHead className="font-semibold text-foreground">Nombre completo</TableHead>
-                    <TableHead className="font-semibold text-foreground">Estado</TableHead>
-                    <TableHead className="font-semibold text-foreground">Nombre de usuario</TableHead>
-                    <TableHead className="font-semibold text-foreground">Tipo de usuario</TableHead>
-                    <TableHead className="font-semibold text-foreground">Tipo de vehículo</TableHead>
-                    <TableHead className="font-semibold text-foreground">Vehículo asignado</TableHead>
-                    <TableHead className="font-semibold text-foreground">Fecha de creación</TableHead>
-                    <TableHead className="font-semibold text-foreground">Días activo</TableHead>
+                    <TableHead className="font-semibold text-foreground">
+                      Nombre completo
+                    </TableHead>
+                    <TableHead className="font-semibold text-foreground">
+                      Estado
+                    </TableHead>
+                    <TableHead className="font-semibold text-foreground">
+                      Nombre de usuario
+                    </TableHead>
+                    <TableHead className="font-semibold text-foreground">
+                      Tipo de usuario
+                    </TableHead>
+                    <TableHead className="font-semibold text-foreground">
+                      Tipo de vehículo
+                    </TableHead>
+                    <TableHead className="font-semibold text-foreground">
+                      Vehículo asignado
+                    </TableHead>
+                    <TableHead className="font-semibold text-foreground">
+                      Fecha de creación
+                    </TableHead>
+                    <TableHead className="font-semibold text-foreground">
+                      Días activo
+                    </TableHead>
                     <TableHead className="w-12" />
                   </TableRow>
                 </TableHeader>
@@ -192,20 +233,34 @@ const UsuariosMovil = () => {
                           <button
                             type="button"
                             className="cursor-pointer text-left font-medium text-foreground hover:underline"
-                            onClick={() => navigate(`/usuarios/movil/${user.id}/editar`)}
+                            onClick={() =>
+                              navigate(`/usuarios/movil/${user.id}/editar`)
+                            }
                           >
                             {user.nombreCompleto}
                           </button>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className="text-sm text-foreground">{user.estado}</span>
+                        <span className="text-sm text-foreground">
+                          {user.estado}
+                        </span>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">{user.nombreUsuario}</TableCell>
-                      <TableCell className="text-foreground">{user.tipoUsuario}</TableCell>
-                      <TableCell className="text-foreground">{user.vehiculoTipo}</TableCell>
-                      <TableCell className="text-foreground">{user.vehiculoAsignado}</TableCell>
-                      <TableCell className="text-muted-foreground">{user.fechaCreacion}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {user.nombreUsuario}
+                      </TableCell>
+                      <TableCell className="text-foreground">
+                        {user.tipoUsuario}
+                      </TableCell>
+                      <TableCell className="text-foreground">
+                        {user.vehiculoTipo}
+                      </TableCell>
+                      <TableCell className="text-foreground">
+                        {user.vehiculoAsignado}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {user.fechaCreacion}
+                      </TableCell>
                       <TableCell className="text-foreground">
                         <span className="inline-flex h-6 min-w-[40px] items-center justify-center rounded-full bg-primary-soft text-sm font-medium text-primary">
                           {user.diasActivo}
@@ -214,14 +269,23 @@ const UsuariosMovil = () => {
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                            >
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-44 border-border bg-card/80 backdrop-blur-md shadow-md">
+                          <DropdownMenuContent
+                            align="end"
+                            className="w-44 border-border bg-card/80 backdrop-blur-md shadow-md"
+                          >
                             <DropdownMenuItem
                               className="cursor-pointer"
-                              onClick={() => navigate(`/usuarios/movil/${user.id}/editar`)}
+                              onClick={() =>
+                                navigate(`/usuarios/movil/${user.id}/editar`)
+                              }
                             >
                               Editar
                             </DropdownMenuItem>
@@ -264,10 +328,15 @@ const UsuariosMovil = () => {
         </div>
       </div>
 
-      <Dialog open={activoDialog != null} onOpenChange={(open) => !open && setActivoDialog(null)}>
+      <Dialog
+        open={activoDialog != null}
+        onOpenChange={(open) => !open && setActivoDialog(null)}
+      >
         <DialogContent className="border-border sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{activoDialog?.activo ? "Activar usuario" : "Bloquear usuario"}</DialogTitle>
+            <DialogTitle>
+              {activoDialog?.activo ? "Activar usuario" : "Bloquear usuario"}
+            </DialogTitle>
             <DialogDescription>
               {activoDialog?.activo
                 ? `¿Confirmas que deseas activar a «${activoDialog.nombreCompleto}»? Podrá volver a usar la app móvil según sus permisos.`
@@ -275,7 +344,12 @@ const UsuariosMovil = () => {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button type="button" variant="outline" onClick={() => setActivoDialog(null)} disabled={setActivoMutation.isPending}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setActivoDialog(null)}
+              disabled={setActivoMutation.isPending}
+            >
               Cancelar
             </Button>
             <Button
@@ -284,10 +358,17 @@ const UsuariosMovil = () => {
               disabled={setActivoMutation.isPending || !activoDialog}
               onClick={() => {
                 if (!activoDialog) return;
-                setActivoMutation.mutate({ id: activoDialog.id, activo: activoDialog.activo });
+                setActivoMutation.mutate({
+                  id: activoDialog.id,
+                  activo: activoDialog.activo,
+                });
               }}
             >
-              {setActivoMutation.isPending ? "Guardando…" : activoDialog?.activo ? "Activar" : "Bloquear"}
+              {setActivoMutation.isPending
+                ? "Guardando…"
+                : activoDialog?.activo
+                  ? "Activar"
+                  : "Bloquear"}
             </Button>
           </DialogFooter>
         </DialogContent>

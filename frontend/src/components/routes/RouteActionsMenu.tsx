@@ -1,4 +1,4 @@
-import { Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Eye, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import type { Route } from "@/domain/routes";
 import {
   DropdownMenu,
@@ -28,7 +28,7 @@ const RouteActionsMenu = ({
 }: Props) => (
   <DropdownMenu>
     <DropdownMenuTrigger className={triggerClassName} aria-label={triggerAriaLabel}>
-      <MoreHorizontal className="h-4 w-4" />
+      <MoreVertical className="h-4 w-4" />
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end" className="w-40">
       <DropdownMenuItem onClick={() => onSelect(r)}>

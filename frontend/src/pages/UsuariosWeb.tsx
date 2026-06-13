@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { MoreHorizontal, User, X } from "lucide-react";
+import { MoreHorizontal, Plus, User, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import PageHeader from "@/components/PageHeader";
@@ -178,16 +178,16 @@ const [draftFilters, setDraftFilters] = useState<FilterDraft>(emptyFilters);
             </Button>
             <Button
               size="sm"
-              className="h-9 bg-primary font-medium text-primary-foreground shadow-glow hover:bg-primary-hover"
+              className="h-12 gap-1.5 text-base font-normal bg-primary hover:bg-primary text-white px-6 shadow-md transition-all hover:scale-105 active:scale-95"
               onClick={() => navigate("/usuarios/web/nuevo")}
             >
-              Nuevo usuario
+              <Plus className="size-5" /> Nuevo
             </Button>
           </>
         }
       />
 
-      <div className="flex-1 overflow-auto p-4 sm:p-6">
+      <div className="flex-1 overflow-auto p-4 pt-1 sm:p-6 sm:pt-2">
         <div className="space-y-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:flex-nowrap lg:gap-2">
             <Input

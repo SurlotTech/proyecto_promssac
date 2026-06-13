@@ -87,11 +87,11 @@ const OrdenProductos = () => {
           <Button
             type="button"
             size="sm"
-            className="h-9 w-full shrink-0 gap-2 bg-primary shadow-glow hover:bg-primary-hover sm:w-auto"
+            className="h-12 w-full shrink-0 gap-1.5 text-base font-normal bg-primary hover:bg-primary text-white px-6 shadow-md transition-all hover:scale-105 active:scale-95 sm:w-auto"
             onClick={actions.openCreateDialog}
           >
-            <Plus className="size-4 shrink-0" strokeWidth={2.25} />
-            Nuevo producto
+            <Plus className="size-5 shrink-0" />
+            Nuevo
           </Button>
         </div>
       </header>

@@ -16,9 +16,12 @@ const ConfiguracionAlertas = () => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    alertasApi.getConfig()
+    alertasApi
+      .getConfig()
       .then(setConfig)
-      .catch(() => toast.error("No se pudo cargar la configuración de alertas."))
+      .catch(() =>
+        toast.error("No se pudo cargar la configuración de alertas."),
+      )
       .finally(() => setLoading(false));
   }, []);
 
@@ -66,21 +69,31 @@ const ConfiguracionAlertas = () => {
 
       <div className="flex-1 overflow-y-auto p-4 sm:p-6">
         <div className="mx-auto max-w-2xl space-y-4">
-          <div className={cn(
-            "flex items-center justify-between rounded-xl border border-border/60 bg-card/80 backdrop-blur-md p-5 shadow-sm",
-          )}>
+          <div
+            className={cn(
+              "flex items-center justify-between rounded-xl border border-border/60 bg-card/80 backdrop-blur-md p-5 shadow-sm",
+            )}
+          >
             <div className="flex items-center gap-3">
               <div className="flex size-10 items-center justify-center rounded-full bg-success-soft text-success">
                 <Bell className="size-5" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-foreground">Alerta por estado Entregado</p>
-                <p className="text-xs text-muted-foreground">Notifica cuando una orden pasa a estado entregado.</p>
+                <p className="text-sm font-semibold text-foreground">
+                  Alerta por estado Entregado
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Notifica cuando una orden pasa a estado entregado.
+                </p>
               </div>
             </div>
             <Switch
               checked={config.alertaEntregado}
-              onCheckedChange={(v) => setConfig((prev) => prev ? { ...prev, alertaEntregado: v } : prev)}
+              onCheckedChange={(v) =>
+                setConfig((prev) =>
+                  prev ? { ...prev, alertaEntregado: v } : prev,
+                )
+              }
             />
           </div>
 
@@ -91,19 +104,31 @@ const ConfiguracionAlertas = () => {
                   <Clock className="size-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">Alerta por Demora</p>
-                  <p className="text-xs text-muted-foreground">Notifica cuando una orden excede el tiempo estimado de entrega.</p>
+                  <p className="text-sm font-semibold text-foreground">
+                    Alerta por Demora
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Notifica cuando una orden excede el tiempo estimado de
+                    entrega.
+                  </p>
                 </div>
               </div>
               <Switch
                 checked={config.alertaDemora}
-                onCheckedChange={(v) => setConfig((prev) => prev ? { ...prev, alertaDemora: v } : prev)}
+                onCheckedChange={(v) =>
+                  setConfig((prev) =>
+                    prev ? { ...prev, alertaDemora: v } : prev,
+                  )
+                }
               />
             </div>
 
             {config.alertaDemora && (
               <div className="ml-[52px] space-y-1.5">
-                <Label htmlFor="demora-minutos" className="text-xs text-muted-foreground">
+                <Label
+                  htmlFor="demora-minutos"
+                  className="text-xs text-muted-foreground"
+                >
                   Minutos de tolerancia
                 </Label>
                 <Input
@@ -115,7 +140,9 @@ const ConfiguracionAlertas = () => {
                   onChange={(e) => {
                     const v = parseInt(e.target.value, 10);
                     if (!isNaN(v) && v >= 1 && v <= 1440) {
-                      setConfig((prev) => prev ? { ...prev, demoraMinutos: v } : prev);
+                      setConfig((prev) =>
+                        prev ? { ...prev, demoraMinutos: v } : prev,
+                      );
                     }
                   }}
                   className="h-10 w-32 bg-transparent"
@@ -124,9 +151,10 @@ const ConfiguracionAlertas = () => {
             )}
           </div>
 
-          <div className="flex justify-end pt-2">
+          <div className="flex justify-center pt-2">
             <Button
-              className="h-10 gap-2 bg-primary px-6 text-primary-foreground hover:bg-primary-hover"
+              size="sm"
+              className="h-12 gap-1.5 text-base font-normal bg-primary px-6 text-primary-foreground hover:bg-primary-hover shadow-md transition-all hover:scale-105 active:scale-95"
               onClick={() => void handleSave()}
               disabled={saving}
             >
@@ -135,7 +163,7 @@ const ConfiguracionAlertas = () => {
               ) : (
                 <Save className="size-4" />
               )}
-              {saving ? "Guardando…" : "Guardar configuración"}
+              {saving ? "Guardando…" : "Guardar"}
             </Button>
           </div>
         </div>

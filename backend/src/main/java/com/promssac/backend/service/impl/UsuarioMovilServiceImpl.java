@@ -430,6 +430,7 @@ public class UsuarioMovilServiceImpl implements UsuarioMovilService {
         dto.setId(u.getId().toString());
         dto.setNombreCompleto(u.getNombreCompleto());
         dto.setVehiculoId(u.getVehiculo().getId().toString());
+        dto.setTelefono(u.getTelefono());
         return dto;
     }
 

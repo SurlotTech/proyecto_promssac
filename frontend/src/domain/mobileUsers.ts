@@ -5,6 +5,7 @@ export interface MobileUserRouteOption {
   id: string;
   nombreCompleto: string;
   vehiculoId: string;
+  telefono?: string;
 }
 
 export interface MobileUserListItem {

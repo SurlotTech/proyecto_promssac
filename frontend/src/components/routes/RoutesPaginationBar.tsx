@@ -1,7 +1,6 @@
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
-import { paginationItems } from "@/lib/pagination";
-import { cn } from "@/lib/utils";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 interface Props {
   currentPage: number;
@@ -19,113 +18,68 @@ const RoutesPaginationBar = ({
   totalFiltered,
   pageSize,
   onPageChange,
-  label,
   onPageSizeChange,
-}: Props) => (
-  <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-    <p className="text-sm text-muted-foreground font-normal animate-fade-in">
-      Mostrando {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, totalFiltered)} de {totalFiltered} {label}
-    </p>
+}: Props) => {
+  const from = (currentPage - 1) * pageSize + 1;
+  const to = Math.min(currentPage * pageSize, totalFiltered);
 
-    <div className="flex flex-wrap items-center gap-4">
+  return (
+    <div className="flex h-16 items-center justify-between bg-white/30 px-5">
+      <div></div>
+      <div className="flex items-center gap-7">
+        <div className="flex items-center gap-2 text-sm text-[#52677a]">
+          <span>Filas por página:</span>
+          <Select
+            value={String(pageSize)}
+            onValueChange={(v) => onPageSizeChange?.(Number(v))}
+          >
+            <SelectTrigger className="h-9 w-16 border border-[#e1e7ee] bg-white/30 px-2 text-sm text-[#1f2933]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5">5</SelectItem>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
+        <span className="text-sm text-[#52677a]">
+          {from}–{to} de {totalFiltered}
+        </span>
 
-      <nav className="flex flex-wrap items-center justify-end gap-1" aria-label={`Paginación de ${label}`}>
-        {/* << Primera página */}
-        <button
-          type="button"
-          disabled={currentPage <= 1}
-          onClick={() => onPageChange(1)}
-          aria-label="Primera página"
-          className={cn(
-            "flex size-[30px] shrink-0 items-center justify-center rounded-full border-2 bg-transparent transition-colors",
-            currentPage <= 1
-              ? "cursor-not-allowed border-primary/20 text-primary/20"
-              : "border-primary/70 text-primary/70 hover:border-primary hover:text-primary hover:bg-primary-soft",
-          )}
-        >
-          <ChevronsLeft className="size-4" strokeWidth={2.25} />
-        </button>
-
-        {/* < Página anterior */}
-        <button
-          type="button"
-          disabled={currentPage <= 1}
-          onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-          aria-label="Página anterior"
-          className={cn(
-            "flex size-[30px] shrink-0 items-center justify-center rounded-full border-2 bg-transparent transition-colors",
-            currentPage <= 1
-              ? "cursor-not-allowed border-primary/20 text-primary/20"
-              : "border-primary/70 text-primary/70 hover:border-primary hover:text-primary hover:bg-primary-soft",
-          )}
-        >
-          <ChevronLeft className="size-4" strokeWidth={2.25} />
-        </button>
-
-        {/* Números de página */}
-        {paginationItems(currentPage, totalPages).map((item, idx) =>
-          item === "ellipsis" ? (
-            <span
-              key={`e-${idx}`}
-              className="flex size-[30px] shrink-0 items-center justify-center text-sm font-medium text-muted-foreground animate-fade-in"
-              aria-hidden
-            >
-              …
-            </span>
-          ) : (
-            <button
-              key={item}
-              type="button"
-              onClick={() => onPageChange(item)}
-              aria-label={`Ir a página ${item}`}
-              aria-current={currentPage === item ? "page" : undefined}
-              className={cn(
-                "flex size-[30px] shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors",
-                currentPage === item
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "border-2 border-primary/70 bg-transparent text-primary/70 hover:border-primary hover:text-primary hover:bg-primary-soft",
-              )}
-            >
-              {item}
-            </button>
-          ),
-        )}
-
-        {/* > Página siguiente */}
-        <button
-          type="button"
-          disabled={currentPage >= totalPages}
-          onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-          aria-label="Página siguiente"
-          className={cn(
-            "flex size-[30px] shrink-0 items-center justify-center rounded-full border-2 bg-transparent transition-colors",
-            currentPage >= totalPages
-              ? "cursor-not-allowed border-primary/20 text-primary/20"
-              : "border-primary/70 text-primary/70 hover:border-primary hover:text-primary hover:bg-primary-soft",
-          )}
-        >
-          <ChevronRight className="size-4" strokeWidth={2.25} />
-        </button>
-
-        {/* >> Última página */}
-        <button
-          type="button"
-          disabled={currentPage >= totalPages}
-          onClick={() => onPageChange(totalPages)}
-          aria-label="Última página"
-          className={cn(
-            "flex size-[30px] shrink-0 items-center justify-center rounded-full border-2 bg-transparent transition-colors",
-            currentPage >= totalPages
-              ? "cursor-not-allowed border-primary/20 text-primary/20"
-              : "border-primary/70 text-primary/70 hover:border-primary hover:text-primary hover:bg-primary-soft",
-          )}
-        >
-          <ChevronsRight className="size-4" strokeWidth={2.25} />
-        </button>
-      </nav>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            disabled={currentPage <= 1}
+            onClick={() => onPageChange(currentPage - 1)}
+            className={cn(
+              "flex size-9 items-center justify-center rounded-lg border text-sm font-medium transition-colors",
+              currentPage <= 1
+                ? "border-[#e1e7ee] text-[#c8d0d9] cursor-not-allowed"
+                : "border-[#e1e7ee] text-[#52677a] hover:border-[#1f2933] hover:text-[#1f2933]",
+            )}
+          >
+            <ChevronLeft className="size-4" />
+          </button>
+          <button
+            type="button"
+            disabled={currentPage >= totalPages}
+            onClick={() => onPageChange(currentPage + 1)}
+            className={cn(
+              "flex size-9 items-center justify-center rounded-lg border text-sm font-medium transition-colors",
+              currentPage >= totalPages
+                ? "border-[#e1e7ee] text-[#c8d0d9] cursor-not-allowed"
+                : "border-[#e1e7ee] text-[#52677a] hover:border-[#1f2933] hover:text-[#1f2933]",
+            )}
+          >
+            <ChevronRight className="size-4" />
+          </button>
+        </div>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default RoutesPaginationBar;

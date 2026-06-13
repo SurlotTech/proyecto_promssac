@@ -1,11 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
@@ -16,6 +11,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [remember, setRemember] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,112 +30,168 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-[#121212]">
-      {/* Left: Background Image - Desktop only */}
-      <div 
-        className="hidden md:block md:w-1/2 lg:w-[55%] bg-cover bg-center bg-no-repeat relative"
-        style={{ backgroundImage: 'url("/login-bg.png")' }}
+    <div
+      className="relative min-h-screen w-full flex items-center justify-center sm:justify-end overflow-hidden"
+      style={{
+        backgroundImage: `
+          linear-gradient(rgba(5,10,20,0.12),rgba(5,10,20,0.12)),
+          url("/bg-login1.webp")
+        `,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      <div className="animate-fade-in">
+        <div
+          className="
+            w-full max-w-[460px] mx-4 my-8
+            sm:mr-[7vw] sm:ml-auto sm:mx-0
+            rounded-[26px] border border-white/70
+            p-[44px_46px] max-sm:p-[34px_26px]
+            animate-breathe hover:[animation-play-state:paused]
+          "
+        style={{
+          backgroundColor: "rgba(255,255,255,0.96)",
+          boxShadow: "0 24px 70px rgba(0,0,0,0.28)",
+        }}
       >
-        <div className="absolute inset-0 bg-black/30" />
-      </div>
+        {/* Title */}
+        <h1 className="m-0 text-center text-[34px] max-sm:text-[28px] font-extrabold tracking-tight text-[#111827]">
+          Iniciar sesión
+        </h1>
+        <p className="mt-[10px] mb-[34px] text-center text-[15px] text-[#667085]">
+          Accede a tu plataforma de gestión de rutas
+        </p>
 
-      {/* Right: Login Form - White background */}
-      <div className="w-full md:w-1/2 lg:w-[45%] flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-white">
-        <div className="w-full max-w-[420px] animate-in fade-in zoom-in-95 duration-500 space-y-8">
-          {/* Logo */}
-          <div className="flex flex-col items-center justify-center space-y-3">
-            <img 
-              src="/logo.png" 
-              alt="FleetOps" 
-              className="h-44 w-37 object-contain"
-            />
+        {/* Error */}
+        {error && (
+          <div className="mb-6 flex items-center gap-2 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm font-medium text-red-700">
+            <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
+            {error}
           </div>
+        )}
 
-          {error && (
-            <Alert variant="destructive" className="mb-6 py-2.5">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription className="text-sm font-medium">{error}</AlertDescription>
-            </Alert>
-          )}
-
-          <form onSubmit={handleLogin} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="username" className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                Usuario o Email
-              </Label>
-              <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted-foreground">
-                  <Mail className="h-4 w-4" />
-                </div>
-                <Input 
-                  id="username" 
-                  type="text"
-                  value={usuario}
-                  onChange={(e) => setUsuario(e.target.value)}
-                  placeholder="nombre@ejemplo.com"
-                  className="pl-11 h-12 rounded-xl bg-zinc-50 border-zinc-200 transition-colors focus:bg-white focus:ring-primary/20 text-foreground"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                Contraseña
-              </Label>
-              <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted-foreground">
-                  <Lock className="h-4 w-4" />
-                </div>
-                <Input 
-                  id="password"
-                  value={contrasena}
-                  onChange={(e) => setContrasena(e.target.value)}
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  className="pl-11 pr-11 h-12 rounded-xl bg-zinc-50 border-zinc-200 transition-colors focus:bg-white focus:ring-primary/20 text-foreground"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-1 pb-1">
-              <div className="flex items-center space-x-2.5">
-                <Checkbox id="remember" className="border-zinc-300 data-[state=checked]:bg-primary data-[state=checked]:border-primary" />
-                <Label htmlFor="remember" className="text-sm font-medium leading-none text-muted-foreground cursor-pointer select-none hover:text-foreground transition-colors">
-                  Mantener sesión abierta
-                </Label>
-              </div>
-            </div>
-
-            <Button 
-              type="submit" 
-              className="w-full h-12 rounded-xl text-base font-semibold shadow-md bg-primary hover:bg-primary-hover hover:-translate-y-0.5 transition-all duration-200"
-              disabled={isLoading}
+        <form onSubmit={handleLogin}>
+          {/* Usuario */}
+          <div className="mb-5">
+            <label className="block mb-2 text-[13px] font-bold text-[#344054]">
+              Usuario o correo
+            </label>
+            <div
+              className="flex items-center h-[52px] px-[15px] gap-3 border rounded-xl bg-white transition-all duration-200"
+              style={{ borderColor: "#d8dee8" }}
+              onFocus={(e) => {
+                const wrapper = e.currentTarget;
+                wrapper.style.borderColor = "#ef1c25";
+                wrapper.style.boxShadow = "0 0 0 4px rgba(239,28,37,0.12)";
+              }}
+              onBlur={(e) => {
+                const wrapper = e.currentTarget;
+                wrapper.style.borderColor = "#d8dee8";
+                wrapper.style.boxShadow = "none";
+              }}
             >
-              {isLoading ? "Ingresando..." : "Ingresar"}
-            </Button>
-
-            <div className="text-center pt-3">
-              <a href="#" className="text-sm font-semibold text-primary hover:text-primary-hover hover:underline transition-colors">
-                ¿Olvidaste tu contraseña?
-              </a>
+              <Mail className="h-5 w-5 shrink-0 text-[#667085]" />
+              <input
+                type="text"
+                value={usuario}
+                onChange={(e) => setUsuario(e.target.value)}
+                placeholder="nombre@ejemplo.com"
+                className="w-full border-0 outline-none bg-transparent text-[15px] text-[#111827] placeholder:text-[#98a2b3]"
+                required
+              />
             </div>
-          </form>
-          
-          <div className="text-center pt-4 border-t border-border">
-            <p className="text-xs text-muted-foreground">
-              Desarrollado por <span className="font-bold text-foreground">Grupo Sulort Tech S.A.C</span>
-            </p>
           </div>
-        </div>
+
+          {/* Contraseña */}
+          <div className="mb-5">
+            <label className="block mb-2 text-[13px] font-bold text-[#344054]">
+              Contraseña
+            </label>
+            <div
+              className="flex items-center h-[52px] px-[15px] gap-3 border rounded-xl bg-white transition-all duration-200"
+              style={{ borderColor: "#d8dee8" }}
+              onFocus={(e) => {
+                const wrapper = e.currentTarget;
+                wrapper.style.borderColor = "#ef1c25";
+                wrapper.style.boxShadow = "0 0 0 4px rgba(239,28,37,0.12)";
+              }}
+              onBlur={(e) => {
+                const wrapper = e.currentTarget;
+                wrapper.style.borderColor = "#d8dee8";
+                wrapper.style.boxShadow = "none";
+              }}
+            >
+              <Lock className="h-5 w-5 shrink-0 text-[#667085]" />
+              <input
+                type={showPassword ? "text" : "password"}
+                value={contrasena}
+                onChange={(e) => setContrasena(e.target.value)}
+                placeholder="••••••••"
+                className="w-full border-0 outline-none bg-transparent text-[15px] text-[#111827] placeholder:text-[#98a2b3]"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="border-0 bg-transparent shrink-0 text-[#667085] hover:text-[#111827] cursor-pointer transition-colors"
+              >
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Mantener sesión */}
+          <div className="flex items-center gap-[10px] mt-[6px] mb-6">
+            <input
+              type="checkbox"
+              id="remember"
+              checked={remember}
+              onChange={(e) => setRemember(e.target.checked)}
+              className="w-4 h-4 accent-[#ef1c25]"
+            />
+            <label htmlFor="remember" className="text-[14px] text-[#475467] cursor-pointer select-none">
+              Mantener sesión abierta
+            </label>
+          </div>
+
+          {/* Botón Ingresar */}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full h-[52px] border-0 rounded-xl bg-[#ef1c25] text-white text-[16px] font-bold cursor-pointer transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+            style={{ boxShadow: "0 12px 26px rgba(239,28,37,0.28)" }}
+            onMouseEnter={(e) => {
+              if (!isLoading) {
+                e.currentTarget.style.background = "#d9141d";
+                e.currentTarget.style.transform = "translateY(-1px)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "#ef1c25";
+              e.currentTarget.style.transform = "translateY(0)";
+            }}
+          >
+            {isLoading ? "Ingresando..." : "Ingresar"}
+          </button>
+
+          {/* Olvidaste contraseña */}
+          <a
+            href="#"
+            className="block mt-6 text-center text-[14px] font-bold text-[#ef1c25] no-underline hover:underline transition-colors"
+          >
+            ¿Olvidaste tu contraseña?
+          </a>
+
+          {/* Divider */}
+          <div className="h-[1px] bg-[#eaecf0] mt-[30px] mb-[18px]" />
+
+          {/* Footer */}
+          <p className="text-center text-[13px] text-[#667085]">
+            Desarrollado por <strong className="text-[#111827]">Grupo Sulort Tech S.A.C</strong>
+          </p>
+        </form>
+      </div>
       </div>
     </div>
   );

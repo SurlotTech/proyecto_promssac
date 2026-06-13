@@ -24,7 +24,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import RoutesPaginationBar from "@/components/routes/RoutesPaginationBar";
 import { cn } from "@/lib/utils";
-import { notificacionesApi, type NotificacionEnviadaListResponse, type NotificacionPage } from "@/services/notifications.api";
+import {
+  notificacionesApi,
+  type NotificacionEnviadaListResponse,
+  type NotificacionPage,
+} from "@/services/notifications.api";
 import { useEmailStatus } from "@/hooks/useEmailStatus";
 import {
   Dialog,
@@ -36,18 +40,22 @@ import {
 const PAGE_SIZE = 20;
 
 const Notificaciones = () => {
-  const [notificaciones, setNotificaciones] = useState<NotificacionEnviadaListResponse[]>([]);
+  const [notificaciones, setNotificaciones] = useState<
+    NotificacionEnviadaListResponse[]
+  >([]);
   const [loading, setLoading] = useState(false);
   const [totalEnviadas, setTotalEnviadas] = useState<number | null>(null);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const [selectedNotif, setSelectedNotif] = useState<NotificacionEnviadaListResponse | null>(null);
+  const [selectedNotif, setSelectedNotif] =
+    useState<NotificacionEnviadaListResponse | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const { activo: emailActivo, conectado, error: wsError } = useEmailStatus();
 
   useEffect(() => {
     setLoading(true);
-    notificacionesApi.listar(page, PAGE_SIZE)
+    notificacionesApi
+      .listar(page, PAGE_SIZE)
       .then((data: NotificacionPage) => {
         setNotificaciones(data.content);
         setTotalEnviadas(data.totalElements);
@@ -75,7 +83,11 @@ const Notificaciones = () => {
 
   const formatFecha = (iso: string) => {
     const d = new Date(iso);
-    return d.toLocaleDateString("es-PE", { day: "2-digit", month: "short", year: "numeric" });
+    return d.toLocaleDateString("es-PE", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
   };
 
   return (
@@ -86,11 +98,11 @@ const Notificaciones = () => {
         actions={
           <Button
             size="sm"
-            className="h-12 gap-1.5 text-base bg-[#f43f3e] hover:bg-[#d93534] text-white px-6 shadow-md transition-all hover:scale-105 active:scale-95"
+            className="h-12 gap-1.5 text-base font-normal bg-primary hover:bg-primary text-white px-6 shadow-md transition-all hover:scale-105 active:scale-95"
             asChild
           >
             <Link to="/configuracion/notificaciones/nueva">
-              <Plus className="size-4" />
+              <Plus className="size-5" />
               Nuevo
             </Link>
           </Button>
@@ -101,19 +113,24 @@ const Notificaciones = () => {
         <div className="flex w-full flex-col gap-6 lg:flex-row">
           {/* Sidebar */}
           <aside className="w-full shrink-0 space-y-5 lg:w-80">
-
             {/* Card 1: Estado del Servicio */}
             <div className="rounded-xl border border-border/60 bg-card/80 backdrop-blur-md p-4 shadow-sm">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Estado del Servicio
                 </h3>
-                <div className={cn(
-                  "flex h-8 w-8 items-center justify-center rounded-full",
-                  wsError ? "bg-destructive/10 text-destructive"
-                    : conectado ? (emailActivo ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive")
-                    : "bg-muted/30 text-muted-foreground"
-                )}>
+                <div
+                  className={cn(
+                    "flex h-8 w-8 items-center justify-center rounded-full",
+                    wsError
+                      ? "bg-destructive/10 text-destructive"
+                      : conectado
+                        ? emailActivo
+                          ? "bg-success/10 text-success"
+                          : "bg-destructive/10 text-destructive"
+                        : "bg-muted/30 text-muted-foreground",
+                  )}
+                >
                   <CheckCircle2 className="size-4" />
                 </div>
               </div>
@@ -122,17 +139,27 @@ const Notificaciones = () => {
                   {conectado && emailActivo && (
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75"></span>
                   )}
-                  <span className={cn(
-                    "relative inline-flex h-3 w-3 rounded-full",
-                    wsError ? "bg-destructive"
-                      : conectado ? (emailActivo ? "bg-success" : "bg-destructive")
-                      : "bg-muted-foreground animate-pulse"
-                  )}></span>
+                  <span
+                    className={cn(
+                      "relative inline-flex h-3 w-3 rounded-full",
+                      wsError
+                        ? "bg-destructive"
+                        : conectado
+                          ? emailActivo
+                            ? "bg-success"
+                            : "bg-destructive"
+                          : "bg-muted-foreground animate-pulse",
+                    )}
+                  ></span>
                 </div>
                 <p className="font-semibold text-sm">
-                  {wsError ? "Error de autenticación"
-                    : conectado ? (emailActivo ? "Email Activo" : "Email Inactivo")
-                    : "Conectando..."}
+                  {wsError
+                    ? "Error de autenticación"
+                    : conectado
+                      ? emailActivo
+                        ? "Email Activo"
+                        : "Email Inactivo"
+                      : "Conectando..."}
                 </p>
               </div>
             </div>
@@ -147,15 +174,21 @@ const Notificaciones = () => {
                   <Send className="size-4" />
                 </div>
               </div>
-              <p className="text-3xl font-bold mt-2">{totalEnviadas !== null ? totalEnviadas : "—"}</p>
-              <p className="text-xs text-muted-foreground mt-1">Notificaciones en el historial</p>
+              <p className="text-3xl font-bold mt-2">
+                {totalEnviadas !== null ? totalEnviadas : "—"}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Notificaciones en el historial
+              </p>
             </div>
 
             {/* Filtros */}
             <div className="rounded-xl border border-border/60 bg-card/80 backdrop-blur-md p-4 shadow-sm">
               <div className="mb-4 flex items-center gap-2 border-b border-border pb-3">
                 <Filter className="size-4 text-primary" />
-                <h3 className="text-xs font-semibold uppercase tracking-wider">Filtros</h3>
+                <h3 className="text-xs font-semibold uppercase tracking-wider">
+                  Filtros
+                </h3>
               </div>
 
               <div className="space-y-4">
@@ -229,7 +262,10 @@ const Notificaciones = () => {
                     <tbody className="divide-y divide-border">
                       {notificaciones.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="px-5 py-12 text-center text-muted-foreground">
+                          <td
+                            colSpan={6}
+                            className="px-5 py-12 text-center text-muted-foreground"
+                          >
                             No hay notificaciones enviadas aún.
                           </td>
                         </tr>
@@ -258,7 +294,7 @@ const Notificaciones = () => {
                                   notif.estado === "ENVIADO" &&
                                     "bg-success/10 text-success border-success/20",
                                   notif.estado === "FALLIDO" &&
-                                    "bg-destructive/10 text-destructive border-destructive/20"
+                                    "bg-destructive/10 text-destructive border-destructive/20",
                                 )}
                               >
                                 {notif.estado}
@@ -276,13 +312,24 @@ const Notificaciones = () => {
                             <td className="px-5 py-4 text-right">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+                                  >
                                     <MoreHorizontal className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-40 border-border bg-card/80 backdrop-blur-md shadow-md">
-                                  <DropdownMenuItem className="cursor-pointer" onClick={() => handleVerMensaje(notif)}>
-                                    <Mail className="mr-2 h-4 w-4" /> Ver mensaje
+                                <DropdownMenuContent
+                                  align="end"
+                                  className="w-40 border-border bg-card/80 backdrop-blur-md shadow-md"
+                                >
+                                  <DropdownMenuItem
+                                    className="cursor-pointer"
+                                    onClick={() => handleVerMensaje(notif)}
+                                  >
+                                    <Mail className="mr-2 h-4 w-4" /> Ver
+                                    mensaje
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
@@ -308,21 +355,38 @@ const Notificaciones = () => {
         </div>
       </div>
 
-      <Dialog open={selectedNotif !== null} onOpenChange={(open) => { if (!open) setSelectedNotif(null); }}>
+      <Dialog
+        open={selectedNotif !== null}
+        onOpenChange={(open) => {
+          if (!open) setSelectedNotif(null);
+        }}
+      >
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-lg">{selectedNotif?.asunto}</DialogTitle>
+            <DialogTitle className="text-lg">
+              {selectedNotif?.asunto}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 text-sm">
             <div className="flex gap-4 text-muted-foreground">
-              <span><strong>Para:</strong> {selectedNotif?.destinatarioEmail}</span>
-              <span><strong>Estado:</strong> {selectedNotif?.estado}</span>
-              <span><strong>Fecha:</strong> {selectedNotif ? formatFecha(selectedNotif.enviadoEn) : ""}</span>
+              <span>
+                <strong>Para:</strong> {selectedNotif?.destinatarioEmail}
+              </span>
+              <span>
+                <strong>Estado:</strong> {selectedNotif?.estado}
+              </span>
+              <span>
+                <strong>Fecha:</strong>{" "}
+                {selectedNotif ? formatFecha(selectedNotif.enviadoEn) : ""}
+              </span>
             </div>
             {selectedNotif?.ordenCodigo && (
               <div className="text-muted-foreground">
                 <strong>Orden:</strong>{" "}
-                <Link to={`/ordenes/detalle/${selectedNotif.ordenCodigo}`} className="text-primary hover:underline">
+                <Link
+                  to={`/ordenes/detalle/${selectedNotif.ordenCodigo}`}
+                  className="text-primary hover:underline"
+                >
                   {selectedNotif.ordenCodigo}
                 </Link>
               </div>
@@ -338,7 +402,9 @@ const Notificaciones = () => {
                 dangerouslySetInnerHTML={{ __html: selectedNotif.contenido }}
               />
             ) : (
-              <p className="text-muted-foreground italic">Sin contenido disponible.</p>
+              <p className="text-muted-foreground italic">
+                Sin contenido disponible.
+              </p>
             )}
           </div>
         </DialogContent>

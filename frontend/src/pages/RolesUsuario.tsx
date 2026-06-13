@@ -95,10 +95,10 @@ const RolesUsuario = () => {
         </div>
         <Button
           size="sm"
-          className="h-9 bg-primary font-medium text-primary-foreground shadow-glow hover:bg-primary-hover"
+          className="h-12 gap-1.5 text-base font-normal bg-primary hover:bg-primary text-white px-6 shadow-md transition-all hover:scale-105 active:scale-95"
           onClick={() => navigate("/usuarios/roles/nuevo")}
         >
-          + Nuevo rol
+          Nuevo
         </Button>
       </header>
 
