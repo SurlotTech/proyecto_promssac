@@ -29,9 +29,9 @@ import RouteTable from "@/components/routes/RouteTable";
 import RouteCard from "@/components/routes/RouteCard";
 import NewRouteDialog from "@/components/routes/NewRouteDialog";
 import RoutesPaginationBar from "@/components/routes/RoutesPaginationBar";
-import RoutesViewToggle from "@/components/routes/RoutesViewToggle";
 import ConfirmDeleteDialog from "@/components/ui/ConfirmDeleteDialog";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Dialog,
   DialogContent,
@@ -318,8 +318,6 @@ const Rutas = () => {
     return { total, active, completed, totalCollection };
   }, [allRoutes]);
 
-  const handleResetFilters = () => setFilters(defaultFilters);
-
   const closeRouteDialog = (open: boolean) => {
     setRouteDialogOpen(open);
     if (!open) setEditingRoute(null);
@@ -349,19 +347,31 @@ const Rutas = () => {
         subtitle="Planifica y monitorea las rutas de entrega."
         actions={
           <>
-            <Button variant="outline" size="sm" className="h-9 gap-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5 transition-colors" onClick={downloadPlantillaRutasYOrdenes}>
-              <FileSpreadsheet className="size-4 shrink-0" />
-              <span className="hidden sm:inline">Plantilla</span>
-            </Button>
-            <Button variant="outline" size="sm" className="h-9 gap-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5 transition-colors" onClick={() => fileInputRef.current?.click()}>
-              <Upload className="size-4 shrink-0" />
-              <span className="hidden sm:inline">Importar</span>
-            </Button>
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <Button size="sm" className="h-9 w-9 bg-primary shadow-glow hover:bg-primary-hover" onClick={downloadPlantillaRutasYOrdenes}>
+                  <FileSpreadsheet className="size-4 shrink-0" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Plantilla</TooltipContent>
+            </Tooltip>
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <Button size="sm" className="h-9 w-9 bg-primary shadow-glow hover:bg-primary-hover" onClick={() => fileInputRef.current?.click()}>
+                  <Upload className="size-4 shrink-0" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Importar</TooltipContent>
+            </Tooltip>
             <input ref={fileInputRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleImportFile} />
-            <Button variant="outline" size="sm" className="h-9 gap-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5 transition-colors" onClick={handleExport}>
-              <Download className="size-4 shrink-0" />
-              <span className="hidden sm:inline">Exportar</span>
-            </Button>
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <Button size="sm" className="h-9 w-9 bg-primary shadow-glow hover:bg-primary-hover" onClick={handleExport}>
+                  <Download className="size-4 shrink-0" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Exportar</TooltipContent>
+            </Tooltip>
             <Button
               size="sm"
               type="button"
@@ -374,7 +384,7 @@ const Rutas = () => {
           </>
         }
       />
-      <div className="space-y-4 p-4 pt-1 sm:p-6 sm:pt-2 lg:p-8 lg:pt-2">
+      <div className="space-y-2 p-4 pt-1 sm:p-6 sm:pt-2 lg:p-8 lg:pt-2">
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <StatCard
             label="Total de rutas"
@@ -395,11 +405,9 @@ const Rutas = () => {
         <RouteFilters
           filters={filters}
           onChange={setFilters}
-          onReset={handleResetFilters}
           vehicles={vehicleOptions}
           places={places}
           drivers={driverFilterOptions}
-          toolbarRight={<RoutesViewToggle view={view} onViewChange={setView} />}
         />
 
         {filteredRoutes.length === 0 ? (

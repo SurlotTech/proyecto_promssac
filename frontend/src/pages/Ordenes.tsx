@@ -183,7 +183,7 @@ const Ordenes = () => {
         }
       />
 
-      <div className="space-y-4 p-4 pt-1 sm:p-6 sm:pt-2 lg:p-8 lg:pt-2">
+      <div className="space-y-2 p-4 pt-1 sm:p-6 sm:pt-2 lg:p-8 lg:pt-2">
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <StatCard label="Total órdenes" value={stats.total} icon={ShoppingBag} tone="primary" />
           <StatCard label="En ruta" value={stats.inRoute} icon={Truck} tone="info" />

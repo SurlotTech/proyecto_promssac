@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import type { DateRange } from "react-day-picker";
-import { Calendar as CalendarIcon, ChevronDown, X } from "lucide-react";
+import { Calendar as CalendarIcon, X } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -64,7 +64,7 @@ const RouteDateRangePicker = ({ dateFrom, dateTo, onRangeChange, className, minD
       {hasValue ? (
         <div
           className={cn(
-            "flex !w-fit max-w-full items-center shrink-0 rounded-full border border-border/100 bg-transparent overflow-hidden text-sm shadow-none transition-colors focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
+            "flex !w-fit max-w-full items-center shrink-0 rounded-lg border bg-zinc-50 overflow-hidden text-sm shadow-none transition-all hover:border-zinc-300 hover:shadow-sm focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-0",
             className,
           )}
         >
@@ -73,15 +73,15 @@ const RouteDateRangePicker = ({ dateFrom, dateTo, onRangeChange, className, minD
               type="button"
               aria-label={displayText ? `Rango de fechas: ${displayText}` : "Abrir calendario"}
               className={cn(
-                "group inline-flex h-10 w-max min-w-0 max-w-full shrink-0 items-center gap-2 border-0 bg-transparent py-0 pl-3.5 pr-2 text-left outline-none transition-colors hover:bg-zinc-50",
+                "group inline-flex h-9 w-max min-w-0 max-w-full shrink-0 items-center gap-2 border-0 bg-transparent py-0 pl-3 pr-2 text-left outline-none transition-all hover:bg-zinc-100",
               )}
             >
               <CalendarIcon
-                className="size-3.5 shrink-0 text-foreground/80"
+                className="size-3.5 shrink-0 text-muted-foreground"
                 strokeWidth={1.75}
                 aria-hidden
               />
-              <span className="min-w-0 max-w-[min(100vw-3rem,24rem)] shrink-0 truncate whitespace-nowrap text-sm tabular-nums text-foreground">
+              <span className="min-w-0 max-w-[min(100vw-3rem,24rem)] shrink-0 truncate whitespace-nowrap text-sm tabular-nums text-muted-foreground">
                 {displayText}
               </span>
             </button>
@@ -93,7 +93,7 @@ const RouteDateRangePicker = ({ dateFrom, dateTo, onRangeChange, className, minD
               e.stopPropagation();
               clear();
             }}
-            className="flex h-10 shrink-0 items-center px-2.5 text-muted-foreground transition-colors hover:bg-zinc-50 hover:text-foreground"
+            className="flex h-9 shrink-0 items-center px-2 text-muted-foreground/60 transition-all hover:bg-zinc-100 hover:text-muted-foreground"
             aria-label="Limpiar fechas"
           >
             <X className="h-3.5 w-3.5" />
@@ -105,19 +105,18 @@ const RouteDateRangePicker = ({ dateFrom, dateTo, onRangeChange, className, minD
             <button
               type="button"
               className={cn(
-                "group flex h-10 w-full min-w-0 max-w-full shrink-0 items-center gap-2 rounded-full border border-border/100 bg-transparent px-3.5 py-0 shadow-none transition-colors sm:max-w-[min(100%,18rem)]",
-                "hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                "group flex h-9 w-full min-w-0 max-w-full shrink-0 items-center gap-2 rounded-lg border bg-zinc-50 px-3 py-0 shadow-none transition-all hover:border-zinc-300 hover:bg-zinc-100 hover:shadow-sm sm:max-w-[min(100%,18rem)]",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0",
               )}
             >
               <CalendarIcon
-                className="size-3.5 shrink-0 text-foreground/80"
+                className="size-3.5 shrink-0 text-muted-foreground"
                 strokeWidth={1.75}
                 aria-hidden
               />
-              <span className="min-w-0 flex-1 truncate text-left text-sm text-foreground/80">
+              <span className="min-w-0 flex-1 truncate text-left text-sm text-muted-foreground">
                 Seleccionar fecha
               </span>
-              <ChevronDown className="ml-auto h-3.5 w-3.5 shrink-0"/>
             </button>
           </PopoverTrigger>
         </div>
@@ -162,7 +161,7 @@ const RouteDateRangePicker = ({ dateFrom, dateTo, onRangeChange, className, minD
             day_range_end:
               "!rounded-full !bg-info !text-info-foreground hover:!bg-info hover:!text-info-foreground",
             day_range_middle:
-              "aria-selected:!bg-info-soft aria-selected:!text-foreground !rounded-none",
+              "aria-selected:!bg-info-soft aria-selected:!text-muted-foreground !rounded-none",
           }}
         />
       </PopoverContent>

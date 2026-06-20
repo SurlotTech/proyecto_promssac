@@ -1,8 +1,6 @@
 import { type ReactNode } from "react";
-import { Calendar, CircleGauge, Flag, ListFilter, RotateCcw, Search, Truck } from "lucide-react";
+import { Calendar, CircleGauge, Flag, Search, Truck } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -11,7 +9,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import RouteDateRangePicker from "@/components/routes/RouteDateRangePicker";
-import { cn } from "@/lib/utils";
 
 export interface OrderFiltersState {
   dateFilterType: "route" | "created";
@@ -36,10 +33,7 @@ export const defaultOrderFilters: OrderFiltersState = {
 };
 
 const pillSelect =
-  "h-12 w-full min-w-0 rounded-full border-border bg-transparent text-sm shadow-none transition-colors hover:bg-zinc-50 focus:ring-2 focus:ring-ring focus:ring-offset-2";
-
-/** Ancho cómodo para selects de la primera fila (el rango de fechas va aparte, sin este tope) */
-const filterFieldMax = "xl:max-w-[min(100%,18rem)]";
+  "h-9 w-full min-w-0 shrink-0 rounded-lg border bg-zinc-50 px-3 py-0 shadow-none transition-all hover:border-zinc-300 hover:bg-zinc-100 hover:shadow-sm focus:ring-2 focus:ring-ring focus:ring-offset-0 data-[state=open]:bg-zinc-100 sm:w-fit sm:max-w-[min(100%,18rem)] [&>div]:mr-2 [&>svg]:hidden";
 
 interface Props {
   filters: OrderFiltersState;
@@ -87,24 +81,22 @@ const OrderFilters = ({
     filters.vehiclePlate !== "all";
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-4 xl:flex-row xl:flex-wrap xl:items-end xl:gap-x-4 xl:gap-y-4">
-        <div className="min-w-0 space-y-1.5 xl:w-auto xl:flex-1 xl:max-w-[20rem]">
-          <Label className="sr-only">Nombre del Cliente</Label>
+    <div className="space-y-3">
+      <div className="flex flex-col gap-3 rounded-xl bg-muted/20 py-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="relative min-w-0 flex-1 sm:max-w-xs">
           <div className="relative">
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" strokeWidth={1.75} />
             <Input
               id="contact-name"
               value={filters.contactName}
               onChange={(e) => onChange({ ...filters, contactName: e.target.value })}
               placeholder="Nombre del Cliente…"
-              className="h-12 rounded-full border-border bg-transparent pl-10 text-sm shadow-none transition-colors hover:bg-zinc-50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="h-9 w-full bg-zinc-50 pl-9 transition-all hover:border-zinc-300 hover:bg-zinc-100 hover:shadow-sm focus-visible:ring-offset-0"
             />
           </div>
         </div>
 
-        <div className={cn("min-w-0 space-y-1.5 xl:w-auto", filterFieldMax)}>
-          <Label className="sr-only">Tipo de fecha para filtrar</Label>
+        <div className="flex flex-wrap items-center gap-2">
           <Select
             value={filters.dateFilterType}
             onValueChange={(v) =>
@@ -112,35 +104,37 @@ const OrderFilters = ({
             }
           >
             <SelectTrigger className={pillSelect}>
-              <Calendar className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
-              <SelectValue />
+              <div className="flex w-full items-center gap-2">
+                <Calendar className="size-3.5 shrink-0 text-muted-foreground" strokeWidth={1.75} />
+                <span className="min-w-0 truncate text-left text-sm text-muted-foreground">
+                  <SelectValue />
+                </span>
+              </div>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="route">Fecha de ruta</SelectItem>
               <SelectItem value="created">Fecha de creación</SelectItem>
             </SelectContent>
           </Select>
-        </div>
 
-        <div className="min-w-0 space-y-1.5 xl:w-auto">
-          <Label className="sr-only">Rango de fechas</Label>
           <RouteDateRangePicker
             dateFrom={filters.dateFrom}
             dateTo={filters.dateTo}
             onRangeChange={(dateFrom, dateTo) => onChange({ ...filters, dateFrom, dateTo })}
-            className="w-full min-w-0 xl:w-max xl:max-w-none xl:shrink-0"
+            className="w-full min-w-0 max-w-full sm:w-max sm:max-w-none sm:shrink-0"
           />
-        </div>
 
-        <div className={cn("min-w-0 space-y-1.5 xl:w-auto", filterFieldMax)}>
-          <Label className="sr-only">Estado</Label>
           <Select
             value={filters.status}
             onValueChange={(v) => onChange({ ...filters, status: v })}
           >
             <SelectTrigger className={pillSelect}>
-              <CircleGauge className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
-              <SelectValue placeholder="Estado: Todos" />
+              <div className="flex w-full items-center gap-2">
+                <CircleGauge className="size-3.5 shrink-0 text-muted-foreground" strokeWidth={1.75} />
+                <span className="min-w-0 truncate text-left text-sm text-muted-foreground">
+                  <SelectValue placeholder="Estado: Todos" />
+                </span>
+              </div>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Estado: Todos</SelectItem>
@@ -150,17 +144,18 @@ const OrderFilters = ({
               <SelectItem value="no_entregado">No entregado</SelectItem>
             </SelectContent>
           </Select>
-        </div>
 
-        <div className="min-w-0 space-y-1.5 xl:w-auto xl:max-w-[15rem]">
-          <Label className="sr-only">Subestado</Label>
           <Select
             value={substatusSelectValue}
             onValueChange={(v) => onChange({ ...filters, substatus: v })}
           >
             <SelectTrigger className={pillSelect}>
-              <Flag className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
-              <SelectValue placeholder="Subestado: Todos" />
+              <div className="flex w-full items-center gap-2">
+                <Flag className="size-3.5 shrink-0 text-muted-foreground" strokeWidth={1.75} />
+                <span className="min-w-0 truncate text-left text-sm text-muted-foreground">
+                  <SelectValue placeholder="Subestado: Todos" />
+                </span>
+              </div>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Subestado: Todos</SelectItem>
@@ -171,17 +166,18 @@ const OrderFilters = ({
               ))}
             </SelectContent>
           </Select>
-        </div>
 
-        <div className="min-w-0 space-y-1.5 xl:w-auto xl:max-w-[12rem]">
-          <Label className="sr-only">Vehículo</Label>
           <Select
             value={vehiclePlateSelectValue}
             onValueChange={(v) => onChange({ ...filters, vehiclePlate: v })}
           >
             <SelectTrigger className={pillSelect}>
-              <Truck className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
-              <SelectValue placeholder="Vehículo: Todos" />
+              <div className="flex w-full items-center gap-2">
+                <Truck className="size-3.5 shrink-0 text-muted-foreground" strokeWidth={1.75} />
+                <span className="min-w-0 truncate text-left text-sm text-muted-foreground">
+                  <SelectValue placeholder="Vehículo: Todos" />
+                </span>
+              </div>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Vehículo: Todos</SelectItem>
@@ -193,8 +189,13 @@ const OrderFilters = ({
             </SelectContent>
           </Select>
         </div>
-      </div>
 
+        {toolbarRight ? (
+          <div className="flex shrink-0 items-center ml-auto">
+            {toolbarRight}
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 };

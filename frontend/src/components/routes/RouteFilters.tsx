@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { MapPin, Search, Truck, User, X } from "lucide-react";
+import { Search, Truck, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -8,7 +8,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import RouteDateRangePicker from "@/components/routes/RouteDateRangePicker";
 
 export interface RouteFilters {
@@ -23,7 +22,6 @@ export interface RouteFilters {
 interface Props {
   filters: RouteFilters;
   onChange: (next: RouteFilters) => void;
-  onReset: () => void;
   vehicles: { id: string; plate: string }[];
   places: string[];
   drivers: string[];
@@ -31,47 +29,38 @@ interface Props {
 }
 
 const pillTrigger =
-  "h-10 w-full min-w-0 shrink rounded-full border-border/100 bg-transparent px-3.5 py-0 shadow-none transition-colors hover:bg-zinc-50 focus:ring-2 focus:ring-ring focus:ring-offset-2 data-[state=open]:bg-zinc-50 sm:w-fit sm:max-w-[min(100%,18rem)] [&>div]:mr-2";
+  "h-9 w-full min-w-0 shrink rounded-lg border bg-zinc-50 px-3 py-0 shadow-none transition-all hover:border-zinc-300 hover:bg-zinc-100 hover:shadow-sm focus:ring-2 focus:ring-ring focus:ring-offset-0 data-[state=open]:bg-zinc-100 sm:w-fit sm:max-w-[min(100%,18rem)] [&>div]:mr-2 [&>svg]:hidden";
 
 const RouteFilters = ({
   filters,
   onChange,
-  onReset,
   vehicles,
   places,
   drivers,
   toolbarRight,
 }: Props) => {
-  const hasActive =
-    filters.search ||
-    filters.vehicle !== "all" ||
-    filters.place !== "all" ||
-    filters.driver !== "all" ||
-    filters.dateFrom ||
-    filters.dateTo;
-
   return (
     <div className="space-y-3">
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:flex-nowrap lg:gap-2">
-        <div className="relative min-w-0 flex-1 lg:max-w-lg">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+      <div className="flex flex-col gap-3 rounded-xl bg-muted/20 py-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="relative min-w-0 flex-1 sm:max-w-xs">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" strokeWidth={1.75} />
           <Input
             placeholder="Buscar por nombre de ruta..."
             value={filters.search}
             onChange={(e) => onChange({ ...filters, search: e.target.value })}
-            className="h-10 text-sm rounded-full border-border/100 bg-transparent pl-9 shadow-none transition-colors hover:bg-zinc-50 focus-visible:ring-offset-0"
+            className="h-9 w-full bg-zinc-50 pl-9 transition-all hover:border-zinc-300 hover:bg-zinc-100 hover:shadow-sm focus-visible:ring-offset-0"
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 sm:justify-end lg:contents">
+        <div className="flex flex-wrap items-center gap-2">
           <Select
             value={filters.vehicle}
             onValueChange={(v) => onChange({ ...filters, vehicle: v })}
           >
             <SelectTrigger className={pillTrigger}>
-              <div className="flex items-center gap-2">
-                <Truck className="size-3.5 shrink-0 text-foreground/80" aria-hidden strokeWidth={1.75} />
-                <span className="min-w-0 truncate text-left text-sm">
+              <div className="flex w-full items-center gap-2">
+                <Truck className="size-3.5 shrink-0 text-muted-foreground" strokeWidth={1.75} />
+                <span className="min-w-0 truncate text-left text-sm text-muted-foreground">
                   <SelectValue placeholder="Vehículos" />
                 </span>
               </div>
@@ -90,9 +79,9 @@ const RouteFilters = ({
             onValueChange={(v) => onChange({ ...filters, driver: v })}
           >
             <SelectTrigger className={pillTrigger}>
-              <div className="flex items-center gap-2">
-                <User className="size-3.5 shrink-0 text-foreground/80" aria-hidden strokeWidth={1.75} />
-                <span className="min-w-0 truncate text-left text-sm font-medium">
+              <div className="flex w-full items-center gap-2">
+                <User className="size-3.5 shrink-0 text-muted-foreground" strokeWidth={1.75} />
+                <span className="min-w-0 truncate text-left text-sm text-muted-foreground">
                   <SelectValue placeholder="Conductor" />
                 </span>
               </div>
@@ -116,24 +105,11 @@ const RouteFilters = ({
         </div>
 
         {toolbarRight ? (
-          <div className="flex w-full shrink-0 items-center justify-end pt-1 sm:ml-auto sm:w-auto sm:pt-0">
+          <div className="flex shrink-0 items-center ml-auto">
             {toolbarRight}
           </div>
         ) : null}
       </div>
-
-      {hasActive && (
-        <div className="flex justify-end">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onReset}
-            className="h-8 text-xs text-muted-foreground hover:text-foreground"
-          >
-            <X className="mr-1 h-3.5 w-3.5" /> Limpiar filtros
-          </Button>
-        </div>
-      )}
     </div>
   );
 };
