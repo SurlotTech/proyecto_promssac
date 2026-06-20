@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight, MoreHorizontal, Plus, X } from "lucide-react";
+import { ChevronDown, ChevronRight, MoreHorizontal, Plus, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PageHeader from "@/components/PageHeader";
 import { Input } from "@/components/ui/input";
@@ -168,7 +168,7 @@ const Estados = () => {
   const saving = createMut.isPending || updateMut.isPending;
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-transparent animate-fade-in">
+    <div className="animate-fade-in">
       <PageHeader
         title="Estados"
         subtitle={
@@ -181,137 +181,139 @@ const Estados = () => {
           </>
         }
         actions={
-          <Button size="sm" className="h-9 gap-1.5 font-medium shadow-glow bg-primary text-primary-foreground hover:bg-primary-hover" onClick={() => openCreate()}>
-            <Plus className="size-4" /> Nuevo estado
+          <Button size="sm" className="h-9 gap-2 bg-primary shadow-glow hover:bg-primary-hover" onClick={() => openCreate()}>
+            <Plus className="size-4 shrink-0" /> Nuevo estado
           </Button>
         }
       />
 
-      <div className="flex-1 overflow-auto p-4 sm:p-6">
-        <div className="space-y-3">
-          <div className="flex flex-wrap items-center gap-3">
+      <div className="space-y-2 p-4 pt-1 sm:p-6 sm:pt-2 lg:p-8 lg:pt-2">
+        <div className="flex flex-col gap-3 rounded-xl bg-muted/20 py-3 sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="relative min-w-0 flex-1 sm:max-w-xs">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" strokeWidth={1.75} />
             <Input
               placeholder="Buscar por nombre"
               value={nombreFilter}
               onChange={(e) => setNombreFilter(e.target.value)}
-              className="h-10 w-full bg-transparent sm:max-w-xs"
+              className="h-9 w-full bg-zinc-50 pl-9 transition-all hover:border-zinc-300 hover:bg-zinc-100 hover:shadow-sm focus-visible:ring-offset-0"
             />
-            <div className="flex items-center bg-transparent p-1 rounded-md border border-border h-10 px-1 shrink-0 transition-colors hover:bg-zinc-50/50">
-              <div className="flex gap-1">
-                <button
-                  type="button"
-                  onClick={() => setEstadoFiltro("activos")}
-                  className={cn(
-                    "rounded-md px-5 py-1.5 text-xs font-semibold transition-all h-8 flex items-center justify-center",
-                    estadoFiltro === "activos"
-                      ? "bg-background text-emerald-600 dark:text-emerald-400 shadow-sm border border-border/40"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  Activos
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEstadoFiltro("inactivos")}
-                  className={cn(
-                    "rounded-md px-5 py-1.5 text-xs font-semibold transition-all h-8 flex items-center justify-center",
-                    estadoFiltro === "inactivos"
-                      ? "bg-background text-destructive shadow-sm border border-border/40"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  Inactivos
-                </button>
-              </div>
-            </div>
           </div>
 
-          {nombreFilter && (
-            <div className="flex justify-end">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setNombreFilter("")}
-                className="h-8 text-xs text-muted-foreground hover:text-foreground"
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1 rounded-lg border bg-zinc-50 p-0.5">
+              <button
+                type="button"
+                onClick={() => setEstadoFiltro("activos")}
+                className={cn(
+                  "flex h-8 items-center gap-1.5 rounded-md px-3 text-xs font-medium transition-all",
+                  estadoFiltro === "activos"
+                    ? "bg-white text-emerald-600 shadow-sm"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
               >
-                <X className="mr-1 h-3.5 w-3.5" /> Limpiar filtros
-              </Button>
+                Activos
+              </button>
+              <button
+                type="button"
+                onClick={() => setEstadoFiltro("inactivos")}
+                className={cn(
+                  "flex h-8 items-center gap-1.5 rounded-md px-3 text-xs font-medium transition-all",
+                  estadoFiltro === "inactivos"
+                    ? "bg-white text-destructive shadow-sm"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                Inactivos
+              </button>
             </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-start">
-            {isLoading ? (
-              <p className="col-span-full p-8 text-center text-muted-foreground">Cargando…</p>
-            ) : isError ? (
-              <p className="col-span-full p-8 text-center text-destructive">Error al cargar.</p>
-            ) : filtered.length === 0 ? (
-              <p className="col-span-full p-8 text-center text-muted-foreground">No hay estados.</p>
-            ) : (
-              filtered.map((padre) => (
-                <Card key={padre.id} className={cn("flex flex-col shadow-sm border-border/60 bg-card/40 backdrop-blur-md overflow-hidden transition-all", !padre.activo && "opacity-50 grayscale-[0.5]")}>
-                  <CardHeader className="flex flex-row items-center justify-between pb-3 pt-4 px-4 border-b border-border/40 space-y-0">
-                    <div className="flex flex-col gap-1.5">
-                      <span className="font-semibold text-base text-foreground leading-none">{padre.nombre}</span>
-                      <div>{estadoBadge(padre.nombre, padre.esPadre)}</div>
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 -mr-2"><MoreHorizontal className="size-4 text-muted-foreground" /></Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => openEdit(padre)}>Editar</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setActivoMut.mutate({ id: padre.id, activo: !padre.activo })}>
-                          {padre.activo ? "Desactivar" : "Activar"}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </CardHeader>
-                  
-                  <CardContent className="flex-1 p-0 flex flex-col bg-background/30">
-                    <div className="flex items-center justify-between px-4 py-2 bg-muted/10 border-b border-border/30">
-                      <button type="button" onClick={() => toggleExpand(padre)} className="flex items-center text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
-                        {expandedCards[padre.id] ? <ChevronDown className="size-3.5 mr-1" /> : <ChevronRight className="size-3.5 mr-1" />}
-                        {expandedCards[padre.id] ? "Ocultar subestados" : "Ver subestados"}
-                      </button>
-                      <Button size="sm" variant="ghost" className="h-7 text-xs px-2 text-primary hover:text-primary/80 hover:bg-primary/10" onClick={() => openCreate(padre.id)}>
-                        <Plus className="size-3 mr-1" /> Nuevo
-                      </Button>
-                    </div>
-                    
-                    {expandedCards[padre.id] && (
-                      <div className="flex-1 p-2 space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
-                        {loadingCards[padre.id] ? (
-                          <p className="p-4 text-xs text-center text-muted-foreground">Cargando subestados…</p>
-                        ) : !hijosCache[padre.id] || hijosCache[padre.id].length === 0 ? (
-                          <div className="p-4 text-center">
-                            <p className="text-xs text-muted-foreground mb-1">Sin subestados.</p>
-                            <button type="button" className="text-xs font-medium text-primary hover:underline" onClick={() => openCreate(padre.id)}>Crear el primero</button>
-                          </div>
-                        ) : (
-                          hijosCache[padre.id].map((hijo) => (
-                            <div key={hijo.id} className={cn("group flex items-center justify-between px-3 py-2 rounded-md hover:bg-muted/40 transition-colors", !hijo.activo && "opacity-50")}>
-                              <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">{hijo.nombre}</span>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"><MoreHorizontal className="size-3.5 text-muted-foreground" /></Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => openEdit(hijo)}>Editar</DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => setActivoMut.mutate({ id: hijo.id, activo: !hijo.activo })}>
-                                    {hijo.activo ? "Desactivar" : "Activar"}
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))
-            )}
           </div>
+        </div>
+
+        {nombreFilter && (
+          <div className="flex justify-end">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setNombreFilter("")}
+              className="h-8 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <X className="mr-1 h-3.5 w-3.5" /> Limpiar filtros
+            </Button>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-start">
+          {isLoading ? (
+            <p className="col-span-full p-8 text-center text-muted-foreground">Cargando…</p>
+          ) : isError ? (
+            <p className="col-span-full p-8 text-center text-destructive">Error al cargar.</p>
+          ) : filtered.length === 0 ? (
+            <p className="col-span-full p-8 text-center text-muted-foreground">No hay estados.</p>
+          ) : (
+            filtered.map((padre) => (
+              <Card key={padre.id} className={cn("flex flex-col shadow-sm border-border/60 bg-card/40 backdrop-blur-md overflow-hidden transition-all", !padre.activo && "opacity-50 grayscale-[0.5]")}>
+                <CardHeader className="flex flex-row items-center justify-between pb-3 pt-4 px-4 border-b border-border/40 space-y-0">
+                  <div className="flex flex-col gap-1.5">
+                    <span className="font-semibold text-base text-foreground leading-none">{padre.nombre}</span>
+                    <div>{estadoBadge(padre.nombre, padre.esPadre)}</div>
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 -mr-2"><MoreHorizontal className="size-4 text-muted-foreground" /></Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => openEdit(padre)}>Editar</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setActivoMut.mutate({ id: padre.id, activo: !padre.activo })}>
+                        {padre.activo ? "Desactivar" : "Activar"}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </CardHeader>
+                
+                <CardContent className="flex-1 p-0 flex flex-col bg-background/30">
+                  <div className="flex items-center justify-between px-4 py-2 bg-muted/10 border-b border-border/30">
+                    <button type="button" onClick={() => toggleExpand(padre)} className="flex items-center text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
+                      {expandedCards[padre.id] ? <ChevronDown className="size-3.5 mr-1" /> : <ChevronRight className="size-3.5 mr-1" />}
+                      {expandedCards[padre.id] ? "Ocultar subestados" : "Ver subestados"}
+                    </button>
+                    <Button size="sm" variant="ghost" className="h-7 text-xs px-2 text-primary hover:text-primary/80 hover:bg-primary/10" onClick={() => openCreate(padre.id)}>
+                      <Plus className="size-3 mr-1" /> Nuevo
+                    </Button>
+                  </div>
+                  
+                  {expandedCards[padre.id] && (
+                    <div className="flex-1 p-2 space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                      {loadingCards[padre.id] ? (
+                        <p className="p-4 text-xs text-center text-muted-foreground">Cargando subestados…</p>
+                      ) : !hijosCache[padre.id] || hijosCache[padre.id].length === 0 ? (
+                        <div className="p-4 text-center">
+                          <p className="text-xs text-muted-foreground mb-1">Sin subestados.</p>
+                          <button type="button" className="text-xs font-medium text-primary hover:underline" onClick={() => openCreate(padre.id)}>Crear el primero</button>
+                        </div>
+                      ) : (
+                        hijosCache[padre.id].map((hijo) => (
+                          <div key={hijo.id} className={cn("group flex items-center justify-between px-3 py-2 rounded-md hover:bg-muted/40 transition-colors", !hijo.activo && "opacity-50")}>
+                            <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">{hijo.nombre}</span>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"><MoreHorizontal className="size-3.5 text-muted-foreground" /></Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => openEdit(hijo)}>Editar</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setActivoMut.mutate({ id: hijo.id, activo: !hijo.activo })}>
+                                  {hijo.activo ? "Desactivar" : "Activar"}
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
       </div>
 

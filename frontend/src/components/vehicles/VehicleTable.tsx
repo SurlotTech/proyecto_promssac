@@ -1,4 +1,4 @@
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, Truck } from "lucide-react";
 import type { Vehicle } from "@/domain/vehicles";
 import StatusBadge from "./StatusBadge";
 import { vehicleTypeIcon } from "./vehicleTypeIcon";
@@ -21,48 +21,48 @@ const VehicleTable = ({ vehicles, onSelect, onDelete }: Props) => {
       <div className="overflow-x-auto scrollbar-thin">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-border bg-surface-muted text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              <th className="px-5 py-3.5">Vehículo</th>
-              <th className="px-5 py-3.5">Tipo</th>
-              <th className="px-5 py-3.5">Conductor</th>
-              <th className="px-5 py-3.5">Estado</th>
-              <th className="px-5 py-3.5">Último servicio</th>
-              <th className="px-5 py-3.5 text-right">Acciones</th>
+            <tr className="border-b border-border bg-surface-muted text-left text-xs font-medium tracking-wider text-muted-foreground/80">
+              <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Vehículo</th>
+              <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Tipo</th>
+              <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Conductor</th>
+              <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Estado</th>
+              <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Último servicio</th>
+              <th className="whitespace-nowrap px-3.5 py-2.5 pr-5 text-right font-medium">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {vehicles.map((v) => {
-              const TypeIcon = vehicleTypeIcon[v.type];
+              const TypeIcon = vehicleTypeIcon[v.type] ?? Truck;
               return (
                 <tr
                   key={v.id}
                   className="group transition-colors hover:bg-surface-muted"
                 >
-                  <td className="px-5 py-4">
+                  <td className="px-3.5 py-2.5">
                     <button
                       onClick={() => onSelect(v)}
-                      className="flex items-center gap-3 text-left transition-all hover:translate-x-0.5 group/plate"
+                      className="flex items-center gap-2 text-left transition-all hover:translate-x-0.5 group/plate"
                     >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary transition-colors group-hover/plate:bg-primary group-hover/plate:text-white">
-                        <TypeIcon className="h-5 w-5" aria-hidden />
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary transition-colors group-hover/plate:bg-primary group-hover/plate:text-white">
+                        <TypeIcon className="size-4" aria-hidden />
                       </div>
                       <div className="min-w-0">
-                        <p className="font-semibold text-foreground transition-colors group-hover/plate:text-primary group-hover/plate:underline underline-offset-4">{v.plate}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="font-medium text-foreground transition-colors group-hover/plate:text-primary group-hover/plate:underline underline-offset-4">{v.plate}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           {v.capacityKg.toLocaleString()} kg cap.
                         </p>
                       </div>
                     </button>
                   </td>
-                  <td className="px-5 py-4 text-foreground">{v.type}</td>
-                  <td className="px-5 py-4 text-foreground">
+                  <td className="px-3.5 py-2.5 text-foreground">{v.type}</td>
+                  <td className="px-3.5 py-2.5 text-foreground">
                     {v.driver ?? <span className="text-muted-foreground">— Sin asignar</span>}
                   </td>
-                  <td className="px-5 py-4">
+                  <td className="px-3.5 py-2.5">
                     <StatusBadge status={v.status} />
                   </td>
-                  <td className="px-5 py-4 text-muted-foreground">{v.lastService}</td>
-                  <td className="px-5 py-4 text-right" onClick={(e) => e.stopPropagation()}>
+                  <td className="px-3.5 py-2.5 text-muted-foreground">{v.lastService}</td>
+                  <td className="px-3.5 py-2.5 text-right" onClick={(e) => e.stopPropagation()}>
                     <DropdownMenu>
                       <DropdownMenuTrigger className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground">
                         <MoreHorizontal className="h-4 w-4" />

@@ -141,8 +141,6 @@ const NewVehicleDialog = ({ open, onOpenChange, onCreated }: Props) => {
                     <SelectContent align="start" className="rounded-xl border-slate-200 shadow-lg">
                       <SelectItem value="Furgón">Furgón</SelectItem>
                       <SelectItem value="Camión">Camión</SelectItem>
-                      <SelectItem value="Moto">Moto</SelectItem>
-                      <SelectItem value="Camioneta">Camioneta</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

@@ -2,8 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Download,
-  LayoutGrid,
-  List,
   Plus,
   Truck,
   Upload,
@@ -15,7 +13,6 @@ import PageHeader from "@/components/PageHeader";
 import StatCard from "@/components/StatCard";
 import VehicleFilters, { Filters } from "@/components/vehicles/VehicleFilters";
 import VehicleTable from "@/components/vehicles/VehicleTable";
-import VehicleCard from "@/components/vehicles/VehicleCard";
 import VehicleEditDialog from "@/components/vehicles/VehicleEditDialog";
 import NewVehicleDialog from "@/components/vehicles/NewVehicleDialog";
 import ConfirmDeleteDialog from "@/components/ui/ConfirmDeleteDialog";
@@ -23,7 +20,7 @@ import type { Vehicle } from "@/domain/vehicles";
 import { useVehiclesQuery } from "@/hooks/useOperationsQueries";
 import { Button } from "@/components/ui/button";
 import RoutesPaginationBar from "@/components/routes/RoutesPaginationBar";
-import { cn, errorMessageFromUnknown } from "@/lib/utils";
+import { errorMessageFromUnknown } from "@/lib/utils";
 import { vehiclesApi } from "@/services/vehicles.api";
 import { toast } from "sonner";
 
@@ -37,7 +34,6 @@ const Vehiculos = () => {
     type: "all",
     status: "all",
   });
-  const [view, setView] = useState<"table" | "grid">("table");
   const [selected, setSelected] = useState<Vehicle | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
@@ -129,7 +125,7 @@ const Vehiculos = () => {
         }
       />
 
-      <div className="space-y-4 p-4 pt-1 sm:p-6 sm:pt-2 lg:p-8 lg:pt-2">
+      <div className="space-y-2 p-4 pt-1 sm:p-6 sm:pt-2 lg:p-8 lg:pt-2">
         {/* KPIs */}
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <StatCard
@@ -167,92 +163,41 @@ const Vehiculos = () => {
           onReset={() =>
             setFilters({ search: "", type: "all", status: "all" })
           }
-          toolbarRight={
-            <div className="hidden shrink-0 items-center gap-1 rounded-xl border border-border/70 bg-white p-1 sm:inline-flex h-10 shadow-sm animate-fade-in">
-              <button
-                type="button"
-                onClick={() => setView("table")}
-                title="Vista de Tabla"
-                className={cn(
-                  "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
-                  view === "table"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-                )}
-              >
-                <List className="size-[18px] shrink-0" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setView("grid")}
-                title="Vista de Tarjetas"
-                className={cn(
-                  "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
-                  view === "grid"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-                )}
-              >
-                <LayoutGrid className="size-[18px] shrink-0" />
-              </button>
-            </div>
-          }
         />
 
-        {/* Contenido */}
-        <>
-          {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/40 backdrop-blur-lg py-16 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-                <Truck className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <p className="mt-4 text-base font-semibold text-foreground">
-                No se encontraron vehículos
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Ajusta los filtros o crea un nuevo vehículo.
-              </p>
-              <Button
-                onClick={() => setCreateOpen(true)}
-                className="mt-4 bg-primary hover:bg-primary-hover"
-              >
-                <Plus className="mr-2 h-4 w-4" /> Nuevo vehículo
-              </Button>
+        {filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/40 backdrop-blur-lg py-16 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+              <Truck className="h-8 w-8 text-muted-foreground" />
             </div>
-          ) : (
-            <>
-              {/* Mobile: siempre tarjetas */}
-              <div className="grid grid-cols-1 gap-3 sm:hidden">
-                {paginated.map((v) => (
-                  <VehicleCard key={v.id} v={v} onClick={() => openDetail(v)} />
-                ))}
-              </div>
+            <p className="mt-4 text-base font-semibold text-foreground">
+              No se encontraron vehículos
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Ajusta los filtros o crea un nuevo vehículo.
+            </p>
+            <Button
+              onClick={() => setCreateOpen(true)}
+              className="mt-4 bg-primary hover:bg-primary-hover"
+            >
+              <Plus className="mr-2 h-4 w-4" /> Nuevo vehículo
+            </Button>
+          </div>
+        ) : (
+          <>
+            <VehicleTable vehicles={paginated} onSelect={openDetail} onDelete={(v) => setVehicleToDelete(v)} />
 
-              {/* Desktop: según vista */}
-              <div className="hidden sm:block">
-                {view === "table" ? (
-                  <VehicleTable vehicles={paginated} onSelect={openDetail} onDelete={(v) => setVehicleToDelete(v)} />
-                ) : (
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    {paginated.map((v) => (
-                      <VehicleCard key={v.id} v={v} onClick={() => openDetail(v)} />
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <RoutesPaginationBar
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalFiltered={totalFiltered}
-                pageSize={pageSize}
-                onPageChange={setPage}
-                label="vehículos"
-                onPageSizeChange={setPageSize}
-              />
-            </>
-          )}
-        </>
+            <RoutesPaginationBar
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalFiltered={totalFiltered}
+              pageSize={pageSize}
+              onPageChange={setPage}
+              label="vehículos"
+              onPageSizeChange={setPageSize}
+            />
+          </>
+        )}
       </div>
 
       <VehicleEditDialog

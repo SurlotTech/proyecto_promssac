@@ -1,10 +1,10 @@
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Truck } from "lucide-react";
 import type { Vehicle } from "@/domain/vehicles";
 import StatusBadge from "./StatusBadge";
 import { vehicleTypeIcon } from "./vehicleTypeIcon";
 
 const VehicleCard = ({ v, onClick }: { v: Vehicle; onClick: () => void }) => {
-  const Icon = vehicleTypeIcon[v.type];
+  const Icon = vehicleTypeIcon[v.type] ?? Truck;
   return (
     <div
       className="group w-full rounded-xl border border-border bg-card/40 backdrop-blur-lg p-4 text-left shadow-sm transition-all"

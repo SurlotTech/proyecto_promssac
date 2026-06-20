@@ -62,7 +62,6 @@ const NuevoUsuarioMovil = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
-  const [photoApproved, setPhotoApproved] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const fotoInputRef = useRef<HTMLInputElement>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -85,7 +84,6 @@ const NuevoUsuarioMovil = () => {
     setUsername(detail.nombreUsuario);
     setPassword("");
     setPhone(detail.telefono ?? "");
-    setPhotoApproved(Boolean(detail.fotoAprobada));
     setPhotoFile(null);
 
     const mode = detail.vehicleMode === "create" ? "create" : "list";
@@ -173,7 +171,11 @@ const NuevoUsuarioMovil = () => {
         return;
       }
       if (!createVehicleName.trim()) {
-        toast.error("Indica el nombre del vehículo.");
+        toast.error("Indica la placa del vehículo.");
+        return;
+      }
+      if (!/^[A-Z0-9]{3}-[A-Z0-9]{3}$/.test(createVehicleName.trim())) {
+        toast.error("La placa debe tener formato válido (ej: BFS-748).");
         return;
       }
     }
@@ -182,7 +184,7 @@ const NuevoUsuarioMovil = () => {
       nombreCompleto: nombre,
       nombreUsuario: usuario,
       telefono: phone.trim() || undefined,
-      fotoAprobada: photoApproved,
+      fotoAprobada: false,
       vehicleMode,
       vehicleId: vehicleMode === "list" ? selectedVehicleId : undefined,
       createVehicleType: vehicleMode === "create" ? createVehicleType : undefined,
@@ -272,11 +274,6 @@ const NuevoUsuarioMovil = () => {
             </div>
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-2 sm:pt-1">
-          <Button variant="outline" size="sm" className="h-9 font-medium" onClick={goToList}>
-            Cancelar
-          </Button>
-        </div>
       </header>
 
       <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
@@ -364,11 +361,11 @@ const NuevoUsuarioMovil = () => {
                   onChange={onFotoChange}
                 />
                 <div className="flex flex-col items-center text-center">
-                  <div className="relative flex size-28 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-border bg-transparent text-muted-foreground">
+                  <div className="relative flex size-36 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-border bg-transparent text-muted-foreground">
                     {displayPhotoSrc ? (
                       <img src={displayPhotoSrc} alt="" className="size-full object-cover" />
                     ) : (
-                      <User className="size-14 opacity-60" aria-hidden />
+                      <User className="size-16 opacity-60" aria-hidden />
                     )}
                   </div>
                   <button
@@ -397,17 +394,6 @@ const NuevoUsuarioMovil = () => {
                     </div>
                   ) : null}
                   <p className="mt-2 text-xs text-muted-foreground">JPEG, PNG, WebP o GIF · máx. 10 MB</p>
-                </div>
-
-                <div className="mt-4 flex flex-wrap items-center justify-center gap-2 border-t border-border/80 pt-4">
-                  <Checkbox
-                    id="nm-photo-ok"
-                    checked={photoApproved}
-                    onCheckedChange={(v) => setPhotoApproved(v === true)}
-                  />
-                  <Label htmlFor="nm-photo-ok" className="cursor-pointer text-sm font-medium text-foreground">
-                    Foto aprobada
-                  </Label>
                 </div>
               </div>
             </div>
@@ -513,16 +499,29 @@ const NuevoUsuarioMovil = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="nm-v-name" className="text-xs font-medium text-muted-foreground">
-                        Nombre del vehículo
+                        Placa del vehículo
                       </Label>
                       <Input
                         id="nm-v-name"
                         disabled={vehicleMode !== "create"}
                         className="h-10 bg-transparent"
-                        placeholder="Ej. Unidad 12"
+                        placeholder="Ej. BFS-748"
                         value={createVehicleName}
-                        onChange={(e) => setCreateVehicleName(e.target.value)}
+                        onChange={(e) => {
+                          const clean = e.target.value.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+                          const limited = clean.slice(0, 6);
+                          setCreateVehicleName(
+                            limited.length > 3
+                              ? `${limited.slice(0, 3)}-${limited.slice(3)}`
+                              : limited
+                          );
+                        }}
                       />
+                      {vehicleMode === "create" && createVehicleName.length > 0 && !/^[A-Z0-9]{3}-[A-Z0-9]{3}$/.test(createVehicleName) && (
+                        <p className="mt-1 text-xs text-destructive">
+                          La placa debe tener exactamente 6 caracteres alfanuméricos (ej: AUF-429)
+                        </p>
+                      )}
                     </div>
                   </div>
                 </label>
@@ -594,7 +593,15 @@ const NuevoUsuarioMovil = () => {
               </div>
             </div>
           </section>
-          <div className="mt-6 flex justify-center">
+          <div className="mt-6 flex items-center justify-center gap-3">
+            <Button
+              variant="outline"
+              size="lg"
+              className="min-w-[140px] rounded-full px-8 border-muted-foreground/30 text-muted-foreground hover:bg-muted hover:text-foreground"
+              onClick={goToList}
+            >
+              Cancelar
+            </Button>
             <Button
               size="lg"
               className="min-w-[200px] rounded-full px-10 shadow-glow"

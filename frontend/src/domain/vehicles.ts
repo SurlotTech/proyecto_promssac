@@ -1,8 +1,8 @@
 export type VehicleStatus = "active" | "in_route" | "maintenance" | "inactive";
-export type VehicleType = "Furgón" | "Camión" | "Moto" | "Camioneta";
+export type VehicleType = "Furgón" | "Camión";
 
 /** Tipos admitidos en combos / alta usuario móvil (alineado con backend). */
-export const VEHICLE_TYPE_OPTIONS: readonly VehicleType[] = ["Furgón", "Camión", "Moto", "Camioneta"];
+export const VEHICLE_TYPE_OPTIONS: readonly VehicleType[] = ["Furgón", "Camión"];
 
 export interface Vehicle {
   id: string;

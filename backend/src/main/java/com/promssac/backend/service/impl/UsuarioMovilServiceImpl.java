@@ -335,11 +335,16 @@ public class UsuarioMovilServiceImpl implements UsuarioMovilService {
             throw new BusinessException("Indica el tipo de vehículo a crear.");
         }
         if (createNombre == null || createNombre.isBlank()) {
-            throw new BusinessException("Indica el nombre del vehículo a crear.");
+            throw new BusinessException("Indica la placa del vehículo a crear.");
+        }
+
+        String placa = createNombre.trim().toUpperCase(Locale.ROOT);
+        if (vehiculoRepository.existsByPlaca(placa)) {
+            throw new BusinessException("Ya existe un vehículo con la placa «" + placa + "».");
         }
 
         VehicleWriteRequest v = new VehicleWriteRequest();
-        v.setPlate(nuevaPlacaUnica());
+        v.setPlate(placa);
         v.setType(createTipo.trim());
         v.setGroup("General");
         v.setDriver(nombreCompletoTrim);

@@ -21,14 +21,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useMobileUsersQuery } from "@/hooks/useOperationsQueries";
 import { mobileUsersApi } from "@/services/mobileUsers.api";
 
@@ -77,7 +69,7 @@ const UsuariosMovil = () => {
   }, [users, searchTerm, estadoFiltro]);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-transparent animate-fade-in">
+    <div className="animate-fade-in">
       <PageHeader
         title="Usuarios móviles"
         subtitle={
@@ -91,7 +83,7 @@ const UsuariosMovil = () => {
           <>
             <Button
               size="sm"
-              className="h-9 bg-primary font-medium text-primary-foreground shadow-glow hover:bg-primary-hover"
+              className="h-9 bg-primary shadow-glow hover:bg-primary-hover"
               onClick={() => navigate("/usuarios/movil/nuevo")}
             >
               Nuevo usuario
@@ -100,125 +92,122 @@ const UsuariosMovil = () => {
         }
       />
 
-      <div className="flex-1 overflow-auto p-4 sm:p-6">
-        <div className="space-y-3">
-          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:flex-nowrap lg:gap-2">
-            <div className="relative min-w-0 flex-1 lg:max-w-lg">
-              <Input
-                placeholder="Buscar por nombre o usuario"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="h-12 rounded-full border-border/100 bg-transparent pl-10 shadow-none transition-colors hover:bg-zinc-50 focus-visible:ring-offset-0"
-              />
-              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            </div>
-
-            <div className="flex items-center bg-transparent p-1 rounded-full border border-border h-12 px-1 shrink-0 transition-colors hover:bg-zinc-50/50">
-              <div className="flex gap-1">
-                <button
-                  type="button"
-                  onClick={() => setEstadoFiltro("activos")}
-                  className={cn(
-                    "rounded-full px-5 py-1.5 text-xs font-semibold transition-all h-8 flex items-center justify-center",
-                    estadoFiltro === "activos"
-                      ? "bg-background text-emerald-600 dark:text-emerald-400 shadow-sm border border-border/40"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  Activos
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEstadoFiltro("inactivos")}
-                  className={cn(
-                    "rounded-full px-5 py-1.5 text-xs font-semibold transition-all h-8 flex items-center justify-center",
-                    estadoFiltro === "inactivos"
-                      ? "bg-background text-destructive shadow-sm border border-border/40"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  Inactivos
-                </button>
-              </div>
-            </div>
+      <div className="space-y-2 p-4 pt-1 sm:p-6 sm:pt-2 lg:p-8 lg:pt-2">
+        <div className="flex flex-col gap-3 rounded-xl bg-muted/20 py-3 sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="relative min-w-0 flex-1 sm:max-w-xs">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" strokeWidth={1.75} />
+            <Input
+              placeholder="Buscar por nombre o usuario"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="h-9 w-full bg-zinc-50 pl-9 transition-all hover:border-zinc-300 hover:bg-zinc-100 hover:shadow-sm focus-visible:ring-offset-0"
+            />
           </div>
 
-          {searchTerm && (
-            <div className="flex justify-end">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSearchTerm("")}
-                className="h-8 text-xs text-muted-foreground hover:text-foreground"
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1 rounded-lg border bg-zinc-50 p-0.5">
+              <button
+                type="button"
+                onClick={() => setEstadoFiltro("activos")}
+                className={cn(
+                  "flex h-8 items-center gap-1.5 rounded-md px-3 text-xs font-medium transition-all",
+                  estadoFiltro === "activos"
+                    ? "bg-white text-emerald-600 shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
               >
-                <X className="mr-1 h-3.5 w-3.5" /> Limpiar filtros
-              </Button>
+                Activos
+              </button>
+              <button
+                type="button"
+                onClick={() => setEstadoFiltro("inactivos")}
+                className={cn(
+                  "flex h-8 items-center gap-1.5 rounded-md px-3 text-xs font-medium transition-all",
+                  estadoFiltro === "inactivos"
+                    ? "bg-white text-destructive shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Inactivos
+              </button>
             </div>
-          )}
+          </div>
         </div>
-        <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm">
+
+        {searchTerm && (
+          <div className="flex justify-end">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSearchTerm("")}
+              className="h-8 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <X className="mr-1 h-3.5 w-3.5" /> Limpiar filtros
+            </Button>
+          </div>
+        )}
+
+        <div className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm">
           {isError ? (
-            <p className="p-6 text-sm text-destructive">No se pudo cargar el listado. Revisa el backend e intenta de nuevo.</p>
+            <p className="p-12 text-center text-sm text-destructive">No se pudo cargar el listado.</p>
           ) : isLoading ? (
-            <p className="p-6 text-sm text-muted-foreground">Cargando usuarios…</p>
+            <p className="p-12 text-center text-sm text-muted-foreground">Cargando usuarios…</p>
           ) : filteredUsers.length === 0 ? (
-            <p className="p-6 text-sm text-muted-foreground">
-              {users.length === 0 ? "No hay usuarios móviles registrados." : "Ningún resultado coincide con la búsqueda o filtros."}
-            </p>
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <p className="text-base font-semibold text-foreground">
+                {users.length === 0 ? "No hay usuarios móviles registrados." : "Ningún resultado coincide con los filtros."}
+              </p>
+            </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader className="bg-muted/40">
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead className="font-semibold text-foreground">Nombre completo</TableHead>
-                    <TableHead className="font-semibold text-foreground">Estado</TableHead>
-                    <TableHead className="font-semibold text-foreground">Nombre de usuario</TableHead>
-                    <TableHead className="font-semibold text-foreground">Tipo de usuario</TableHead>
-                    <TableHead className="font-semibold text-foreground">Tipo de vehículo</TableHead>
-                    <TableHead className="font-semibold text-foreground">Vehículo asignado</TableHead>
-                    <TableHead className="font-semibold text-foreground">Fecha de creación</TableHead>
-                    <TableHead className="font-semibold text-foreground">Días activo</TableHead>
-                    <TableHead className="w-12" />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+            <div className="overflow-x-auto scrollbar-thin">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-surface-muted text-left text-xs font-medium tracking-wider text-muted-foreground/80">
+                    <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Nombre completo</th>
+                    <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Estado</th>
+                    <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Nombre de usuario</th>
+                    <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Tipo de usuario</th>
+                    <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Tipo de vehículo</th>
+                    <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Vehículo asignado</th>
+                    <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Fecha de creación</th>
+                    <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Días activo</th>
+                    <th className="whitespace-nowrap px-3.5 py-2.5 pr-5 text-right font-medium">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
                   {filteredUsers.map((user) => (
-                    <TableRow key={user.id} className="hover:bg-muted/30">
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary">
+                    <tr key={user.id} className="group transition-colors hover:bg-surface-muted">
+                      <td className="px-3.5 py-2.5">
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/usuarios/movil/${user.id}/editar`)}
+                          className="flex items-center gap-2 text-left transition-all hover:translate-x-0.5 group/name"
+                        >
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary transition-colors group-hover/name:bg-primary group-hover/name:text-white">
                             <User className="size-4" />
                           </div>
-                          <button
-                            type="button"
-                            className="cursor-pointer text-left font-medium text-foreground hover:underline"
-                            onClick={() => navigate(`/usuarios/movil/${user.id}/editar`)}
-                          >
+                          <span className="font-medium text-foreground transition-colors group-hover/name:text-primary group-hover/name:underline underline-offset-4">
                             {user.nombreCompleto}
-                          </button>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-foreground">{user.estado}</span>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">{user.nombreUsuario}</TableCell>
-                      <TableCell className="text-foreground">{user.tipoUsuario}</TableCell>
-                      <TableCell className="text-foreground">{user.vehiculoTipo}</TableCell>
-                      <TableCell className="text-foreground">{user.vehiculoAsignado}</TableCell>
-                      <TableCell className="text-muted-foreground">{user.fechaCreacion}</TableCell>
-                      <TableCell className="text-foreground">
+                          </span>
+                        </button>
+                      </td>
+                      <td className="px-3.5 py-2.5 text-foreground">{user.estado}</td>
+                      <td className="px-3.5 py-2.5 text-muted-foreground">{user.nombreUsuario}</td>
+                      <td className="px-3.5 py-2.5 text-foreground">{user.tipoUsuario}</td>
+                      <td className="px-3.5 py-2.5 text-foreground">{user.vehiculoTipo}</td>
+                      <td className="px-3.5 py-2.5 text-foreground">{user.vehiculoAsignado}</td>
+                      <td className="px-3.5 py-2.5 text-muted-foreground">{user.fechaCreacion}</td>
+                      <td className="px-3.5 py-2.5">
                         <span className="inline-flex h-6 min-w-[40px] items-center justify-center rounded-full bg-primary-soft text-sm font-medium text-primary">
                           {user.diasActivo}
                         </span>
-                      </TableCell>
-                      <TableCell>
+                      </td>
+                      <td className="px-3.5 py-2.5 text-right" onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
+                          <DropdownMenuTrigger className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+                            <MoreHorizontal className="h-4 w-4" />
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-44 border-border bg-card/40 backdrop-blur-lg shadow-md">
+                          <DropdownMenuContent align="end" className="w-44">
                             <DropdownMenuItem
                               className="cursor-pointer"
                               onClick={() => navigate(`/usuarios/movil/${user.id}/editar`)}
@@ -254,11 +243,11 @@ const UsuariosMovil = () => {
                             )}
                           </DropdownMenuContent>
                         </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
+                      </td>
+                    </tr>
                   ))}
-                </TableBody>
-              </Table>
+                </tbody>
+              </table>
             </div>
           )}
         </div>

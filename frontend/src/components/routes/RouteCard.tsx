@@ -1,4 +1,4 @@
-import { MapPin, Route as RouteIcon, Truck, User } from "lucide-react";
+import { Calendar, MapPin, Route as RouteIcon, Truck, User } from "lucide-react";
 import RouteActionsMenu from "@/components/routes/RouteActionsMenu";
 import { Route, routePriorityMeta } from "@/domain/routes";
 import RouteStatusBadge from "@/components/routes/RouteStatusBadge";
@@ -6,7 +6,9 @@ import {
   collectionPercent,
   dispatchBarClassByStatus,
   dispatchPercent,
+  formatDateShort,
   formatRouteCurrency,
+  mockFechaFin,
 } from "@/lib/routeMetrics";
 import { cn } from "@/lib/utils";
 interface Props {
@@ -71,6 +73,12 @@ const RouteCard = ({ route: r, onSelect, onEdit, onDelete, vehicleTypeByPlate = 
         <div className="flex min-w-0 items-center gap-2 text-muted-foreground">
           <MapPin className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
           <span className="min-w-0 truncate text-xs sm:text-sm">{r.place}</span>
+        </div>
+        <div className="flex min-w-0 items-center gap-2 text-muted-foreground col-span-2">
+          <Calendar className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+          <span className="min-w-0 truncate text-xs sm:text-sm">
+            {formatDateShort(r.deliveryDate)} → {formatDateShort(mockFechaFin(r.deliveryDate, r.code))}
+          </span>
         </div>
       </div>
 

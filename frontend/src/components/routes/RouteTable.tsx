@@ -6,7 +6,10 @@ import {
   collectionPercent,
   dispatchBarFillClass,
   dispatchPercent,
+  formatDateShort,
   formatRouteCurrency,
+  formatTimeShort,
+  mockFechaFin,
 } from "@/lib/routeMetrics";
 import { cn } from "@/lib/utils";
 
@@ -23,18 +26,19 @@ const RouteTable = ({ routes, onSelect, onEdit, onDelete, vehicleTypeByPlate = {
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm">
       <div className="overflow-x-auto scrollbar-thin">
-        <table className="w-full text-sm">
+        <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-border bg-surface-muted text-left text-xs font-medium tracking-wider text-muted-foreground/80">
-              <th className="px-3.5 py-2.5">Nombre de la ruta</th>
-              <th className="px-3.5 py-2.5">Vehículo</th>
-              <th className="px-3.5 py-2.5">Conductor</th>
-              <th className="px-3.5 py-2.5">Despachos</th>
-              <th className="px-3.5 py-2.5">Fecha entrega</th>
-              <th className="px-3.5 py-2.5">Creado en</th>
-              <th className="px-3.5 py-2.5 text-right">Recaudación</th>
-              <th className="px-3.5 py-2.5 text-center">Estado</th>
-              <th className="px-3.5 py-2.5 text-right">Acciones</th>
+              <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Nombre de la ruta</th>
+              <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Vehículo</th>
+              <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Conductor</th>
+              <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Despachos</th>
+              <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Fecha inicio</th>
+              <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Fecha fin</th>
+              <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Creado en</th>
+              <th className="whitespace-nowrap px-3.5 py-2.5 text-right font-medium">Recaudación</th>
+              <th className="whitespace-nowrap px-3.5 py-2.5 text-center font-medium">Estado</th>
+              <th className="whitespace-nowrap px-3.5 py-2.5 pr-5 text-right font-medium">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -53,8 +57,8 @@ const RouteTable = ({ routes, onSelect, onEdit, onDelete, vehicleTypeByPlate = {
                         onClick={() => onSelect(r)}
                         className="flex items-center gap-2 text-left transition-all hover:translate-x-0.5 group/name"
                       >
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-soft text-primary transition-colors group-hover/name:bg-primary group-hover/name:text-white">
-                          <MapPin className="h-3.5 w-3.5" />
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary transition-colors group-hover/name:bg-primary group-hover/name:text-white">
+                          <MapPin className="size-4" />
                         </div>
                         <div>
                           <p className="font-medium text-foreground truncate max-w-[200px] transition-colors group-hover/name:text-primary group-hover/name:underline underline-offset-4">{r.name}</p>
@@ -91,8 +95,12 @@ const RouteTable = ({ routes, onSelect, onEdit, onDelete, vehicleTypeByPlate = {
                       </div>
                     </div>
                   </td>
-                  <td className="px-3.5 py-2.5 text-foreground">{r.deliveryDate}</td>
-                  <td className="px-3.5 py-2.5 text-muted-foreground text-xs">{r.createdAt}</td>
+                  <td className="px-3.5 py-2.5 text-foreground">{formatDateShort(r.deliveryDate)}</td>
+                  <td className="px-3.5 py-2.5 text-foreground">{formatDateShort(mockFechaFin(r.deliveryDate, r.code))}</td>
+                  <td className="px-3.5 py-2.5">
+                    <p className="text-foreground text-sm">{formatDateShort(r.createdAt)}</p>
+                    <p className="text-[11px] text-muted-foreground/70 leading-tight">{formatTimeShort(r.createdAt)}</p>
+                  </td>
                   <td className="px-3.5 py-2.5 text-right align-top">
                     <p className="font-semibold tabular-nums text-foreground">
                       {formatRouteCurrency(r.currentCollection)}

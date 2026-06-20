@@ -163,7 +163,7 @@ function ClienteTableRow({
             <School className="size-4" strokeWidth={1.75} />
           </div>
           <div className="min-w-0">
-            <span className="block truncate font-semibold text-foreground transition-colors group-hover/client:text-primary group-hover/client:underline underline-offset-4">
+            <span className="block truncate font-medium text-foreground transition-colors group-hover/client:text-primary group-hover/client:underline underline-offset-4">
               {vista.nombreInstitucion}
             </span>
           </div>

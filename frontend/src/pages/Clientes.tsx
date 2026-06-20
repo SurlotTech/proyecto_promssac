@@ -4,10 +4,10 @@ import {
   FileDown,
   FileSpreadsheet,
   Plus,
-  RefreshCw,
   Upload,
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import ClientFormDialog from "@/components/clients/ClientFormDialog";
 import ClienteActivoConfirmDialog from "@/components/clients/ClienteActivoConfirmDialog";
 import ClienteFilters from "@/components/clients/ClienteFilters";
@@ -27,7 +27,7 @@ import { toast } from "sonner";
 const Clientes = () => {
   const qc = useQueryClient();
   const filtros = useClienteListaFiltros();
-  const { data: clientesRaw = [], isLoading, isError, refetch, isFetching } = useClientsQuery(true);
+  const { data: clientesRaw = [], isLoading, isError } = useClientsQuery(true);
 
   const listaFiltrada = useMemo(() => {
     const list = filtros.aplicarFiltroLista(clientesRaw);
@@ -92,101 +92,84 @@ const Clientes = () => {
         title="Clientes"
         subtitle="Carga tus colegios o centros, edítalos o desactiva los que ya no uses."
         actions={
-          <div className="flex w-full flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:justify-end lg:gap-4">
-            <div className="flex flex-wrap items-center justify-center gap-2 rounded-xl border border-border/70 bg-muted/25 p-2 sm:justify-end">
-              <Button
-                variant="outline"
-                size="sm"
-                type="button"
-                className="gap-2"
-                disabled={isFetching}
-                onClick={() => void refetch()}
-              >
-                <RefreshCw className={`size-4 ${isFetching ? "animate-spin" : ""}`} />
-                Actualizar
-              </Button>
-              <Button variant="outline" size="sm" type="button" className="gap-2" onClick={() => descargarPlantillaClientes()} title="Descargar plantilla">
-                <FileSpreadsheet className="size-4" />
-                Plantilla
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                type="button"
-                className="gap-2"
-                disabled={listaFiltrada.length === 0}
-                onClick={exportarListaActual}
-              >
-                <FileDown className="size-4" />
-                Exportar
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                type="button"
-                className="gap-2 border-primary/25 bg-background/80"
-                disabled={imp.importacionEnMarcha}
-                onClick={() => imp.setImportOpen(true)}
-              >
-                <Upload className="size-4" />
-                Importar
-              </Button>
-            </div>
+          <div className="flex items-center gap-2">
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <Button size="sm" className="h-9 w-9 bg-primary shadow-glow hover:bg-primary-hover" onClick={() => descargarPlantillaClientes()}>
+                  <FileSpreadsheet className="size-4 shrink-0" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Plantilla</TooltipContent>
+            </Tooltip>
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <Button size="sm" className="h-9 w-9 bg-primary shadow-glow hover:bg-primary-hover" disabled={listaFiltrada.length === 0} onClick={exportarListaActual}>
+                  <FileDown className="size-4 shrink-0" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Exportar</TooltipContent>
+            </Tooltip>
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <Button size="sm" className="h-9 w-9 bg-primary shadow-glow hover:bg-primary-hover" disabled={imp.importacionEnMarcha} onClick={() => imp.setImportOpen(true)}>
+                  <Upload className="size-4 shrink-0" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Importar</TooltipContent>
+            </Tooltip>
             <Button
               size="sm"
               type="button"
-              className="gap-2 self-center whitespace-nowrap bg-primary px-5 shadow-glow lg:self-auto"
+              className="h-9 gap-2 bg-primary shadow-glow hover:bg-primary-hover"
               onClick={() => {
                 setEditing(null);
                 setFormOpen(true);
               }}
             >
-              <Plus className="size-4" />
-              Nuevo cliente
+              <Plus className="size-4 shrink-0" />
+              <span className="hidden sm:inline">Nuevo cliente</span>
             </Button>
           </div>
         }
       />
 
-      <div className="space-y-4 p-4 pt-1 sm:p-6 sm:pt-2 lg:p-8 lg:pt-2">
+      <div className="space-y-2 p-4 pt-1 sm:p-6 sm:pt-2 lg:p-8 lg:pt-2">
         <ClienteFilters filtros={filtros} />
         
-        <main className="space-y-4">
-          <ClienteTable
-              filasPagina={filasPagina}
-              totalFiltradas={listaFiltrada.length}
-              totalEnCarga={clientesRaw.length}
-              isLoading={isLoading}
-              isError={isError}
-              onEditar={(c) => {
-                void clientsApi
-                  .get(c.id)
-                  .then((fresh) => {
-                    setEditing(fresh);
-                    setFormOpen(true);
-                  })
-                  .catch((e: unknown) =>
-                    toast.error(errorMessageFromUnknown(e, "No se pudo cargar el cliente para editar.")),
-                  );
-              }}
-              onToggleActivo={setPendingActivoToggle}
-            />
+        <ClienteTable
+            filasPagina={filasPagina}
+            totalFiltradas={listaFiltrada.length}
+            totalEnCarga={clientesRaw.length}
+            isLoading={isLoading}
+            isError={isError}
+            onEditar={(c) => {
+              void clientsApi
+                .get(c.id)
+                .then((fresh) => {
+                  setEditing(fresh);
+                  setFormOpen(true);
+                })
+                .catch((e: unknown) =>
+                  toast.error(errorMessageFromUnknown(e, "No se pudo cargar el cliente para editar.")),
+                );
+            }}
+            onToggleActivo={setPendingActivoToggle}
+          />
 
-            {!isLoading && !isError && listaFiltrada.length > 0 && (
-              <RoutesPaginationBar
-                currentPage={paginaSafe}
-                totalPages={totalPaginas}
-                totalFiltered={listaFiltrada.length}
-                pageSize={tamañoPagina}
-                onPageChange={irAPagina}
-                label="clientes"
-                onPageSizeChange={(n) => {
-                  setTamañoPagina(n);
-                  setPagina(1);
-                }}
-              />
-            )}
-          </main>
+          {!isLoading && !isError && listaFiltrada.length > 0 && (
+            <RoutesPaginationBar
+              currentPage={paginaSafe}
+              totalPages={totalPaginas}
+              totalFiltered={listaFiltrada.length}
+              pageSize={tamañoPagina}
+              onPageChange={irAPagina}
+              label="clientes"
+              onPageSizeChange={(n) => {
+                setTamañoPagina(n);
+                setPagina(1);
+              }}
+            />
+          )}
         </div>
 
       <ClientFormDialog

@@ -117,8 +117,6 @@ const VehicleEditDialog = ({ vehicle, open, onOpenChange, onUpdated }: Props) =>
                   <SelectContent>
                     <SelectItem value="Furgón">Furgón</SelectItem>
                     <SelectItem value="Camión">Camión</SelectItem>
-                    <SelectItem value="Moto">Moto</SelectItem>
-                    <SelectItem value="Camioneta">Camioneta</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

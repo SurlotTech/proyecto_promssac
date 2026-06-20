@@ -44,56 +44,56 @@ const OrderTable = ({ orders, selectedIds, onSelectionChange, onView, onEdit }: 
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card/40 backdrop-blur-lg shadow-sm">
       <div className="overflow-x-auto scrollbar-thin">
-        <table className="w-full min-w-[800px] text-sm">
+        <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-border bg-surface-muted text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              <th className="w-10 px-3 py-3.5">
+            <tr className="border-b border-border bg-surface-muted text-left text-xs font-medium tracking-wider text-muted-foreground/80">
+              <th className="w-10 whitespace-nowrap px-3.5 py-2.5 font-medium">
                 <Checkbox
                   checked={allSelected}
                   onCheckedChange={(c) => toggleAll(c === true)}
                   aria-label="Seleccionar todas las filas visibles"
                 />
               </th>
-              <th className="px-3 py-3.5">Orden</th>
-              <th className="px-3 py-3.5">Estado</th>
-              <th className="px-3 py-3.5">Subestado</th>
-              <th className="px-3 py-3.5">Vehículo</th>
-              <th className="px-3 py-3.5">Cliente</th>
-              <th className="px-3 py-3.5">Fecha de ruta</th>
-              <th className="w-12 px-2 py-3.5 text-right" />
+              <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Orden</th>
+              <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Estado</th>
+              <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Subestado</th>
+              <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Vehículo</th>
+              <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Cliente</th>
+              <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Fecha de ruta</th>
+              <th className="whitespace-nowrap px-3.5 py-2.5 pr-5 text-right font-medium" />
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {orders.map((o) => (
               <tr
                 key={o.id}
-                className="group transition-colors hover:bg-surface-muted/80"
+                className="group transition-colors hover:bg-surface-muted"
               >
-                <td className="px-3 py-3.5">
+                <td className="px-3.5 py-2.5">
                   <Checkbox
                     checked={selectedIds.has(o.id)}
                     onCheckedChange={(c) => toggleOne(o.id, c === true)}
                     aria-label={`Seleccionar ${o.id}`}
                   />
                 </td>
-                <td className="px-3 py-3.5">
+                <td className="px-3.5 py-2.5">
                   <button
                     onClick={() => onView?.(o)}
                     className="flex items-center gap-2 text-left transition-all hover:translate-x-0.5 group/id"
                   >
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary transition-colors group-hover/id:bg-primary group-hover/id:text-white">
-                      <Package className="h-3.5 w-3.5" />
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary transition-colors group-hover/id:bg-primary group-hover/id:text-white">
+                      <Package className="size-4" />
                     </div>
-                    <span className="font-semibold text-foreground transition-colors group-hover/id:text-primary group-hover/id:underline underline-offset-4">
+                    <span className="font-medium text-foreground transition-colors group-hover/id:text-primary group-hover/id:underline underline-offset-4">
                       {o.id}
                     </span>
                   </button>
                 </td>
-                <td className="px-3 py-3.5">
+                <td className="px-3.5 py-2.5">
                   <OrderStatusBadge status={o.status} />
                 </td>
-                <td className="px-3 py-3.5 text-foreground">{o.substatus}</td>
-                <td className="px-3 py-3.5">
+                <td className="px-3.5 py-2.5 text-foreground">{o.substatus}</td>
+                <td className="px-3.5 py-2.5">
                   <span
                     className={cn(
                       "font-medium tabular-nums",
@@ -103,7 +103,7 @@ const OrderTable = ({ orders, selectedIds, onSelectionChange, onView, onEdit }: 
                     {o.vehiclePlate}
                   </span>
                 </td>
-                <td className="max-w-[200px] px-3 py-3.5">
+                <td className="max-w-[200px] px-3.5 py-2.5">
                   <p className="truncate font-medium text-foreground" title={o.clientName}>
                     {o.clientName}
                   </p>
@@ -111,12 +111,12 @@ const OrderTable = ({ orders, selectedIds, onSelectionChange, onView, onEdit }: 
                     {o.contactName}
                   </p>
                 </td>
-                <td className="whitespace-nowrap px-3 py-3.5 tabular-nums text-foreground">
+                <td className="whitespace-nowrap px-3.5 py-2.5 tabular-nums text-foreground">
                   {o.routeDate}
                 </td>
-                <td className="px-1 py-2 text-right" onClick={(e) => e.stopPropagation()}>
+                <td className="px-3.5 py-2.5 text-right" onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>
-                    <DropdownMenuTrigger className="rounded-md p-1.5 text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-foreground group-hover:opacity-100 data-[state=open]:opacity-100">
+                    <DropdownMenuTrigger className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
                       <MoreHorizontal className="h-4 w-4" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-40">

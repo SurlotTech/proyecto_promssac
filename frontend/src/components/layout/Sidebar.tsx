@@ -335,38 +335,39 @@ const Sidebar = ({ open, onClose, isCollapsed, onToggleCollapse }: SidebarProps)
           ) : null}
         </nav>
 
-        <div className="p-4">
+        <div className={cn("border-t border-white/10", isCollapsed ? "p-3" : "p-4")}>
           <TooltipProvider delayDuration={0}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
                   onClick={onToggleCollapse}
                   className={cn(
-                    "flex items-center transition-all duration-200 hover:text-white",
+                    "group flex items-center transition-all duration-200",
                     isCollapsed
-                      ? "h-10 w-10 justify-center rounded-xl mx-auto bg-transparent hover:bg-white/10 text-white/70"
-                      : "w-full gap-3 rounded-lg px-3 h-10 text-sidebar-foreground hover:bg-sidebar-accent"
+                      ? "mx-auto h-10 w-10 justify-center rounded-xl bg-white/5 text-white/50 hover:bg-white/15 hover:text-white hover:shadow-sm active:scale-95"
+                      : "w-full gap-3 rounded-xl px-3 h-10 text-white/50 hover:bg-white/10 hover:text-white active:scale-[0.98]"
                   )}
                 >
-                  <div className={cn("flex shrink-0 items-center justify-center rounded", !isCollapsed && "h-6 w-6 border border-white/20")}>
+                  <div className={cn(
+                    "flex shrink-0 items-center justify-center rounded-lg transition-all duration-200",
+                    isCollapsed
+                      ? "h-6 w-6"
+                      : "h-6 w-6 border border-white/20 bg-white/5 group-hover:border-white/40 group-hover:bg-white/10"
+                  )}>
                     {isCollapsed ? (
-                      <ChevronRight className="h-5 w-5" />
+                      <ChevronRight className="h-4 w-4" />
                     ) : (
                       <ChevronLeft className="h-4 w-4" />
                     )}
                   </div>
+                  {!isCollapsed && (
+                    <span className="text-xs font-medium tracking-wide">Contraer</span>
+                  )}
                 </button>
               </TooltipTrigger>
-              {!isCollapsed && (
-                <TooltipContent side="right" className="bg-[#212121] border-zinc-800 text-white">
-                  Contraer navegación
-                </TooltipContent>
-              )}
-              {isCollapsed && (
-                <TooltipContent side="right" className="bg-[#212121] border-zinc-800 text-white">
-                  Expandir navegación
-                </TooltipContent>
-              )}
+              <TooltipContent side="right" className="bg-[#212121] border-zinc-800 text-white text-xs">
+                {isCollapsed ? "Expandir navegación" : "Contraer navegación"}
+              </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>

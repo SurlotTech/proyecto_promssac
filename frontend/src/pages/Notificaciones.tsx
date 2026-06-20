@@ -206,83 +206,81 @@ const Notificaciones = () => {
                 </div>
               ) : (
                 <div className="overflow-x-auto scrollbar-thin">
-                  <table className="w-full text-left text-sm">
-                    <thead>
-                      <tr className="border-b border-border bg-surface-muted text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        <th className="px-5 py-3.5">Código de orden</th>
-                        <th className="px-5 py-3.5">Estado</th>
-                        <th className="px-5 py-3.5">Asunto</th>
-                        <th className="px-5 py-3.5">Contacto</th>
-                        <th className="px-5 py-3.5">Fecha de envío</th>
-                        <th className="px-5 py-3.5 text-right"></th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                      {notificaciones.length === 0 ? (
-                        <tr>
-                          <td colSpan={6} className="px-5 py-12 text-center text-muted-foreground">
-                            No hay notificaciones enviadas aún.
-                          </td>
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-border bg-surface-muted text-left text-xs font-medium tracking-wider text-muted-foreground/80">
+                          <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Código de orden</th>
+                          <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Estado</th>
+                          <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Asunto</th>
+                          <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Contacto</th>
+                          <th className="whitespace-nowrap px-3.5 py-2.5 font-medium">Fecha de envío</th>
+                          <th className="whitespace-nowrap px-3.5 py-2.5 pr-5 text-right font-medium">Acciones</th>
                         </tr>
-                      ) : (
-                        notificaciones.map((notif) => (
-                          <tr
-                            key={notif.id}
-                            className="group transition-colors hover:bg-surface-muted"
-                          >
-                            <td className="px-5 py-4">
-                              {notif.ordenCodigo ? (
-                                <Link
-                                  to={`/ordenes/detalle/${notif.ordenCodigo}`}
-                                  className="font-medium text-foreground hover:text-primary transition-colors underline-offset-4 group-hover:underline"
-                                >
-                                  {notif.ordenCodigo}
-                                </Link>
-                              ) : (
-                                <span className="text-muted-foreground">—</span>
-                              )}
-                            </td>
-                            <td className="px-5 py-4">
-                              <span
-                                className={cn(
-                                  "inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide border",
-                                  notif.estado === "Enviado" &&
-                                    "bg-success/10 text-success border-success/20",
-                                  notif.estado === "Fallido" &&
-                                    "bg-destructive/10 text-destructive border-destructive/20"
-                                )}
-                              >
-                                {notif.estado}
-                              </span>
-                            </td>
-                            <td className="px-5 py-4 text-foreground">
-                              {notif.asunto}
-                            </td>
-                            <td className="px-5 py-4 text-muted-foreground">
-                              {notif.destinatarioEmail}
-                            </td>
-                            <td className="px-5 py-4 text-muted-foreground">
-                              {formatFecha(notif.enviadoEn)}
-                            </td>
-                            <td className="px-5 py-4 text-right">
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-40 border-border bg-card/40 backdrop-blur-lg shadow-md">
-                                  <DropdownMenuItem className="cursor-pointer" onClick={() => handleVerMensaje(notif)}>
-                                    <Mail className="mr-2 h-4 w-4" /> Ver mensaje
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {notificaciones.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="px-3.5 py-12 text-center text-muted-foreground">
+                              No hay notificaciones enviadas aún.
                             </td>
                           </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
+                        ) : (
+                          notificaciones.map((notif) => (
+                            <tr
+                              key={notif.id}
+                              className="group transition-colors hover:bg-surface-muted"
+                            >
+                              <td className="px-3.5 py-2.5">
+                                {notif.ordenCodigo ? (
+                                  <Link
+                                    to={`/ordenes/detalle/${notif.ordenCodigo}`}
+                                    className="font-medium text-foreground hover:text-primary transition-colors underline-offset-4 group-hover:underline"
+                                  >
+                                    {notif.ordenCodigo}
+                                  </Link>
+                                ) : (
+                                  <span className="text-muted-foreground">—</span>
+                                )}
+                              </td>
+                              <td className="px-3.5 py-2.5">
+                                <span
+                                  className={cn(
+                                    "inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide border",
+                                    notif.estado === "Enviado" &&
+                                      "bg-success/10 text-success border-success/20",
+                                    notif.estado === "Fallido" &&
+                                      "bg-destructive/10 text-destructive border-destructive/20"
+                                  )}
+                                >
+                                  {notif.estado}
+                                </span>
+                              </td>
+                              <td className="px-3.5 py-2.5 text-foreground">
+                                {notif.asunto}
+                              </td>
+                              <td className="px-3.5 py-2.5 text-muted-foreground">
+                                {notif.destinatarioEmail}
+                              </td>
+                              <td className="px-3.5 py-2.5 text-muted-foreground">
+                                {formatFecha(notif.enviadoEn)}
+                              </td>
+                              <td className="px-3.5 py-2.5 text-right" onClick={(e) => e.stopPropagation()}>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="w-40">
+                                    <DropdownMenuItem className="cursor-pointer" onClick={() => handleVerMensaje(notif)}>
+                                      <Mail className="mr-2 h-4 w-4" /> Ver mensaje
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
                 </div>
               )}
             </div>
