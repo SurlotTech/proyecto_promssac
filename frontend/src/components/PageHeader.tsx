@@ -14,7 +14,7 @@ const PageHeader = ({ title, subtitle, actions }: PageHeaderProps) => {
           {title}
         </h1>
         {subtitle && (
-          <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
+          <div className="mt-1 text-sm text-muted-foreground">{subtitle}</div>
         )}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}

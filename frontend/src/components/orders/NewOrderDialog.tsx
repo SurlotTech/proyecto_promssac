@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import type { OrderRouteOption } from "@/domain/orders";
 import { cn } from "@/lib/utils";
@@ -37,9 +37,9 @@ const NewOrderDialog = ({ open, onOpenChange, routeOptions }: Props) => {
             <DialogTitle className="text-[1.35rem] font-bold tracking-tight text-slate-900">
               Nueva orden
             </DialogTitle>
-            <p className="mt-1.5 text-sm text-slate-500 font-normal">
+            <DialogDescription className="mt-1.5 text-sm text-slate-500 font-normal">
               Agrega una nueva orden
-            </p>
+            </DialogDescription>
           </header>
 
           <div className="">

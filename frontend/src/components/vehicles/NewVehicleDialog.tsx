@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { X } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -104,9 +104,9 @@ const NewVehicleDialog = ({ open, onOpenChange, onCreated }: Props) => {
             <DialogTitle className="text-[1.35rem] font-bold tracking-tight text-slate-900">
               Nuevo vehículo
             </DialogTitle>
-            <p className="mt-1.5 text-sm text-slate-500 font-normal">
+            <DialogDescription className="mt-1.5 text-sm text-slate-500 font-normal">
               Registra un vehículo en tu flota
-            </p>
+            </DialogDescription>
           </header>
 
           <div className="">

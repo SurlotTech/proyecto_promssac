@@ -83,7 +83,7 @@ const VehicleEditDialog = ({ vehicle, open, onOpenChange, onUpdated }: Props) =>
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="p-0 sm:max-w-lg overflow-hidden border-none shadow-2xl">
+      <DialogContent className="p-0 sm:max-w-lg overflow-hidden border-none shadow-2xl" aria-describedby={undefined}>
         <div className="flex flex-col h-full bg-white">
           <DialogHeader className="p-6 pb-4 border-b border-border bg-white">
             <div className="text-left">

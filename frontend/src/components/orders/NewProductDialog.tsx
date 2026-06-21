@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -112,9 +112,9 @@ export default function NewProductDialog({
           </header>
 
           <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-5">
-            <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
+            <DialogDescription className="mb-3 text-sm leading-relaxed text-muted-foreground">
               Ingresa la información pertinente a tu producto para esta orden ({orderDisplayId}).
-            </p>
+            </DialogDescription>
             <p className="mb-4 text-[11px] leading-snug text-muted-foreground">
               <span className="font-semibold text-primary">*</span> Indica que el campo es obligatorio
             </p>

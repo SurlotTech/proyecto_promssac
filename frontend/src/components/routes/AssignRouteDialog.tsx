@@ -46,7 +46,7 @@ const AssignRouteDialog = ({ open, onOpenChange, routes }: Props) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-6xl gap-0 overflow-hidden bg-background p-0 [&>button.absolute]:hidden">
+      <DialogContent className="max-h-[90vh] max-w-6xl gap-0 overflow-hidden bg-background p-0 [&>button.absolute]:hidden" aria-describedby={undefined}>
         <DialogHeader className="sticky top-0 z-10 flex flex-row flex-wrap items-center justify-between gap-3 border-b border-border bg-muted/30 px-4 py-3 sm:px-6">
           <DialogTitle className="text-lg font-semibold text-foreground sm:text-xl">Asignar rutas</DialogTitle>
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">

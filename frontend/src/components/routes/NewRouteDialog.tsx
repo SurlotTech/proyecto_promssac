@@ -5,6 +5,7 @@ import {
   Dialog, 
   DialogContent, 
   DialogTitle, 
+  DialogDescription, 
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -132,9 +133,9 @@ const NewRouteDialog = ({ open, onOpenChange, vehicles, mobileUsers, editingRout
             <DialogTitle className="text-[1.35rem] font-bold tracking-tight text-slate-900">
               {isEdit ? "Editar Ruta" : "Nueva Ruta"}
             </DialogTitle>
-            <p className="mt-1.5 text-sm text-slate-500 font-normal">
+            <DialogDescription className="mt-1.5 text-sm text-slate-500 font-normal">
               {isEdit ? "Modifica los datos de la ruta" : "Agrega una nueva ruta"}
-            </p>
+            </DialogDescription>
           </header>
 
           <div className="space-y-8">
@@ -162,7 +163,7 @@ const NewRouteDialog = ({ open, onOpenChange, vehicles, mobileUsers, editingRout
                   <Label className="text-[0.8rem] font-medium text-slate-700">
                     Usuario móvil <span className="text-red-500">*</span>
                   </Label>
-                  <Select value={form.mobileUserId || undefined} onValueChange={handleMobileChange}>
+                  <Select value={form.mobileUserId} onValueChange={handleMobileChange}>
                     <SelectTrigger className={`${selectTriggerClass} shadow-none`}>
                       <SelectValue placeholder="Seleccionar" />
                     </SelectTrigger>
@@ -181,7 +182,7 @@ const NewRouteDialog = ({ open, onOpenChange, vehicles, mobileUsers, editingRout
                     Vehículo <span className="text-red-500">*</span>
                   </Label>
                   <Select
-                    value={form.vehicleId || undefined}
+                    value={form.vehicleId}
                     onValueChange={(v) => patchForm({ vehicleId: v })}
                   >
                     <SelectTrigger className={`${selectTriggerClass} shadow-none`}>

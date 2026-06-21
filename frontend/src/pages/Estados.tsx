@@ -318,7 +318,7 @@ const Estados = () => {
       </div>
 
       <Dialog open={createOpen} onOpenChange={(o) => { setCreateOpen(o); if (!o) { setEditRow(null); setForm({ nombre: "", parentId: "" }); } }}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>{editRow ? "Editar" : form.parentId ? "Nuevo subestado" : "Nuevo estado"}</DialogTitle>
           </DialogHeader>

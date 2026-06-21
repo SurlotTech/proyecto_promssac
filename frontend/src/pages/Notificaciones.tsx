@@ -298,7 +298,7 @@ const Notificaciones = () => {
       </div>
 
       <Dialog open={selectedNotif !== null} onOpenChange={(open) => { if (!open) { setSelectedNotif(null); setLoadingDetail(false); } }}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle className="text-lg">{selectedNotif?.asunto}</DialogTitle>
           </DialogHeader>
