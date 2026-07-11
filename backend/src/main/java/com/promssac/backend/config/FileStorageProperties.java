@@ -11,4 +11,5 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "app.storage")
 public class FileStorageProperties {
     private String comentariosUploadDir = "data/comentarios";
+    private String mobileUserPhotoDir = "data/usuarios-movil-fotos";
 }

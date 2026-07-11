@@ -24,6 +24,20 @@ import { errorMessageFromUnknown } from "@/lib/utils";
 import { vehiclesApi } from "@/services/vehicles.api";
 import { toast } from "sonner";
 
+const parseVehicleCreatedAt = (createdAt: string): Date | null => {
+  const match = createdAt.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2}))?$/);
+  if (!match) return null;
+  const [, day, month, year, hour = "00", minute = "00"] = match;
+  const parsed = new Date(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute)
+  );
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
 const Vehiculos = () => {
   const [pageSize, setPageSize] = useState(10);
   const queryClient = useQueryClient();
@@ -67,11 +81,20 @@ const Vehiculos = () => {
   }, [filters]);
 
   const stats = useMemo(() => {
+    const now = new Date();
     const total = allVehicles.length;
     const active = allVehicles.filter((v) => v.status === "active").length;
     const inRoute = allVehicles.filter((v) => v.status === "in_route").length;
     const maintenance = allVehicles.filter((v) => v.status === "maintenance").length;
-    return { total, active, inRoute, maintenance };
+    const createdThisMonth = allVehicles.filter((v) => {
+      const createdAt = parseVehicleCreatedAt(v.createdAt);
+      return (
+        createdAt != null &&
+        createdAt.getFullYear() === now.getFullYear() &&
+        createdAt.getMonth() === now.getMonth()
+      );
+    }).length;
+    return { total, active, inRoute, maintenance, createdThisMonth };
   }, [allVehicles]);
 
   const openDetail = (v: Vehicle) => {
@@ -131,7 +154,7 @@ const Vehiculos = () => {
           <StatCard
             label="Total flota"
             value={stats.total}
-            delta="+2 este mes"
+            delta={`${stats.createdThisMonth > 0 ? "+" : ""}${stats.createdThisMonth} este mes`}
             icon={Truck}
             tone="primary"
           />

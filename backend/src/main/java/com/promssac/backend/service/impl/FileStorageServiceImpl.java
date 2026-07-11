@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
@@ -53,14 +54,32 @@ public class FileStorageServiceImpl implements FileStorageService {
     public StoredFile storeComentario(MultipartFile archivo) {
         String filename = buildFilename(archivo.getOriginalFilename());
         if (minioProperties.isEnabled()) {
-            String objectKey = objectName(filename);
-            storeComentarioInMinio(objectKey, filename, archivo);
+            String objectKey = comentarioObjectName(filename);
+            storeInMinio(objectKey, filename, archivo, "evidencia", "No se pudo guardar el archivo adjunto.");
             return new StoredFile(filename, objectKey, publicComentarioUrl(objectKey));
         } else {
             storeComentarioLocally(filename, archivo);
             String url = "/api/v1/files/comentarios/" + urlEncode(filename);
             return new StoredFile(filename, url, url);
         }
+    }
+
+    @Override
+    public void storeUsuarioMovilPhoto(UUID usuarioMovilId, MultipartFile foto, String contentType) {
+        String objectKey = usuarioMovilPhotoObjectName(usuarioMovilId, contentType);
+        if (minioProperties.isEnabled()) {
+            storeInMinio(objectKey, objectKey, foto, "foto de usuario movil", "No se pudo guardar la foto del usuario.");
+            return;
+        }
+        storeUsuarioMovilPhotoLocally(usuarioMovilId, foto, contentType);
+    }
+
+    @Override
+    public StoredResource getUsuarioMovilPhoto(UUID usuarioMovilId, String contentType) {
+        if (minioProperties.isEnabled()) {
+            return getFromMinio(usuarioMovilPhotoObjectName(usuarioMovilId, contentType), contentType);
+        }
+        return getUsuarioMovilPhotoLocally(usuarioMovilId, contentType);
     }
 
     @Override
@@ -94,7 +113,8 @@ public class FileStorageServiceImpl implements FileStorageService {
         }
     }
 
-    private void storeComentarioInMinio(String objectKey, String filename, MultipartFile archivo) {
+    private void storeInMinio(
+            String objectKey, String filename, MultipartFile archivo, String logLabel, String businessMessage) {
         try {
             MinioClient minioClient = minioClient();
             try (InputStream input = archivo.getInputStream()) {
@@ -106,21 +126,25 @@ public class FileStorageServiceImpl implements FileStorageService {
                         .build());
             }
         } catch (Exception e) {
-            log.error("No se pudo subir evidencia a MinIO bucket={} filename={}",
-                    minioProperties.getBucket(), filename, e);
-            throw new BusinessException("No se pudo guardar el archivo adjunto.");
+            log.error("No se pudo subir {} a MinIO bucket={} filename={}",
+                    logLabel, minioProperties.getBucket(), filename, e);
+            throw new BusinessException(businessMessage);
         }
     }
 
     private StoredResource getComentarioFromMinio(String objectKey) {
+        return getFromMinio(objectKey, MediaType.APPLICATION_OCTET_STREAM_VALUE);
+    }
+
+    private StoredResource getFromMinio(String objectKey, String contentType) {
         try {
             InputStream input = minioClient().getObject(GetObjectArgs.builder()
                     .bucket(minioProperties.getBucket())
                     .object(objectKey)
                     .build());
-            return new StoredResource(new InputStreamResource(input), MediaType.APPLICATION_OCTET_STREAM);
+            return new StoredResource(new InputStreamResource(input), parseMediaType(contentType));
         } catch (Exception e) {
-            log.warn("No se pudo leer evidencia desde MinIO bucket={} objectKey={}",
+            log.warn("No se pudo leer archivo desde MinIO bucket={} objectKey={}",
                     minioProperties.getBucket(), objectKey, e);
             return null;
         }
@@ -133,6 +157,35 @@ public class FileStorageServiceImpl implements FileStorageService {
             archivo.transferTo(dir.resolve(filename));
         } catch (Exception e) {
             throw new BusinessException("No se pudo guardar el archivo adjunto.", e);
+        }
+    }
+
+    private void storeUsuarioMovilPhotoLocally(UUID usuarioMovilId, MultipartFile foto, String contentType) {
+        Path destino = usuarioMovilPhotoPath(usuarioMovilId, contentType);
+        try {
+            Path root = destino.getParent();
+            if (root != null) {
+                Files.createDirectories(root);
+            }
+            try (InputStream input = foto.getInputStream()) {
+                Files.copy(input, destino, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (Exception e) {
+            log.error("No se pudo guardar foto de usuario movil id={}", usuarioMovilId, e);
+            throw new BusinessException("No se pudo guardar la foto del usuario.");
+        }
+    }
+
+    private StoredResource getUsuarioMovilPhotoLocally(UUID usuarioMovilId, String contentType) {
+        try {
+            Path base = Paths.get(fileStorageProperties.getMobileUserPhotoDir()).toAbsolutePath().normalize();
+            Path file = usuarioMovilPhotoPath(usuarioMovilId, contentType);
+            if (!file.startsWith(base) || !Files.exists(file)) {
+                return null;
+            }
+            return new StoredResource(new UrlResource(file.toUri()), parseMediaType(contentType));
+        } catch (Exception e) {
+            return null;
         }
     }
 
@@ -166,7 +219,7 @@ public class FileStorageServiceImpl implements FileStorageService {
         return client != null ? client : minioClient();
     }
 
-    private String objectName(String filename) {
+    private String comentarioObjectName(String filename) {
         String prefix = minioProperties.getComentariosPrefix();
         if (!StringUtils.hasText(prefix)) {
             return filename;
@@ -179,7 +232,7 @@ public class FileStorageServiceImpl implements FileStorageService {
         String legacyPrefix = "/api/v1/files/comentarios/";
         if (cleanReference.startsWith(legacyPrefix)) {
             String encodedFilename = cleanReference.substring(legacyPrefix.length());
-            return objectName(sanitizeFilename(URLDecoder.decode(encodedFilename, StandardCharsets.UTF_8)));
+            return comentarioObjectName(sanitizeFilename(URLDecoder.decode(encodedFilename, StandardCharsets.UTF_8)));
         }
         String prefix = minioProperties.getComentariosPrefix();
         String normalizedPrefix = StringUtils.hasText(prefix) ? prefix.replaceAll("^/+|/+$", "") + "/" : "";
@@ -189,7 +242,25 @@ public class FileStorageServiceImpl implements FileStorageService {
         if (cleanReference.contains("/")) {
             return cleanReference.replaceAll("^/+", "");
         }
-        return objectName(sanitizeFilename(cleanReference));
+        return comentarioObjectName(sanitizeFilename(cleanReference));
+    }
+
+    private String usuarioMovilPhotoObjectName(UUID usuarioMovilId, String contentType) {
+        String filename = usuarioMovilId + extensionForContentType(contentType);
+        String prefix = minioProperties.getUsuariosMovilPrefix();
+        if (!StringUtils.hasText(prefix)) {
+            return filename;
+        }
+        return prefix.replaceAll("^/+|/+$", "") + "/" + filename;
+    }
+
+    private Path usuarioMovilPhotoPath(UUID usuarioMovilId, String contentType) {
+        Path root = Paths.get(fileStorageProperties.getMobileUserPhotoDir()).toAbsolutePath().normalize();
+        Path dest = root.resolve(usuarioMovilId + extensionForContentType(contentType)).normalize();
+        if (!dest.startsWith(root)) {
+            throw new BusinessException("Ruta de almacenamiento inválida.");
+        }
+        return dest;
     }
 
     private static String buildFilename(String originalFilename) {
@@ -206,6 +277,30 @@ public class FileStorageServiceImpl implements FileStorageService {
         return StringUtils.hasText(archivo.getContentType())
                 ? archivo.getContentType()
                 : MediaType.APPLICATION_OCTET_STREAM_VALUE;
+    }
+
+    private static MediaType parseMediaType(String contentType) {
+        if (!StringUtils.hasText(contentType)) {
+            return MediaType.APPLICATION_OCTET_STREAM;
+        }
+        try {
+            return MediaType.parseMediaType(contentType);
+        } catch (Exception ex) {
+            return MediaType.APPLICATION_OCTET_STREAM;
+        }
+    }
+
+    private static String extensionForContentType(String contentType) {
+        String ct = StringUtils.hasText(contentType)
+                ? contentType.split(";")[0].trim().toLowerCase(Locale.ROOT)
+                : "";
+        return switch (ct) {
+            case "image/jpeg" -> ".jpg";
+            case "image/png" -> ".png";
+            case "image/webp" -> ".webp";
+            case "image/gif" -> ".gif";
+            default -> throw new BusinessException("Tipo de imagen no permitido.");
+        };
     }
 
     private static String urlEncode(String filename) {

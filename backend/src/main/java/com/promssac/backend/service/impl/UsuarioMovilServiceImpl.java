@@ -19,14 +19,10 @@ import com.promssac.backend.model.entity.Vehiculo;
 import com.promssac.backend.model.enums.ModoVehiculoUsuarioMovil;
 import com.promssac.backend.repository.UsuarioMovilRepository;
 import com.promssac.backend.repository.VehiculoRepository;
+import com.promssac.backend.service.FileStorageService;
 import com.promssac.backend.service.UsuarioMovilService;
 import com.promssac.backend.service.VehiculoService;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -38,7 +34,6 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,7 +49,6 @@ public class UsuarioMovilServiceImpl implements UsuarioMovilService {
     private static final long MAX_FOTO_BYTES = 10L * 1024 * 1024;
     private static final Set<String> TIPOS_IMAGEN_PERMITIDOS =
             Set.of("image/jpeg", "image/png", "image/webp", "image/gif");
-    private static final List<String> EXTENSIONES_FOTO = List.of(".jpg", ".png", ".webp", ".gif");
     private static final String MSG_USUARIO_DUPLICADO = "Ya existe un usuario móvil con ese nombre de usuario.";
     private static final String MSG_PERMISOS_SERIALIZAR = "No se pudo serializar los permisos.";
     private static final String MSG_PERMISOS_INVALIDOS = "Permisos almacenados inválidos.";
@@ -62,11 +56,9 @@ public class UsuarioMovilServiceImpl implements UsuarioMovilService {
     private final UsuarioMovilRepository usuarioMovilRepository;
     private final VehiculoRepository vehiculoRepository;
     private final VehiculoService vehiculoService;
+    private final FileStorageService fileStorageService;
     private final PasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper;
-
-    @Value("${app.mobile-user-photo-dir:data/usuarios-movil-fotos}")
-    private String mobileUserPhotoDir;
 
     @Override
     @Transactional(readOnly = true)
@@ -194,12 +186,12 @@ public class UsuarioMovilServiceImpl implements UsuarioMovilService {
         if (ct == null || ct.isBlank()) {
             throw new ResourceNotFoundException("Foto de usuario móvil", usuarioMovilId);
         }
-        Path path = resolverRutaFoto(u.getId(), ct);
-        if (!Files.isRegularFile(path)) {
+        FileStorageService.StoredResource storedPhoto = fileStorageService.getUsuarioMovilPhoto(u.getId(), ct);
+        if (storedPhoto == null) {
             throw new ResourceNotFoundException("Foto de usuario móvil", usuarioMovilId);
         }
-        try {
-            return new MobileUserPhotoPayload(Files.readAllBytes(path), ctPrincipal(ct));
+        try (var input = storedPhoto.resource().getInputStream()) {
+            return new MobileUserPhotoPayload(input.readAllBytes(), ctPrincipal(ct));
         } catch (IOException e) {
             log.error("No se pudo leer foto usuarioMovilId={}", usuarioMovilId, e);
             throw new BusinessException("No se pudo leer la foto del usuario.");
@@ -214,7 +206,7 @@ public class UsuarioMovilServiceImpl implements UsuarioMovilService {
 
     private void persistirFotoOpcional(UsuarioMovil usuario, MultipartFile foto) {
         if (foto != null && !foto.isEmpty()) {
-            persistirFotoEnDisco(usuario, foto);
+            persistirFotoEnStorage(usuario, foto);
         }
     }
 
@@ -262,35 +254,11 @@ public class UsuarioMovilServiceImpl implements UsuarioMovilService {
         }
     }
 
-    private void persistirFotoEnDisco(UsuarioMovil usuario, MultipartFile foto) {
-        borrarFotosAnteriores(usuario.getId());
+    private void persistirFotoEnStorage(UsuarioMovil usuario, MultipartFile foto) {
         String ct = ctPrincipal(foto.getContentType());
-        Path destino = resolverRutaFoto(usuario.getId(), ct);
-        try {
-            Path root = destino.getParent();
-            if (root != null) {
-                Files.createDirectories(root);
-            }
-            try (InputStream in = foto.getInputStream()) {
-                Files.copy(in, destino, StandardCopyOption.REPLACE_EXISTING);
-            }
-        } catch (IOException e) {
-            log.error("Error guardando foto usuario id={}", usuario.getId(), e);
-            throw new BusinessException("No se pudo guardar la foto del usuario.");
-        }
+        fileStorageService.storeUsuarioMovilPhoto(usuario.getId(), foto, ct);
         usuario.setFotoContentType(ct);
         usuarioMovilRepository.save(usuario);
-    }
-
-    private Path resolverRutaFoto(UUID id, String contentTypeRaw) {
-        String ct = ctPrincipal(contentTypeRaw);
-        String ext = extensionParaContentType(ct);
-        Path root = Paths.get(mobileUserPhotoDir).toAbsolutePath().normalize();
-        Path dest = root.resolve(id.toString() + ext).normalize();
-        if (!dest.startsWith(root)) {
-            throw new BusinessException("Ruta de almacenamiento inválida.");
-        }
-        return dest;
     }
 
     private static String ctPrincipal(String raw) {
@@ -298,16 +266,6 @@ public class UsuarioMovilServiceImpl implements UsuarioMovilService {
             return "";
         }
         return raw.split(";")[0].trim().toLowerCase(Locale.ROOT);
-    }
-
-    private static String extensionParaContentType(String ct) {
-        return switch (ct) {
-            case "image/jpeg" -> ".jpg";
-            case "image/png" -> ".png";
-            case "image/webp" -> ".webp";
-            case "image/gif" -> ".gif";
-            default -> throw new BusinessException("Tipo de imagen no permitido.");
-        };
     }
 
     private UUID resolverVehiculoId(
@@ -356,24 +314,6 @@ public class UsuarioMovilServiceImpl implements UsuarioMovilService {
 
         VehicleResponse creado = vehiculoService.crear(v);
         return UUID.fromString(creado.getId());
-    }
-
-    private void borrarFotosAnteriores(UUID userId) {
-        Path root = Paths.get(mobileUserPhotoDir).toAbsolutePath().normalize();
-        if (!Files.isDirectory(root)) {
-            return;
-        }
-        String base = userId.toString();
-        for (String ext : EXTENSIONES_FOTO) {
-            try {
-                Path p = root.resolve(base + ext).normalize();
-                if (p.startsWith(root)) {
-                    Files.deleteIfExists(p);
-                }
-            } catch (IOException ex) {
-                log.warn("No se pudo borrar posible foto anterior id={} ext={}", base, ext);
-            }
-        }
     }
 
     private Map<String, Boolean> parsePermisosJson(String json) {

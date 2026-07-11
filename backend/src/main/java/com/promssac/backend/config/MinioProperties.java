@@ -17,5 +17,6 @@ public class MinioProperties {
     private String secretKey;
     private String bucket = "promssac-evidencias";
     private String comentariosPrefix = "comentarios";
+    private String usuariosMovilPrefix = "usuarios-movil";
     private int presignGetMinutes = 120;
 }
