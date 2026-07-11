@@ -1,0 +1,10 @@
+target/
+data/
+.DS_Store
+*.log
+*.tmp
+
+.env
+*.env
+*.env.*
+application-local.properties

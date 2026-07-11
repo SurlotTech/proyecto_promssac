@@ -4,6 +4,8 @@ import com.promssac.backend.model.dto.request.UbicacionUsuarioRequest;
 import com.promssac.backend.model.dto.response.UbicacionUsuarioResponse;
 import com.promssac.backend.model.entity.UbicacionUsuario;
 import com.promssac.backend.repository.UbicacionUsuarioRepository;
+import com.promssac.backend.security.CurrentUserProvider;
+import com.promssac.backend.security.WebUserDetails;
 import com.promssac.backend.service.GpsService;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -22,15 +24,20 @@ public class GpsServiceImpl implements GpsService {
     private static final long TTL_SECONDS = 120;
 
     private final UbicacionUsuarioRepository repository;
+    private final CurrentUserProvider currentUserProvider;
 
     @Override
     @Transactional
-    public void registrarUbicacion(String userId, String userName, UbicacionUsuarioRequest request) {
-        UbicacionUsuario u = repository.findByUserId(userId)
+    public void registrarUbicacion(UbicacionUsuarioRequest request) {
+        currentUserProvider.currentUser().ifPresent(user -> guardarUbicacion(user, request));
+    }
+
+    private void guardarUbicacion(WebUserDetails user, UbicacionUsuarioRequest request) {
+        UbicacionUsuario u = repository.findByUserId(user.getId())
                 .orElseGet(() -> {
                     UbicacionUsuario n = new UbicacionUsuario();
-                    n.setUserId(userId);
-                    n.setUserName(userName);
+                    n.setUserId(user.getId());
+                    n.setUserName(user.getNombreCompleto());
                     return n;
                 });
         u.setLat(request.getLat());
@@ -54,7 +61,9 @@ public class GpsServiceImpl implements GpsService {
 
     @Override
     @Transactional
-    public void eliminarUbicacion(String userId) {
-        repository.deleteByUserId(userId);
+    public void eliminarUbicacionActual() {
+        currentUserProvider.currentUser()
+                .map(WebUserDetails::getId)
+                .ifPresent(repository::deleteByUserId);
     }
 }

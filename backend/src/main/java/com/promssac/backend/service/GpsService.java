@@ -6,9 +6,9 @@ import java.util.List;
 
 public interface GpsService {
 
-    void registrarUbicacion(String userId, String userName, UbicacionUsuarioRequest request);
+    void registrarUbicacion(UbicacionUsuarioRequest request);
 
     List<UbicacionUsuarioResponse> listarUbicaciones();
 
-    void eliminarUbicacion(String userId);
+    void eliminarUbicacionActual();
 }
