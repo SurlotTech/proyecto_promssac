@@ -10,3 +10,4 @@ backend/data/
 .env
 *.env
 *.env.*
+backend/src/main/resources/application.properties
