@@ -15,7 +15,7 @@ public class ResendProperties {
     private String fromName = "SUTRACK";
 
     /** Email verificado del remitente en Resend. */
-    private String fromEmail = "info@promssac.com";
+    private String fromEmail = "rutas.promssac@gmail.com";
 
     /** URL base del frontend para generar links de seguimiento en los correos. */
     private String frontendUrl = "http://localhost:5173";

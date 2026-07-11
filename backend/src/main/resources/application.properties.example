@@ -54,5 +54,5 @@ promssac.factiliza.api-token=${PROMSSAC_FACTILIZA_TOKEN:}
 
 promssac.resend.api-token=${RESEND_API_TOKEN:}
 promssac.resend.from-name=${RESEND_FROM_NAME:SUTRACK}
-promssac.resend.from-email=${RESEND_FROM_EMAIL:info@promssac.com}
+promssac.resend.from-email=${RESEND_FROM_EMAIL:rutas.promssac@gmail.com}
 promssac.resend.frontend-url=${FRONTEND_URL:http://localhost:3030}
