@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 
 interface Props {
   devices: FleetDevice[];
+  totalDevices: number;
+  isLoading?: boolean;
   search: string;
   onSearchChange: (v: string) => void;
   selectedId: string | null;
@@ -15,6 +17,8 @@ interface Props {
 
 const FleetDeviceList = ({
   devices,
+  totalDevices,
+  isLoading = false,
   search,
   onSearchChange,
   selectedId,
@@ -31,6 +35,9 @@ const FleetDeviceList = ({
         <p className="text-xs text-muted-foreground">
           <span className="font-semibold text-foreground">{devices.length}</span> dispositivo
           {devices.length !== 1 ? "s" : ""} en vista
+          {totalDevices !== devices.length && (
+            <span> de <span className="font-semibold text-foreground">{totalDevices}</span> recibidos</span>
+          )}
         </p>
       </div>
 
@@ -40,7 +47,13 @@ const FleetDeviceList = ({
         className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain scrollbar-thin"
       >
         <div className="p-3 pb-4 sm:p-4 sm:pb-5">
-          {devices.length === 0 ? (
+          {isLoading ? (
+            <div className="space-y-2 rounded-xl border border-border/70 bg-white p-3 shadow-sm">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-20 animate-pulse rounded-lg bg-surface-muted" />
+              ))}
+            </div>
+          ) : devices.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-surface-muted/40 px-4 py-12 text-center">
               <div className="flex size-12 items-center justify-center rounded-full bg-primary-soft text-primary">
                 <Radio className="size-6 opacity-80" />

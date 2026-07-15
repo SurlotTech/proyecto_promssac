@@ -1,7 +1,7 @@
 package com.promssac.backend;
 
-import com.promssac.backend.config.EntelOnWayProperties;
 import com.promssac.backend.config.FactilizaProperties;
+import com.promssac.backend.config.OrbitecProperties;
 import com.promssac.backend.config.ResendProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -11,7 +11,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication
-@EnableConfigurationProperties({EntelOnWayProperties.class, FactilizaProperties.class, ResendProperties.class})
+@EnableConfigurationProperties({
+    OrbitecProperties.class,
+    FactilizaProperties.class,
+    ResendProperties.class
+})
 @EnableJpaRepositories(basePackages = "com.promssac.backend.repository")
 @EnableTransactionManagement
 @EnableScheduling

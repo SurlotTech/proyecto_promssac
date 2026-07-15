@@ -1,6 +1,6 @@
 package com.promssac.backend.service.impl;
 
-import com.promssac.backend.integration.entel.EntelOnWayClient;
+import com.promssac.backend.integration.orbitec.OrbitecClient;
 import com.promssac.backend.model.dto.response.FleetDeviceResponse;
 import com.promssac.backend.model.entity.DispositivoFlota;
 import com.promssac.backend.repository.DispositivoFlotaRepository;
@@ -17,18 +17,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class FlotaServiceImpl implements FlotaService {
 
     private final DispositivoFlotaRepository dispositivoFlotaRepository;
-    private final EntelOnWayClient entelOnWayClient;
+    private final OrbitecClient orbitecClient;
 
     @Override
     @Transactional(readOnly = true)
     public List<FleetDeviceResponse> listarDispositivos() {
-        return entelOnWayClient.tryFetchDevicesByGroup().orElseGet(this::dispositivosDesdeBaseLocal);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<FleetDeviceResponse> listarDispositivosOnWayMapa() {
-        return entelOnWayClient.tryFetchDevicesForMap().orElseGet(this::listarDispositivos);
+        return orbitecClient.tryFetchDevicesLite()
+                .orElseGet(this::dispositivosDesdeBaseLocal);
     }
 
     private List<FleetDeviceResponse> dispositivosDesdeBaseLocal() {

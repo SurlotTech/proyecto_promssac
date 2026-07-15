@@ -20,7 +20,7 @@ public class FleetDeviceResponse {
     private Integer batteryPct;
     private Integer signalBars;
     private String lastSeenIso;
-    /** Nombre corto / alias OnWay (puede ser null si no viene o está vacío). */
+    /** Nombre corto / alias del proveedor GPS (puede ser null si no viene o está vacío). */
     private String alias;
     /** Velocidad instantánea en km/h (puede ser null si no aplica). */
     private Double speedKmh;

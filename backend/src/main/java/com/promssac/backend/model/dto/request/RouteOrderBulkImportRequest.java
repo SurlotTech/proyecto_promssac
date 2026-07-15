@@ -28,7 +28,7 @@ public class RouteOrderBulkImportRequest {
         @NotBlank @Size(max = 32)
         private String codigoRuta;
 
-        @NotBlank @Size(max = 200)
+        @Size(max = 200)
         private String nombreRuta;
 
         @NotBlank @Size(max = 32)
@@ -51,10 +51,10 @@ public class RouteOrderBulkImportRequest {
         @Size(max = 80)
         private String contactoIdentificador;
 
-        @NotBlank @Size(max = 120)
+        @Size(max = 120)
         private String contactoNombre;
 
-        @NotBlank @Size(max = 40)
+        @Size(max = 40)
         private String contactoTelefono;
 
         @Size(max = 120)
@@ -63,7 +63,7 @@ public class RouteOrderBulkImportRequest {
         @Size(max = 30)
         private String nivel;
 
-        @NotBlank @Size(max = 2000)
+        @Size(max = 2000)
         private String direccion;
 
         @Size(max = 2000)

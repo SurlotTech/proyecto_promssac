@@ -10,7 +10,7 @@ export interface FleetDevice {
   batteryPct: number;
   signalBars: number;
   lastSeenIso: string;
-  /** Alias / nombre corto (OnWay); null si no aplica. */
+  /** Alias / nombre corto del proveedor GPS; null si no aplica. */
   alias: string | null;
   /** km/h instantáneo; 0 si no se conoce. */
   speedKmh: number;

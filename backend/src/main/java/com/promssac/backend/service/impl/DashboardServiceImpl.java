@@ -5,8 +5,11 @@ import com.promssac.backend.repository.DashboardRepository;
 import com.promssac.backend.service.DashboardService;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -39,6 +42,7 @@ public class DashboardServiceImpl implements DashboardService {
                 .performanceMensual(obtenerPerformance(hoy))
                 .flotaStatus(obtenerFlotaStatus(flotaTotal, rutasActivas))
                 .topConductores(obtenerTopConductores(hoy))
+                .actividadReciente(obtenerActividadReciente())
                 .build();
     }
 
@@ -97,5 +101,32 @@ public class DashboardServiceImpl implements DashboardService {
                 .name((String) row[0])
                 .entregas(((Number) row[1]).intValue())
                 .build()).toList();
+    }
+
+    private List<DashboardResponse.ActividadReciente> obtenerActividadReciente() {
+        return repo.actividadReciente().stream()
+                .map(row -> DashboardResponse.ActividadReciente.builder()
+                        .tipo((String) row[0])
+                        .titulo((String) row[1])
+                        .detalle((String) row[2])
+                        .fechaIso(toIso(row[3]))
+                        .build())
+                .toList();
+    }
+
+    private String toIso(Object value) {
+        if (value instanceof Instant instant) {
+            return instant.toString();
+        }
+        if (value instanceof Date date) {
+            return date.toInstant().toString();
+        }
+        if (value instanceof OffsetDateTime offsetDateTime) {
+            return offsetDateTime.toInstant().toString();
+        }
+        if (value instanceof LocalDateTime localDateTime) {
+            return localDateTime.atZone(LIMA).toInstant().toString();
+        }
+        return String.valueOf(value);
     }
 }

@@ -31,7 +31,6 @@ import ConfiguracionAlertas from "./pages/ConfiguracionAlertas.tsx";
 import Notificaciones from "./pages/Notificaciones.tsx";
 import NuevaNotificacion from "./pages/NuevaNotificacion.tsx";
 import EnlaceCliente from "./pages/EnlaceCliente.tsx";
-import DetalleImportacion from "./pages/DetalleImportacion.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 import Login from "./pages/Login.tsx";
@@ -80,7 +79,6 @@ const AppRoutes = () => (
       <Route path="/flota" element={<PermissionRoute permission="g3"><Flota /></PermissionRoute>} />
       <Route path="/clientes" element={<PermissionRoute permission="g4"><Clientes /></PermissionRoute>} />
       <Route path="/clientes/detalle/:id" element={<PermissionRoute permission="g4"><DetalleCliente /></PermissionRoute>} />
-      <Route path="/importar/:id" element={<DetalleImportacion />} />
       <Route path="/usuarios" element={<Navigate to="/usuarios/web" replace />} />
       <Route path="/usuarios/web" element={<PermissionRoute permission="a2"><UsuariosWeb /></PermissionRoute>} />
       <Route path="/usuarios/web/nuevo" element={<PermissionRoute permission="a2-1"><NuevoUsuarioWeb /></PermissionRoute>} />

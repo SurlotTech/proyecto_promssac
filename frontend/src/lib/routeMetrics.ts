@@ -49,11 +49,6 @@ export function dispatchBarFillClass(pct: number): string {
   return "bg-info";
 }
 
-/**
- * Mock de fecha fin para una ruta.
- * Mientras no se guarde en BD, suma 1-5 días a la fecha de inicio
- * basándose en el código de la ruta para que sea determinista.
- */
 function parseDate(raw: string): [number, number, number] | null {
   if (!raw) return null;
   const datePart = raw.split(" ")[0].split("T")[0];
@@ -70,19 +65,6 @@ function parseDate(raw: string): [number, number, number] | null {
   const [y, m, d] = parts.map(Number);
   if (isNaN(y) || isNaN(m) || isNaN(d)) return null;
   return [y, m, d];
-}
-
-export function mockFechaFin(deliveryDate: string, code: string): string {
-  const parsed = parseDate(deliveryDate);
-  if (!parsed) return "—";
-  const [y, m, d] = parsed;
-  const base = new Date(y, m - 1, d);
-  const dias = (code.length + d + m) % 5 + 1;
-  base.setDate(base.getDate() + dias);
-  const yy = base.getFullYear();
-  const mm = String(base.getMonth() + 1).padStart(2, "0");
-  const dd = String(base.getDate()).padStart(2, "0");
-  return `${yy}-${mm}-${dd}`;
 }
 
 /** Barra en tarjetas: tono alineado al estado operativo */

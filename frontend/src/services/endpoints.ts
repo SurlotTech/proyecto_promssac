@@ -12,7 +12,6 @@ export const endpoints = {
   ordersAlertas: `${V1}/ordenes/alertas`,
   clients: `${V1}/clientes`,
   fleetDevices: `${V1}/flota/dispositivos`,
-  fleetDevicesOnWayMap: `${V1}/flota/dispositivos/onway-map`,
   /** Proxy RENIEC/SUNAT vía backend (token en servidor). */
   consultas: `${V1}/consultas`,
   /** Nominatim vía backend (User-Agent correcto). */

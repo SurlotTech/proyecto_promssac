@@ -35,11 +35,21 @@ public class DashboardResponse {
     }
 
     private List<ConductorRanking> topConductores;
+    private List<ActividadReciente> actividadReciente;
 
     @Getter
     @Builder
     public static class ConductorRanking {
         private String name;
         private int entregas;
+    }
+
+    @Getter
+    @Builder
+    public static class ActividadReciente {
+        private String tipo;
+        private String titulo;
+        private String detalle;
+        private String fechaIso;
     }
 }

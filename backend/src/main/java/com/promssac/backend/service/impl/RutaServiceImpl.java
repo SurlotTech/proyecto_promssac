@@ -200,7 +200,7 @@ public class RutaServiceImpl implements RutaService {
             Ruta ruta = rutasCreadas.computeIfAbsent(codigoRuta, codigo -> {
                 Ruta r = new Ruta();
                 r.setCodigo(codigo);
-                r.setNombre(item.getNombreRuta().trim());
+                r.setNombre(StringUtils.hasText(item.getNombreRuta()) ? item.getNombreRuta().trim() : codigo);
                 r.setVehiculo(vehiculo);
                 r.setFechaEntrega(fechaInicio);
                 if (item.getFechaFin() != null && !item.getFechaFin().isBlank()) {
@@ -255,9 +255,9 @@ public class RutaServiceImpl implements RutaService {
             orden.setEstado(item.getEstadoOrden() != null && !item.getEstadoOrden().isBlank()
                     ? item.getEstadoOrden().trim() : "pending");
             orden.setSubestado(trimToNull(item.getSubestado()));
-            orden.setContactoNombre(item.getContactoNombre().trim());
+            orden.setContactoNombre(trimToNull(item.getContactoNombre()));
             orden.setContactoIdentificador(trimToNull(item.getContactoIdentificador()));
-            orden.setContactoTelefono(item.getContactoTelefono().trim());
+            orden.setContactoTelefono(trimToNull(item.getContactoTelefono()));
             orden.setContactoEmail(trimToNull(item.getContactoEmail()));
             orden.setDireccionLinea(trimToNull(item.getDireccion()));
             orden.setDireccionNormalizada(trimToNull(item.getDireccionNormalizada()));
@@ -428,6 +428,7 @@ public class RutaServiceImpl implements RutaService {
         dto.setDispatchCompleted(r.getDespachosCompletados());
         dto.setDispatchTotal(r.getDespachosTotales());
         dto.setDeliveryDate(r.getFechaEntrega().format(UI_DATE));
+        dto.setEndDate(r.getFechaFin() == null ? "" : r.getFechaFin().format(UI_DATE));
         dto.setCreatedAt(r.getCreadoEn().atZone(LIMA).format(UI_DATETIME));
         dto.setPriority(r.getPrioridad());
         dto.setCurrentCollection(r.getCobroActual());

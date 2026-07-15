@@ -37,12 +37,14 @@ interface Props {
 const FleetFilters = ({ filters, onChange, onApply, variant = "bar" }: Props) => {
   const isSidebar = variant === "sidebar";
   const pill = isSidebar ? pillTriggerSidebar : pillTriggerBar;
-  const hasActive = filters.status !== "all";
+  const hasActive = filters.status !== "all" || Boolean(filters.dateIso);
+
+  const clearFilters = () => onChange({ dateIso: "", status: "all" });
 
   const dateBlock = (
     <div className={cn("min-w-0 space-y-1.5", !isSidebar && "lg:max-w-[min(100%,17rem)]")}>
       <Label htmlFor="fleet-date" className="text-xs font-medium text-muted-foreground">
-        Fecha
+        Fecha opcional
       </Label>
       <input
         id="fleet-date"
@@ -90,6 +92,17 @@ const FleetFilters = ({ filters, onChange, onApply, variant = "bar" }: Props) =>
             {dateBlock}
             {statusBlock}
           </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-9 gap-2 justify-self-start rounded-xl"
+            disabled={!hasActive}
+            onClick={clearFilters}
+          >
+            <RotateCcw className="size-4" />
+            Limpiar filtros
+          </Button>
         </div>
       </div>
     );
@@ -100,6 +113,16 @@ const FleetFilters = ({ filters, onChange, onApply, variant = "bar" }: Props) =>
       <div className="grid min-w-0 flex-1 gap-2 sm:gap-3 sm:grid-cols-2 lg:grid-cols-[auto_auto_1fr] lg:items-end xl:grid-cols-none xl:flex xl:flex-wrap xl:gap-x-4">
         {dateBlock}
         {statusBlock}
+        <Button
+          type="button"
+          variant="outline"
+          className={cn(filterBtnClass, "justify-self-start")}
+          disabled={!hasActive}
+          onClick={clearFilters}
+        >
+          <RotateCcw className="size-4" />
+          Limpiar
+        </Button>
       </div>
     </div>
   );

@@ -33,6 +33,7 @@ export interface Route {
   dispatchCompleted: number;
   dispatchTotal: number;
   deliveryDate: string;
+  endDate?: string;
   createdAt: string;
   priority: RoutePriority;
   currentCollection: number;

@@ -5,11 +5,10 @@ import FleetFilters, { type FleetViewFilters } from "@/components/flota/FleetFil
 import FleetMap from "@/components/flota/FleetMap";
 import type { FleetDevice } from "@/domain/fleet";
 import { useFleetDevicesQuery } from "@/hooks/useOperationsQueries";
-import { fleetCalendarTodayKey } from "@/lib/fleetDateTime";
 import { instantIsoToLocalDateKey } from "@/lib/localCalendarDate";
 
 function deviceMatchesFilters(d: FleetDevice, f: FleetViewFilters): boolean {
-  if (instantIsoToLocalDateKey(d.lastSeenIso) !== f.dateIso) return false;
+  if (f.dateIso && instantIsoToLocalDateKey(d.lastSeenIso) !== f.dateIso) return false;
   if (f.status !== "all" && d.status !== f.status) return false;
   return true;
 }
@@ -17,7 +16,7 @@ function deviceMatchesFilters(d: FleetDevice, f: FleetViewFilters): boolean {
 const Flota = () => {
   const { data: fleetDevices = [], isLoading, isError, error } = useFleetDevicesQuery();
   const [filters, setFilters] = useState<FleetViewFilters>(() => ({
-    dateIso: fleetCalendarTodayKey(),
+    dateIso: "",
     status: "all",
   }));
   const [search, setSearch] = useState("");
@@ -35,15 +34,6 @@ const Flota = () => {
       );
     });
   }, [filters, search, fleetDevices]);
-
-  useEffect(() => {
-    if (fleetDevices.length === 0 || filtered.length > 0) return;
-    const keys = fleetDevices.map((d) => instantIsoToLocalDateKey(d.lastSeenIso));
-    const latest = keys.reduce((a, b) => (a > b ? a : b));
-    if (latest !== filters.dateIso) {
-      setFilters((f) => ({ ...f, dateIso: latest }));
-    }
-  }, [fleetDevices, filtered.length, filters.dateIso]);
 
   useEffect(() => {
     if (selectedId && !filtered.some((d) => d.id === selectedId)) {
@@ -76,6 +66,8 @@ const Flota = () => {
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <FleetDeviceList
               devices={filtered}
+              totalDevices={fleetDevices.length}
+              isLoading={isLoading}
               search={search}
               onSearchChange={setSearch}
               selectedId={selectedId}
@@ -93,6 +85,13 @@ const Flota = () => {
               if (selectedId === id) setSelectedId(null);
             }}
           />
+          {isLoading && (
+            <div className="absolute inset-0 z-[500] flex items-center justify-center bg-background/55 backdrop-blur-[2px]">
+              <div className="rounded-md border border-border bg-white px-4 py-3 text-sm font-medium text-foreground shadow-sm">
+                Cargando flota...
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

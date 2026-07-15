@@ -9,7 +9,6 @@ import {
   formatDateShort,
   formatRouteCurrency,
   formatTimeShort,
-  mockFechaFin,
 } from "@/lib/routeMetrics";
 import { cn } from "@/lib/utils";
 
@@ -96,7 +95,7 @@ const RouteTable = ({ routes, onSelect, onEdit, onDelete, vehicleTypeByPlate = {
                     </div>
                   </td>
                   <td className="px-3.5 py-2.5 text-foreground">{formatDateShort(r.deliveryDate)}</td>
-                  <td className="px-3.5 py-2.5 text-foreground">{formatDateShort(mockFechaFin(r.deliveryDate, r.code))}</td>
+                  <td className="px-3.5 py-2.5 text-foreground">{r.endDate ? formatDateShort(r.endDate) : "—"}</td>
                   <td className="px-3.5 py-2.5">
                     <p className="text-foreground text-sm">{formatDateShort(r.createdAt)}</p>
                     <p className="text-[11px] text-muted-foreground/70 leading-tight">{formatTimeShort(r.createdAt)}</p>

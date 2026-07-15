@@ -45,9 +45,13 @@ app.rate-limit.login-burst=3
 app.rate-limit.api-burst=30
 app.error.include-details=false
 
-promssac.entel.onway.enabled=${PROMSSAC_ENTEL_ONWAY_ENABLED:false}
-promssac.entel.onway.base-url=${PROMSSAC_ENTEL_ONWAY_BASE_URL:https://onway.entel.pe}
-promssac.entel.onway.cookie=${PROMSSAC_ENTEL_ONWAY_COOKIE:}
+promssac.orbitec.enabled=${PROMSSAC_ORBITEC_ENABLED:true}
+promssac.orbitec.api-base-url=${PROMSSAC_ORBITEC_API_BASE_URL:https://ep.web.orbitrack.orbitec.pe}
+promssac.orbitec.username=${PROMSSAC_ORBITEC_USERNAME:}
+promssac.orbitec.password=${PROMSSAC_ORBITEC_PASSWORD:}
+promssac.orbitec.company-slug-name=${PROMSSAC_ORBITEC_COMPANY_SLUG_NAME:dydproyectos}
+promssac.orbitec.devices-limit=${PROMSSAC_ORBITEC_DEVICES_LIMIT:5000}
+promssac.orbitec.devices-ordering=${PROMSSAC_ORBITEC_DEVICES_ORDERING:name}
 
 promssac.factiliza.base-url=${PROMSSAC_FACTILIZA_BASE_URL:https://api.factiliza.com/v1}
 promssac.factiliza.api-token=${PROMSSAC_FACTILIZA_TOKEN:}

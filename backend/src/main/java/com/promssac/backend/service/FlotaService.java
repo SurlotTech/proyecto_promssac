@@ -6,6 +6,4 @@ import java.util.List;
 public interface FlotaService {
 
     List<FleetDeviceResponse> listarDispositivos();
-
-    List<FleetDeviceResponse> listarDispositivosOnWayMapa();
 }

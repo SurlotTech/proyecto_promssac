@@ -129,9 +129,8 @@ export function useOrderProductLinesQuery(numeroOrden: string | undefined) {
 }
 
 export function useFleetDevicesQuery() {
-  const mapMode = import.meta.env.VITE_FLEET_ONWAY_MAP === "true";
   return useQuery({
-    queryKey: ["flota-dispositivos", mapMode ? "map" : "detail"],
+    queryKey: ["flota-dispositivos"],
     queryFn: () => fleetApi.listDevices(),
   });
 }
@@ -175,4 +174,3 @@ export function useEstadosHijosPorClaveQuery(nombrePadre: string | undefined) {
     enabled: Boolean(nombrePadre),
   });
 }
-

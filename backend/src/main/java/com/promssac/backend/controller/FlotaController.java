@@ -20,9 +20,4 @@ public class FlotaController {
     public ResponseEntity<List<FleetDeviceResponse>> dispositivos() {
         return ResponseEntity.ok(flotaService.listarDispositivos());
     }
-
-    @GetMapping("/dispositivos/onway-map")
-    public ResponseEntity<List<FleetDeviceResponse>> dispositivosOnWayMapa() {
-        return ResponseEntity.ok(flotaService.listarDispositivosOnWayMapa());
-    }
 }

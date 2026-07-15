@@ -2,12 +2,6 @@ import type { FleetDevice, FleetDeviceStatus } from "@/domain/fleet";
 import { apiGet } from "@/lib/api";
 import { endpoints } from "./endpoints";
 
-function devicesUrl(): string {
-  return import.meta.env.VITE_FLEET_ONWAY_MAP === "true"
-    ? endpoints.fleetDevicesOnWayMap
-    : endpoints.fleetDevices;
-}
-
 const STATUSES: FleetDeviceStatus[] = ["in_route", "stopped", "offline"];
 
 function isFleetStatus(s: string): s is FleetDeviceStatus {
@@ -41,6 +35,6 @@ function normalizeFleetDevice(raw: unknown): FleetDevice {
 
 export const fleetApi = {
   listDevices(): Promise<FleetDevice[]> {
-    return apiGet<unknown[]>(devicesUrl()).then((rows) => rows.map(normalizeFleetDevice));
+    return apiGet<unknown[]>(endpoints.fleetDevices).then((rows) => rows.map(normalizeFleetDevice));
   },
 };

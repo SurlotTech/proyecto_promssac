@@ -115,6 +115,19 @@ function normalize(h: string): string {
   return h.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s]/g, "").trim();
 }
 
+function excelDateSerialToIso(serial: number): string {
+  const utc = Math.round((serial - 25569) * 86400 * 1000);
+  return new Date(utc).toISOString().slice(0, 10);
+}
+
+function cellToString(value: string | number | null, field: keyof RouteOrderImportRow): string {
+  if (value == null) return "";
+  if (typeof value === "number" && ["fechaInicio", "fechaFin", "fechaEntrega"].includes(field)) {
+    return excelDateSerialToIso(value);
+  }
+  return String(value).trim();
+}
+
 const SAMPLE_DATA: (string | number)[][] = [
   [
     "RUTA-001", "Ruta Lima Centro", "ABC-123", "2026-05-30", "2026-05-31",
@@ -222,7 +235,7 @@ export function parseRouteOrderImport(buffer: ArrayBuffer): RouteOrderImportPrev
     for (let c = 0; c < fieldIndex.length; c++) {
       const field = fieldIndex[c];
       if (!field) continue;
-      row[field] = dataRow[c] != null ? String(dataRow[c]).trim() : "";
+      row[field] = cellToString(dataRow[c], field);
     }
     rows.push(row);
   }

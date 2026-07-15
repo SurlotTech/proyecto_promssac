@@ -8,7 +8,6 @@ import {
   dispatchPercent,
   formatDateShort,
   formatRouteCurrency,
-  mockFechaFin,
 } from "@/lib/routeMetrics";
 import { cn } from "@/lib/utils";
 interface Props {
@@ -77,7 +76,7 @@ const RouteCard = ({ route: r, onSelect, onEdit, onDelete, vehicleTypeByPlate = 
         <div className="flex min-w-0 items-center gap-2 text-muted-foreground col-span-2">
           <Calendar className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
           <span className="min-w-0 truncate text-xs sm:text-sm">
-            {formatDateShort(r.deliveryDate)} → {formatDateShort(mockFechaFin(r.deliveryDate, r.code))}
+            {formatDateShort(r.deliveryDate)} → {r.endDate ? formatDateShort(r.endDate) : "—"}
           </span>
         </div>
       </div>

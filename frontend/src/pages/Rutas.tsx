@@ -171,13 +171,19 @@ const Rutas = () => {
   };
 
   const missing = (val: string) => !val || val.trim() === "";
+  const hasBlockingError = (r: RouteOrderImportRow) =>
+    missing(r.codigoRuta) || missing(r.placaVehiculo) || missing(r.fechaInicio) || missing(r.numeroOrden);
+  const hasAllowedIncomplete = (r: RouteOrderImportRow) =>
+    missing(r.nombreRuta) || missing(r.contactoNombre) || missing(r.contactoTelefono) || missing(r.direccion);
 
   const hasAnyError = useMemo(() => {
     if (!importPreview) return true;
-    return importPreview.rows.some((r) =>
-      missing(r.codigoRuta) || missing(r.placaVehiculo) || missing(r.numeroOrden)
-      || missing(r.contactoNombre) || missing(r.contactoTelefono) || missing(r.direccion)
-    );
+    return importPreview.rows.some(hasBlockingError);
+  }, [importPreview]);
+
+  const hasAnyAllowedIncomplete = useMemo(() => {
+    if (!importPreview) return false;
+    return importPreview.rows.some(hasAllowedIncomplete);
   }, [importPreview]);
 
   const handleImport = async () => {
@@ -515,16 +521,21 @@ const Rutas = () => {
               {groupedByRoute.map(([rutaCodigo, ruta]) => {
                 const orders = groupedByOrder(ruta.rows);
                 const rutaHasErrors = missing(rutaCodigo) || missing(ruta.placa) || missing(ruta.fechaInicio);
+                const rutaHasAllowedIncomplete = ruta.rows.some(hasAllowedIncomplete);
                 return (
-                  <div key={rutaCodigo} className={cn("rounded-xl border bg-card/60 backdrop-blur-sm overflow-hidden min-w-[600px]", rutaHasErrors && "border-destructive/40")}>
+                  <div key={rutaCodigo} className={cn(
+                    "rounded-xl border bg-card/60 backdrop-blur-sm overflow-hidden min-w-[600px]",
+                    rutaHasErrors && "border-destructive/40",
+                    !rutaHasErrors && rutaHasAllowedIncomplete && "border-amber-300/70"
+                  )}>
                     <div className="flex items-center gap-4 px-5 py-3 bg-muted/30 border-b border-border">
                       <div className="flex items-center gap-2.5">
-                        <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg", rutaHasErrors ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary")}>
+                        <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg", rutaHasErrors ? "bg-destructive/10 text-destructive" : rutaHasAllowedIncomplete ? "bg-amber-100 text-amber-700" : "bg-primary/10 text-primary")}>
                           <Route className="size-4" />
                         </div>
                         <div>
                           <p className={cn("font-semibold text-sm", missing(rutaCodigo) && "text-destructive")}>{rutaCodigo || "Sin código"}</p>
-                          <p className="text-xs text-muted-foreground">{ruta.nombre || "—"}</p>
+                          <p className={cn("text-xs text-muted-foreground", missing(ruta.nombre) && "text-amber-700")}>{ruta.nombre || "Sin nombre, se usará el código"}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-4 ml-auto text-xs">
@@ -544,11 +555,12 @@ const Rutas = () => {
                         const hasCustomFields = first.director || first.telefonoDirector || first.paquetes || first.actaEntrega || first.guiaRemision || first.guiaTransportista || first.correoElectronico || first.contactoEmail || first.modoEntrega || first.fechaEntrega;
                         const hasExtra = hasProducts || hasCustomFields;
                         const isExpanded = expandedOrders.has(orderNum);
-                        const orderHasErrors = missing(first.numeroOrden) || missing(first.contactoNombre) || missing(first.contactoTelefono) || missing(first.direccion);
+                        const orderHasErrors = hasBlockingError(first);
+                        const orderHasAllowedIncomplete = hasAllowedIncomplete(first);
                         const productos = orderRows.filter((r) => r.productoCodigo || r.productoNombre);
 
                         return (
-                          <div key={orderNum} className={cn(orderHasErrors && "bg-destructive/5")}>
+                          <div key={orderNum} className={cn(orderHasErrors && "bg-destructive/5", !orderHasErrors && orderHasAllowedIncomplete && "bg-amber-50/60")}>
                             <div
                               className="flex items-center gap-3 px-5 py-3 cursor-pointer hover:bg-muted/30 transition-colors"
                               onClick={() => toggleOrder(orderNum)}
@@ -564,15 +576,15 @@ const Rutas = () => {
                                   <Badge variant="outline" className="text-[10px] font-normal">{first.estadoOrden || "—"}</Badge>
                                   {first.subestado && <span className="text-[10px] text-muted-foreground">{first.subestado}</span>}
                                 </div>
-                                <div className={cn("flex items-center gap-1.5 text-sm min-w-0", missing(first.contactoNombre) && "text-destructive")}>
+                                <div className={cn("flex items-center gap-1.5 text-sm min-w-0", missing(first.contactoNombre) && "text-amber-700")}>
                                   <User className="size-3 shrink-0" />
                                   <span className="truncate">{first.contactoNombre || "—"}</span>
                                 </div>
-                                <div className={cn("flex items-center gap-1.5 text-xs text-muted-foreground", missing(first.contactoTelefono) && "text-destructive")}>
+                                <div className={cn("flex items-center gap-1.5 text-xs text-muted-foreground", missing(first.contactoTelefono) && "text-amber-700")}>
                                   <Phone className="size-3 shrink-0" />
                                   <span>{first.contactoTelefono || "—"}</span>
                                 </div>
-                                <div className={cn("flex items-center gap-1.5 text-xs text-muted-foreground min-w-0", missing(first.direccion) && "text-destructive")}>
+                                <div className={cn("flex items-center gap-1.5 text-xs text-muted-foreground min-w-0", missing(first.direccion) && "text-amber-700")}>
                                   <MapPin className="size-3 shrink-0" />
                                   <span className="truncate">{first.direccion || "—"}</span>
                                 </div>
@@ -636,8 +648,14 @@ const Rutas = () => {
           )}
           <div className="flex items-center justify-between pt-4 border-t border-border shrink-0">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <AlertTriangle className="size-3.5 text-destructive" />
-              Campos en <span className="text-destructive font-medium">rojo</span> están incompletos
+              <AlertTriangle className={cn("size-3.5", hasAnyError ? "text-destructive" : "text-amber-600")} />
+              {hasAnyError ? (
+                <span>Campos en <span className="text-destructive font-medium">rojo</span> son obligatorios para importar</span>
+              ) : hasAnyAllowedIncomplete ? (
+                <span>Campos en <span className="text-amber-700 font-medium">ámbar</span> están incompletos, pero se importarán igual</span>
+              ) : (
+                <span>Archivo listo para importar</span>
+              )}
             </div>
             <div className="flex gap-3">
                 <Button variant="outline" size="sm" onClick={() => { setImportOpen(false); setImportPreview(null); setExpandedOrders(new Set()); setImportWarnings([]); }}>

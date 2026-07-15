@@ -51,5 +51,40 @@ public interface DashboardRepository extends JpaRepository<Orden, UUID> {
             limit 5
             """, nativeQuery = true)
     List<Object[]> topConductoresEntre(@Param("ini") Instant ini, @Param("end") Instant end);
-}
 
+    @Query(value = """
+            select tipo, titulo, detalle, fecha
+            from (
+                select 'orden' as tipo,
+                       concat('Orden ', o.numero_orden, ' registrada') as titulo,
+                       concat_ws(' · ', nullif(o.estado, ''), nullif(o.contacto_nombre, ''), nullif(o.vehiculo_placa, '')) as detalle,
+                       o.creado_en as fecha
+                from ordenes o
+                where o.creado_en is not null
+
+                union all
+
+                select 'orden' as tipo,
+                       concat('Orden ', o.numero_orden, ' actualizada') as titulo,
+                       concat_ws(' · ', nullif(o.estado, ''), nullif(o.contacto_nombre, ''), nullif(o.vehiculo_placa, '')) as detalle,
+                       o.actualizado_en as fecha
+                from ordenes o
+                where o.actualizado_en is not null
+                  and o.creado_en is not null
+                  and o.actualizado_en > o.creado_en + interval '1 minute'
+
+                union all
+
+                select 'ruta' as tipo,
+                       concat('Ruta ', r.codigo, ' registrada') as titulo,
+                       concat_ws(' · ', nullif(r.nombre, ''), nullif(r.estado, ''), nullif(v.placa, '')) as detalle,
+                       r.creado_en as fecha
+                from rutas r
+                left join vehiculos v on v.id = r.vehiculo_id
+                where r.creado_en is not null
+            ) actividad
+            order by fecha desc
+            limit 5
+            """, nativeQuery = true)
+    List<Object[]> actividadReciente();
+}

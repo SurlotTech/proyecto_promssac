@@ -6,9 +6,7 @@ import {
   DollarSign,
   TrendingUp,
   TrendingDown,
-  CheckCircle2,
   Clock,
-  AlertTriangle,
   Loader2,
 } from "lucide-react";
 import {
@@ -36,14 +34,37 @@ interface DashboardData {
   performanceMensual: { mes: string; entregas: number; pendientes: number }[];
   flotaStatus: { name: string; value: number; color: string }[];
   topConductores: { name: string; entregas: number }[];
+  actividadReciente: { tipo: "orden" | "ruta" | string; titulo: string; detalle: string; fechaIso: string }[];
 }
 
-const recentActivity = [
-  { icon: CheckCircle2, color: "text-success", title: "Ruta R-1042 completada", subtitle: "BKT760 · Giomar", time: "hace 5 min" },
-  { icon: AlertTriangle, color: "text-warning", title: "Alerta: exceso de velocidad", subtitle: "BHT734 · Av. Javier Prado", time: "hace 12 min" },
-  { icon: Package, color: "text-info", title: "12 nuevas órdenes asignadas", subtitle: "Lote LT-882", time: "hace 28 min" },
-  { icon: Clock, color: "text-muted-foreground", title: "Mantenimiento programado", subtitle: "CAG900 · 08/05", time: "hace 1 h" },
-];
+function formatRelativeTime(fechaIso: string): string {
+  const fecha = new Date(fechaIso).getTime();
+  if (!Number.isFinite(fecha)) return "";
+
+  const diffMs = Date.now() - fecha;
+  const absMs = Math.abs(diffMs);
+  const minutes = Math.round(absMs / 60000);
+  if (minutes < 1) return "ahora";
+  if (minutes < 60) return `hace ${minutes} min`;
+
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `hace ${hours} h`;
+
+  const days = Math.round(hours / 24);
+  if (days < 7) return `hace ${days} d`;
+
+  return new Intl.DateTimeFormat("es-PE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+  }).format(fecha);
+}
+
+function activityIcon(tipo: string) {
+  if (tipo === "ruta") return { icon: RouteIcon, color: "text-info" };
+  if (tipo === "orden") return { icon: Package, color: "text-primary" };
+  return { icon: Clock, color: "text-muted-foreground" };
+}
 
 function KpiCard({
   label,
@@ -121,7 +142,8 @@ const Dashboard = () => {
 
   const performance = data?.performanceMensual ?? defaultPerformance;
   const fleetStatus = data?.flotaStatus ?? [];
-  const topDrivers = (data?.topConductores ?? []).map((d) => ({ name: d.name, entregas: d.entregas, score: 0 }));
+  const topDrivers = data?.topConductores ?? [];
+  const recentActivity = data?.actividadReciente ?? [];
   const totalFleet = fleetStatus.reduce((a, b) => a + b.value, 0);
 
   if (loading) {
@@ -255,27 +277,30 @@ const Dashboard = () => {
 
         <div className="rounded-2xl border border-border bg-card/40 backdrop-blur-lg p-5 shadow-card">
           <h3 className="font-display font-semibold text-lg">Actividad reciente</h3>
-          <p className="text-xs text-muted-foreground">Eventos en tiempo real</p>
+          <p className="text-xs text-muted-foreground">Eventos registrados en el sistema</p>
           <ul className="mt-4 space-y-3">
-            {recentActivity.map((a, i) => {
-              const Icon = a.icon;
-              return (
-                <li key={i} className="flex gap-3 rounded-lg p-2 -mx-2 hover:bg-secondary/60 transition-colors">
-                  <div className={`h-9 w-9 rounded-lg bg-secondary flex items-center justify-center ${a.color}`}>
-                    <Icon className="h-4 w-4" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-foreground truncate">{a.title}</div>
-                    <div className="text-xs text-muted-foreground truncate">{a.subtitle}</div>
-                  </div>
-                  <div className="text-[11px] text-muted-foreground whitespace-nowrap">{a.time}</div>
-                </li>
-              );
-            })}
+            {recentActivity.length === 0 ? (
+              <li className="rounded-lg border border-dashed border-border bg-surface-muted/40 px-3 py-8 text-center text-sm text-muted-foreground">
+                Sin actividad reciente registrada
+              </li>
+            ) : (
+              recentActivity.map((a, i) => {
+                const { icon: Icon, color } = activityIcon(a.tipo);
+                return (
+                  <li key={`${a.tipo}-${a.fechaIso}-${i}`} className="flex gap-3 rounded-lg p-2 -mx-2 hover:bg-secondary/60 transition-colors">
+                    <div className={`h-9 w-9 rounded-lg bg-secondary flex items-center justify-center ${color}`}>
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-foreground truncate">{a.titulo}</div>
+                      <div className="text-xs text-muted-foreground truncate">{a.detalle || "Sin detalle"}</div>
+                    </div>
+                    <div className="text-[11px] text-muted-foreground whitespace-nowrap">{formatRelativeTime(a.fechaIso)}</div>
+                  </li>
+                );
+              })
+            )}
           </ul>
-          <button className="mt-4 w-full rounded-lg border border-border py-2 text-sm font-medium text-foreground hover:bg-secondary transition-colors">
-            Ver todas las alertas
-          </button>
         </div>
       </div>
     </div>
