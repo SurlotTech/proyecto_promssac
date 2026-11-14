@@ -1,0 +1,29 @@
+name: promssac-storage
+services:
+  minio:
+    build: .
+    image: promssac-minio:2025-10-15
+    restart: unless-stopped
+    env_file: /etc/promssac/minio.env
+    environment:
+      GOMEMLIMIT: 512MiB
+      GOMAXPROCS: "2"
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    volumes:
+      - minio_data:/data
+    mem_limit: 768m
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:9000/minio/health/live"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+volumes:
+  minio_data:

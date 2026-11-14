@@ -4,6 +4,7 @@ import { CheckCircle2, Circle, Package, MapPin, Phone, Mail, User, FileText, Cal
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { apiUrl } from "@/lib/api-url";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import {
@@ -70,7 +71,7 @@ const EnlaceCliente = () => {
   useEffect(() => {
     if (!orderId) return;
     setLoading(true);
-    fetch(`/api/v1/enlace/${encodeURIComponent(orderId)}`)
+    fetch(apiUrl(`/api/v1/enlace/${encodeURIComponent(orderId)}`))
       .then((res) => {
         if (!res.ok) throw new Error("No encontrado");
         return res.json();

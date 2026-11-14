@@ -1,4 +1,4 @@
-const base = import.meta.env.VITE_API_BASE ?? "";
+import { apiUrl } from "./api-url";
 
 function authHeaders(): Record<string, string> {
   const token = localStorage.getItem("auth_token");
@@ -45,13 +45,13 @@ async function parseError(res: Response): Promise<string> {
 }
 
 export async function apiGet<T>(path: string): Promise<T> {
-  const res = await fetch(`${base}${path}`, { headers: authHeaders() });
+  const res = await fetch(apiUrl(path), { headers: authHeaders() });
   await checkResponse(res);
   return res.json() as Promise<T>;
 }
 
 export async function apiPost<T, B>(path: string, body: B): Promise<T> {
-  const res = await fetch(`${base}${path}`, {
+  const res = await fetch(apiUrl(path), {
     method: "POST",
     headers: jsonHeaders(),
     body: JSON.stringify(body),
@@ -61,7 +61,7 @@ export async function apiPost<T, B>(path: string, body: B): Promise<T> {
 }
 
 export async function apiPostNoContent<B>(path: string, body: B): Promise<void> {
-  const res = await fetch(`${base}${path}`, {
+  const res = await fetch(apiUrl(path), {
     method: "POST",
     headers: jsonHeaders(),
     body: JSON.stringify(body),
@@ -80,7 +80,7 @@ async function fetchMultipartJson<T>(
   const fd = new FormData();
   fd.append(jsonPartName, new Blob([JSON.stringify(jsonBody)], { type: "application/json" }));
   if (file) fd.append(filePartName, file);
-  const res = await fetch(`${base}${path}`, { method, body: fd, headers: authHeaders() });
+  const res = await fetch(apiUrl(path), { method, body: fd, headers: authHeaders() });
   await checkResponse(res);
   return res.json() as Promise<T>;
 }
@@ -106,7 +106,7 @@ export function apiPutMultipartJson<T>(
 }
 
 export async function apiPut<T, B>(path: string, body: B): Promise<T> {
-  const res = await fetch(`${base}${path}`, {
+  const res = await fetch(apiUrl(path), {
     method: "PUT",
     headers: jsonHeaders(),
     body: JSON.stringify(body),
@@ -116,7 +116,7 @@ export async function apiPut<T, B>(path: string, body: B): Promise<T> {
 }
 
 export async function apiPatch<B>(path: string, body: B): Promise<void> {
-  const res = await fetch(`${base}${path}`, {
+  const res = await fetch(apiUrl(path), {
     method: "PATCH",
     headers: jsonHeaders(),
     body: JSON.stringify(body),
@@ -125,7 +125,7 @@ export async function apiPatch<B>(path: string, body: B): Promise<void> {
 }
 
 export async function apiPatchJson<T, B>(path: string, body: B): Promise<T> {
-  const res = await fetch(`${base}${path}`, {
+  const res = await fetch(apiUrl(path), {
     method: "PATCH",
     headers: jsonHeaders(),
     body: JSON.stringify(body),
@@ -135,12 +135,12 @@ export async function apiPatchJson<T, B>(path: string, body: B): Promise<T> {
 }
 
 export async function apiDelete(path: string): Promise<void> {
-  const res = await fetch(`${base}${path}`, { method: "DELETE", headers: authHeaders() });
+  const res = await fetch(apiUrl(path), { method: "DELETE", headers: authHeaders() });
   await checkResponse(res);
 }
 
 export async function apiPostFormData<T>(path: string, formData: FormData): Promise<T> {
-  const res = await fetch(`${base}${path}`, {
+  const res = await fetch(apiUrl(path), {
     method: "POST",
     headers: authHeaders(),
     body: formData,

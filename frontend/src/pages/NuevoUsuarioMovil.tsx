@@ -33,7 +33,7 @@ import { FullscreenLoadOrError } from "@/components/common/FullscreenLoadOrError
 import { mobileUsersApi } from "@/services/mobileUsers.api";
 import { useMobileUserDetailQuery, useVehicleOptionsQuery } from "@/hooks/useOperationsQueries";
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? "";
+import { apiUrl } from "@/lib/api-url";
 
 const FormSectionTitle = ({ children }: { children: ReactNode }) => (
   <div className="border-b border-border bg-muted/35 px-5 py-3">
@@ -103,7 +103,7 @@ const NuevoUsuarioMovil = () => {
   }, [blobPreviewUrl]);
 
   const displayPhotoSrc =
-    blobPreviewUrl ?? (isEdit && detail?.fotoUrl ? `${API_BASE}${detail.fotoUrl}` : null);
+    blobPreviewUrl ?? (isEdit && detail?.fotoUrl ? apiUrl(detail.fotoUrl) : null);
 
   const onFotoChange = (e: ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];

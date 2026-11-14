@@ -10,4 +10,5 @@ backend/data/
 .env
 *.env
 *.env.*
+!frontend/.env.production
 backend/src/main/resources/application.properties

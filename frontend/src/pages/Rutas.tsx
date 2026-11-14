@@ -48,6 +48,7 @@ import { useMobileUserRouteOptionsQuery, useRoutesQuery, useVehicleOptionsQuery 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { routesApi } from "@/services";
 import { apiPost } from "@/lib/api";
+import { apiUrl } from "@/lib/api-url";
 import { endpoints } from "@/services/endpoints";
 import { downloadPlantillaRutasYOrdenes, parseRouteOrderImport, type RouteOrderImportPreview } from "@/lib/routesExcel";
 import { toast } from "sonner";
@@ -276,8 +277,7 @@ const Rutas = () => {
     const toastId = toast.loading("Exportando datos...");
     try {
       const token = localStorage.getItem("auth_token");
-      const base = import.meta.env.VITE_API_BASE ?? "";
-      const res = await fetch(`${base}/api/v1/rutas/exportar`, {
+      const res = await fetch(apiUrl("/api/v1/rutas/exportar"), {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (!res.ok) throw new Error("Error al exportar");

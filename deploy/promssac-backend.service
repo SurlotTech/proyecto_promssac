@@ -1,0 +1,26 @@
+[Unit]
+Description=PROMSSAC Backend API
+Wants=network-online.target
+After=network-online.target docker.service
+
+[Service]
+Type=simple
+User=promssac
+Group=promssac
+WorkingDirectory=/var/lib/promssac
+Environment=SPRING_PROFILES_ACTIVE=prod
+ExecStart=/usr/lib/jvm/java-17-openjdk-arm64/bin/java -Xms128m -Xmx768m -jar /srv/promssac/backend/promssac-backend.jar --spring.config.additional-location=file:/etc/promssac/
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+SuccessExitStatus=143
+StateDirectory=promssac
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/promssac
+
+[Install]
+WantedBy=multi-user.target

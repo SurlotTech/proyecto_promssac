@@ -56,6 +56,7 @@ import {
   type OrderProductsLocationState,
 } from "@/lib/orderCreationDraft";
 import { cn } from "@/lib/utils";
+import { apiUrl } from "@/lib/api-url";
 import { toast } from "sonner";
 import { ordersApi } from "@/services/orders.api";
 import { comentariosApi, type ComentarioDto } from "@/services/comentarios.api";
@@ -738,7 +739,7 @@ const DetalleOrden = () => {
                           <div key={c.id} className="rounded-lg border border-border/60 bg-muted/20 p-3 text-sm">
                             <p className="text-foreground whitespace-pre-wrap">{c.texto}</p>
                             {c.archivoUrl && (
-                              <a href={c.archivoUrl} target="_blank" rel="noopener noreferrer"
+                              <a href={apiUrl(c.archivoUrl)} target="_blank" rel="noopener noreferrer"
                                 className="mt-1 inline-block text-xs text-primary underline">
                                 Ver archivo adjunto
                               </a>

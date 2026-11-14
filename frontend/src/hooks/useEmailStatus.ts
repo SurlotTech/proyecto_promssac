@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
+import { apiUrl } from "@/lib/api-url";
 
 interface EmailStatus {
   activo: boolean;
@@ -46,7 +47,6 @@ export function useEmailStatus() {
   }, [cancelarReconexion]);
 
   const conectar = useCallback(() => {
-    const base = import.meta.env.VITE_API_BASE ?? "";
     const token = localStorage.getItem("auth_token");
 
     if (!token) {
@@ -59,7 +59,7 @@ export function useEmailStatus() {
     clientRef.current?.deactivate();
 
     const client = new Client({
-      webSocketFactory: () => new SockJS(`${base}/ws?token=${encodeURIComponent(token)}`),
+      webSocketFactory: () => new SockJS(apiUrl(`/ws?token=${encodeURIComponent(token)}`)),
       connectHeaders: {
         Authorization: `Bearer ${token}`,
       },
