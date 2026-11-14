@@ -8,6 +8,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @Order(101)
@@ -18,20 +19,19 @@ public class EstadoDataSeeder implements ApplicationRunner {
     private final EstadoRepository repository;
 
     @Override
+    @Transactional
     public void run(ApplicationArguments args) {
         if (repository.count() > 0) return;
 
         Estado entregado = crearPadre("Entregado");
         Estado noEntregado = crearPadre("No entregado");
-        Estado inRoute = crearPadre("En ruta");
-        Estado pending = crearPadre("Pendiente");
+        crearPadre("En ruta");
+        crearPadre("Pendiente");
 
         crearHijo("Recepcionado conforme", entregado);
         crearHijo("Entrega tercero", entregado);
         crearHijo("Entrega UGEL", entregado);
         crearHijo("Devolución", noEntregado);
-        crearHijo("En ruta", inRoute);
-        crearHijo("Pendiente", pending);
 
         log.info("Estados y subestados por defecto creados.");
     }
