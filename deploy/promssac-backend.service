@@ -9,7 +9,7 @@ User=promssac
 Group=promssac
 WorkingDirectory=/var/lib/promssac
 Environment=SPRING_PROFILES_ACTIVE=prod
-ExecStart=/usr/lib/jvm/java-17-openjdk-arm64/bin/java -Xms128m -Xmx768m -jar /srv/promssac/backend/promssac-backend.jar --spring.config.additional-location=file:/etc/promssac/
+ExecStart=/usr/lib/jvm/java-17-openjdk-arm64/bin/java -Xms128m -Xmx768m -jar /srv/promssac/backend/promssac-backend.jar
 Restart=on-failure
 RestartSec=5
 TimeoutStopSec=30
