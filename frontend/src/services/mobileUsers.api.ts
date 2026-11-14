@@ -5,7 +5,7 @@ import type {
   MobileUserVehicleMode,
 } from "@/domain/mobileUsers";
 import type { MobileUserPermissionKey } from "@/domain/mobileUserForm";
-import { apiGet, apiPatch, apiPostMultipartJson, apiPutMultipartJson } from "@/lib/api";
+import { apiGet, apiGetBlob, apiPatch, apiPostMultipartJson, apiPutMultipartJson } from "@/lib/api";
 import { endpoints } from "./endpoints";
 
 export interface MobileUserCreateBody {
@@ -41,6 +41,10 @@ export const mobileUsersApi = {
 
   getById(id: string): Promise<MobileUserDetail> {
     return apiGet<MobileUserDetail>(`${endpoints.usuariosMovil}/${id}`);
+  },
+
+  getPhoto(id: string, signal?: AbortSignal): Promise<Blob> {
+    return apiGetBlob(`${endpoints.usuariosMovil}/${id}/foto`, signal);
   },
 
   create(body: MobileUserCreateBody, foto?: File | null): Promise<MobileUserCreated> {

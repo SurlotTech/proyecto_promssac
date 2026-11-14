@@ -50,6 +50,12 @@ export async function apiGet<T>(path: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+export async function apiGetBlob(path: string, signal?: AbortSignal): Promise<Blob> {
+  const res = await fetch(apiUrl(path), { headers: authHeaders(), signal });
+  await checkResponse(res);
+  return res.blob();
+}
+
 export async function apiPost<T, B>(path: string, body: B): Promise<T> {
   const res = await fetch(apiUrl(path), {
     method: "POST",

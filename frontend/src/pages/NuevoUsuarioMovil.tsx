@@ -33,8 +33,6 @@ import { FullscreenLoadOrError } from "@/components/common/FullscreenLoadOrError
 import { mobileUsersApi } from "@/services/mobileUsers.api";
 import { useMobileUserDetailQuery, useVehicleOptionsQuery } from "@/hooks/useOperationsQueries";
 
-import { apiUrl } from "@/lib/api-url";
-
 const FormSectionTitle = ({ children }: { children: ReactNode }) => (
   <div className="border-b border-border bg-muted/35 px-5 py-3">
     <h2 className="text-sm font-semibold tracking-tight text-foreground">{children}</h2>
@@ -63,6 +61,7 @@ const NuevoUsuarioMovil = () => {
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [storedPhoto, setStoredPhoto] = useState<{ userId: string; url: string } | null>(null);
   const fotoInputRef = useRef<HTMLInputElement>(null);
   const [submitting, setSubmitting] = useState(false);
   const [perms, setPerms] = useState<Record<MobileUserPermissionKey, boolean>>(
@@ -102,8 +101,27 @@ const NuevoUsuarioMovil = () => {
     };
   }, [blobPreviewUrl]);
 
-  const displayPhotoSrc =
-    blobPreviewUrl ?? (isEdit && detail?.fotoUrl ? apiUrl(detail.fotoUrl) : null);
+  useEffect(() => {
+    if (!editId || !detail?.fotoUrl) return;
+    const controller = new AbortController();
+    let objectUrl: string | undefined;
+    mobileUsersApi.getPhoto(editId, controller.signal)
+      .then((blob) => {
+        if (controller.signal.aborted) return;
+        objectUrl = URL.createObjectURL(blob);
+        setStoredPhoto({ userId: editId, url: objectUrl });
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) toast.error("No se pudo cargar la foto del usuario.");
+      });
+    return () => {
+      controller.abort();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [editId, detail?.fotoUrl]);
+
+  const displayPhotoSrc = blobPreviewUrl
+    ?? (detail?.fotoUrl && storedPhoto?.userId === editId ? storedPhoto.url : null);
 
   const onFotoChange = (e: ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
